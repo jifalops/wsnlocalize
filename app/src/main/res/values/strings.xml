@@ -1,11 +1,4 @@
 <resources>
     <string name="app_name">WSN Localize</string>
-
-    <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
-    <string name="local_service_started">App Service Started</string>
-    <string name="local_service_stopped">App Service Stopped</string>
-    <string name="local_service_label">WSN Localize Service</string>
-    <string name="local_service_connected">App Service Connected</string>
-    <string name="local_service_disconnected">App Service Disconnected</string>
 </resources>
