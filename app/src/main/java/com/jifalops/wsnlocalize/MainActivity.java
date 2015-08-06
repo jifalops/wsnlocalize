@@ -9,6 +9,8 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.jifalops.wsnlocalize.nsd.NsdTestingActivity;
+
 
 /**
  * MainActivity is the starting point when using the app. Its main purpose is to allow the user
@@ -24,6 +26,7 @@ public class MainActivity extends Activity {
         layout = (LinearLayout) findViewById(R.id.linearLayout);
         addToLayout("Bluetooth Beacon Activity", BtBeaconActivity.class);
         addToLayout("This is a test", "This is only a test", null);
+        addToLayout("NSD Testing Activity", NsdTestingActivity.class);
     }
 
     private void addToLayout(String text, final Class<?> clazz) {

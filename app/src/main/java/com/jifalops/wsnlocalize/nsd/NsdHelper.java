@@ -19,10 +19,16 @@ package com.jifalops.wsnlocalize.nsd;
 import android.content.Context;
 import android.net.nsd.NsdManager;
 import android.net.nsd.NsdServiceInfo;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
-import com.jifalops.wsnlocalize.wifi.WifiHelper;
-
+import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,25 +36,20 @@ public class NsdHelper {
     private static final String TAG = NsdHelper.class.getSimpleName();
     public static final String SERVICE_TYPE = "_http._tcp.";
 
-    Context mContext;
-    WifiHelper mWifiHelper;
-
-    NsdManager mNsdManager;
-    NsdManager.ResolveListener mResolveListener;
-    NsdManager.DiscoveryListener mDiscoveryListener;
-    NsdManager.RegistrationListener mRegistrationListener;
-
+    private WifiManager mWifiManager;
+    private NsdManager mNsdManager;
+    private NsdManager.ResolveListener mResolveListener;
+    private NsdManager.DiscoveryListener mDiscoveryListener;
+    private NsdManager.RegistrationListener mRegistrationListener;
     private String mServiceName;
-    private boolean registered;
-
+    private boolean mIsRegistered;
     private final NsdServiceFilter mFilter;
 
     public NsdHelper(Context context, String serviceName, NsdServiceFilter filter) {
-        mContext = context.getApplicationContext();
         mFilter = filter;
         mNsdManager = (NsdManager) context.getSystemService(Context.NSD_SERVICE);
         mServiceName = serviceName;
-        mWifiHelper = WifiHelper.getInstance(context);
+        mWifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
     }
 
     public void initializeNsd() {
@@ -90,7 +91,6 @@ public class NsdHelper {
             @Override
             public void onDiscoveryStopped(String serviceType) {
                 Log.i(TAG, "Discovery stopped: " + serviceType);
-                // TODO restart discovery if necessary
             }
 
             @Override
@@ -137,21 +137,24 @@ public class NsdHelper {
             }
 
             @Override
-            public void onServiceResolved(NsdServiceInfo serviceInfo) {
+            public void onServiceResolved(final NsdServiceInfo serviceInfo) {
                 Log.i(TAG, "Resolve Succeeded for " + getServiceString(serviceInfo));
 
-                if (serviceInfo.getHost().getHostAddress().equals(mWifiHelper.getIpAddress())) {
+                if (serviceInfo.getHost().getHostAddress().equals(getIpAddress())) {
                     Log.e(TAG, "Same host. Connection aborted.");
                     return;
                 }
-
-                for (NsdHelperListener l : listeners) {
-                    l.onAcceptableServiceResolved(serviceInfo);
-                }
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (NsdHelperListener l : listeners) {
+                            l.onAcceptableServiceResolved(serviceInfo);
+                        }
+                    }
+                });
             }
         };
     }
-
 
     public void initializeRegistrationListener() {
         if (mRegistrationListener == null) {
@@ -162,17 +165,24 @@ public class NsdHelper {
         mRegistrationListener = new NsdManager.RegistrationListener() {
 
             @Override
-            public void onServiceRegistered(NsdServiceInfo nsdServiceInfo) {
+            public void onServiceRegistered(final NsdServiceInfo nsdServiceInfo) {
                 mServiceName = nsdServiceInfo.getServiceName();
-                Log.e(TAG, "Registered service " + nsdServiceInfo.getServiceName());
-                for (NsdHelperListener l : listeners) {
-                    l.onServiceRegistered(nsdServiceInfo);
-                }
+                Log.i(TAG, "Registered service: " + nsdServiceInfo);
+
+                new Handler(Looper.getMainLooper()).post(new Runnable() {
+                    @Override
+                    public void run() {
+                        for (NsdHelperListener l : listeners) {
+                            l.onServiceRegistered(nsdServiceInfo);
+                        }
+                    }
+                });
             }
 
             @Override
             public void onRegistrationFailed(NsdServiceInfo nsdServiceInfo, int errorCode) {
-                Log.e(TAG, "Registration failed for " + getServiceString(nsdServiceInfo) + ". Error " + errorCode);
+                Log.e(TAG, "Registration failed for " + getServiceString(nsdServiceInfo) +
+                        ". Error " + errorCode);
             }
 
             @Override
@@ -182,7 +192,8 @@ public class NsdHelper {
 
             @Override
             public void onUnregistrationFailed(NsdServiceInfo nsdServiceInfo, int errorCode) {
-                Log.e(TAG, "Unregistration failed for " + getServiceString(nsdServiceInfo) + ". Error " + errorCode);
+                Log.e(TAG, "Unregistration failed for " + getServiceString(nsdServiceInfo) +
+                        ". Error " + errorCode);
             }
 
         };
@@ -191,11 +202,11 @@ public class NsdHelper {
 
     private synchronized void doRegisterService(NsdServiceInfo info) throws IllegalArgumentException {
         mNsdManager.registerService(info, NsdManager.PROTOCOL_DNS_SD, mRegistrationListener);
-        registered = true;
+        mIsRegistered = true;
     }
 
     public synchronized boolean registerService(int port) {
-        Log.e(TAG, "Registering service at " + mWifiHelper.getIpAddress() + ":" + port); // Log.e is red
+        Log.i(TAG, "Registering service at " + getIpAddress() + ":" + port);
         NsdServiceInfo serviceInfo  = new NsdServiceInfo();
         serviceInfo.setPort(port);
         serviceInfo.setServiceName(mServiceName);
@@ -212,16 +223,16 @@ public class NsdHelper {
                 Log.e(TAG, "Failed to register service, " + e2.getMessage());
             }
         }
-        return registered;
+        return mIsRegistered;
     }
 
     public synchronized boolean unregisterService() {
-        if (!registered) return false;
+        if (!mIsRegistered) return false;
         mNsdManager.unregisterService(mRegistrationListener);
         return true;
     }
 
-    public void discoverServices() { //TODO this doesn't normally fail and probably doesnt need to retry
+    public void discoverServices() {
         // This is a work-around for the "listener already in use" error.
         // It seems discoverServices() needs a new DiscoveryListener each call.
         try {
@@ -250,18 +261,36 @@ public class NsdHelper {
     }
 
 
-    public static String getServiceString(NsdServiceInfo service) {
+    public String getServiceString(NsdServiceInfo service) {
         try {
             return service.getHost().getHostAddress() + ":" + service.getPort();
         } catch (NullPointerException ignored) {}
         return null;
     }
 
+    public String getIpAddress() {
+        WifiInfo info = mWifiManager.getConnectionInfo();
+        if (info == null) return null;
+
+        int ipAddress = info.getIpAddress();
+        if (ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN)) {
+            ipAddress = Integer.reverseBytes(ipAddress);
+        }
+        byte[] ipByteArray = BigInteger.valueOf(ipAddress).toByteArray();
+
+        String ipAddressString;
+        try {
+            ipAddressString = InetAddress.getByAddress(ipByteArray).getHostAddress();
+        } catch (UnknownHostException ex) {
+            Log.e(TAG, "Unable to get host address.");
+            ipAddressString = null;
+        }
+        return ipAddressString;
+    }
 
 
-    /**
-     * Allow other objects to react to events. Called on main thread.
-     */
+
+    /** Called on main thread. */
     public interface NsdHelperListener {
         void onServiceRegistered(NsdServiceInfo info);
         void onAcceptableServiceResolved(NsdServiceInfo info);

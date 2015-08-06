@@ -6,6 +6,7 @@ import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.math.BigInteger;
 import java.net.InetAddress;
@@ -34,7 +35,7 @@ public final class WifiHelper {
         try {
             apManager = SoftApManager.getInstance(ctx);
         } catch (NoSuchMethodException e) {
-            Log.e(TAG, "Soft AP not available.", e);
+            Toast.makeText(ctx, "Soft AP not available.", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -47,8 +48,6 @@ public final class WifiHelper {
     public ConnectivityManager getConnectionManager() {
         return connManager;
     }
-
-
 
 
 

@@ -1,8 +1,7 @@
 package com.jifalops.wsnlocalize.socket;
 
-import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
+import android.os.Looper;
 import android.util.Log;
 
 import java.net.InetAddress;
@@ -14,24 +13,34 @@ import java.util.List;
 
 /**
  * The socket manager contains a list of connections (clients), and a single listening server socket.
- * It also uses a Handler to transfer server/connection events from their respective threads to the main application thread.
+ * It also uses a Handler to transfer server/connection events from their respective threads
+ * to the main application thread.
  *
  * @author Jacob Phillips (12/2014, jphilli85 at gmail)
  */
 public class MySocketManager {
     private static final String TAG = MySocketManager.class.getSimpleName();
 
-    private final List<MyConnectionSocket> connections = Collections.synchronizedList(new ArrayList<MyConnectionSocket>());
+    private final List<MyConnectionSocket> connections = Collections.synchronizedList(
+            new ArrayList<MyConnectionSocket>());
     private final MyServerSocket server = new MyServerSocket();
 
+    /**
+     * Send a message to all connections.
+     * @return the number of connections the message was sent to.
+     */
     public int send(String msg) {
         int count = 0;
         for (MyConnectionSocket mcs : connections) {
-            if (mcs.send(msg)) ++count;                 // TODO *could* use one shared sending thread
+            if (mcs.send(msg)) ++count;
         }
         return count;
     }
 
+    /**
+     * Send a message to a specific connection
+     * @return the number of connections the message was sent to (1 or 0).
+     */
     public int send(InetAddress address, String msg) {
         int count = 0;
         for (MyConnectionSocket mcs : connections) {
@@ -68,7 +77,7 @@ public class MySocketManager {
 
     public synchronized boolean startConnection(MyConnectionSocket mcs) {
         if (hasAddress(mcs.getAddress())) {
-            Log.v(TAG, "Already have connection to " + mcs.getAddress()+":"+mcs.getPort() + ", ignoring.");
+            Log.d(TAG, "Already have connection to " + mcs.getAddress()+":"+mcs.getPort() + ", ignoring.");
             return false;
         }
         mcs.registerListener(connectionSocketListener);
@@ -88,114 +97,95 @@ public class MySocketManager {
 
     private final MyServerSocket.ServerListener serverListener = new MyServerSocket.ServerListener() {
         @Override
-        public void onServerSocketListening(MyServerSocket mss, ServerSocket ss) {
-            notifyHandler(serverListening, null, mss);
+        public void onServerSocketListening(final MyServerSocket mss, final ServerSocket ss) {
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    for (SocketListener l : listeners) {
+                        l.onServerSocketListening(mss, ss);
+                    }
+                }
+            });
         }
 
         @Override
-        public void onServerAcceptedClientSocket(MyServerSocket mss, Socket socket) {
+        public void onServerAcceptedClientSocket(final MyServerSocket mss, final Socket socket) {
             startConnection(new MyConnectionSocket(socket));
-            notifyHandler(serverAcceptedClientSocket, null, mss);
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    for (SocketListener l : listeners) {
+                        l.onServerAcceptedClientSocket(mss, socket);
+                    }
+                }
+            });
         }
 
         @Override
-        public void onFinished(MyServerSocket mss) {
-            notifyHandler(serverFinished, null, mss);
+        public void onFinished(final MyServerSocket mss) {
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    for (SocketListener l : listeners) {
+                        l.onServerFinished(mss);
+                    }
+                }
+            });
         }
     };
 
     private final MyConnectionSocket.ConnectionListener connectionSocketListener = new MyConnectionSocket.ConnectionListener() {
         @Override
-        public void onSocketCreated(MyConnectionSocket mcs, Socket socket) {
-            notifyHandler(clientCreatedSocket, null, mcs);
+        public void onSocketCreated(final MyConnectionSocket mcs, final Socket socket) {
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    for (SocketListener l : listeners) {
+                        l.onClientSocketCreated(mcs, socket);
+                    }
+                }
+            });
         }
 
         @Override
-        public void onMessageSent(MyConnectionSocket mcs, String s) {
-            notifyHandler(sent, s, mcs);
+        public void onMessageSent(final MyConnectionSocket mcs, final String s) {
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    for (SocketListener l : listeners) {
+                        l.onMessageSent(mcs, s);
+                    }
+                }
+            });
         }
 
         @Override
-        public void onMessageReceived(MyConnectionSocket mcs, String s) {
-            notifyHandler(received, s, mcs);
+        public void onMessageReceived(final MyConnectionSocket mcs, final String s) {
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
+                    for (SocketListener l : listeners) {
+                        l.onMessageReceived(mcs, s);
+                    }
+                }
+            });
         }
 
         @Override
-        public void onFinished(MyConnectionSocket mcs) {
+        public void onFinished(final MyConnectionSocket mcs) {
             connections.remove(mcs);
-            notifyHandler(clientFinished, null, mcs);
-        }
-    };
-
-    private void notifyHandler(int type, String s, Object obj) {
-        Bundle data = new Bundle();
-        data.putString("string", s);
-        Message msg = handler.obtainMessage();
-        msg.setData(data);
-        msg.arg1 = type;
-        msg.obj = obj;
-        handler.sendMessage(msg);
-    }
-
-    private final int serverAcceptedClientSocket=1, serverFinished=2, serverListening=3,
-            sent=4, received=5, clientFinished=6, clientCreatedSocket=7;
-
-    private final Handler handler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            MyServerSocket mss;
-            MyConnectionSocket mcs;
-            switch (msg.arg1) {
-                case serverAcceptedClientSocket:
-                    mss = (MyServerSocket) msg.obj;
-                    for (SocketListener l : listeners) {
-                        l.onServerAcceptedClientSocket(mss, mss.getAcceptedSocket());
-                    }
-                    break;
-                case serverFinished:
-                    mss = (MyServerSocket) msg.obj;
-                    for (SocketListener l : listeners) {
-                        l.onServerFinished(mss);
-                    }
-                    break;
-                case serverListening:
-                    mss = (MyServerSocket) msg.obj;
-                    for (SocketListener l : listeners) {
-                        l.onServerSocketListening(mss, mss.getServerSocket());
-                    }
-                    break;
-                case sent:
-                    mcs = (MyConnectionSocket) msg.obj;
-                    for (SocketListener l : listeners) {
-                        l.onMessageSent(mcs, msg.getData().getString("string"));
-                    }
-                    break;
-                case received:
-                    mcs = (MyConnectionSocket) msg.obj;
-                    for (SocketListener l : listeners) {
-                        l.onMessageReceived(mcs, msg.getData().getString("string"));
-                    }
-                    break;
-                case clientFinished:
-                    mcs = (MyConnectionSocket) msg.obj;
+            new Handler(Looper.getMainLooper()).post(new Runnable() {
+                @Override
+                public void run() {
                     for (SocketListener l : listeners) {
                         l.onClientFinished(mcs);
                     }
-                    break;
-                case clientCreatedSocket:
-                    mcs = (MyConnectionSocket) msg.obj;
-                    for (SocketListener l : listeners) {
-                        l.onClientSocketCreated(mcs, mcs.getSocket());
-                    }
-                    break;
-            }
+                }
+            });
         }
     };
 
-
-    /**
-     * Allow other objects to react to events. Called on main thread.
-     */
+    /** Called on main thread. */
     public interface SocketListener {
         void onServerAcceptedClientSocket(MyServerSocket mss, Socket socket);
         void onServerFinished(MyServerSocket mss);
@@ -205,7 +195,6 @@ public class MySocketManager {
         void onClientFinished(MyConnectionSocket mcs);
         void onClientSocketCreated(MyConnectionSocket mcs, Socket socket);
     }
-    // a List of unique listener instances.
     private final List<SocketListener> listeners = new ArrayList<>(1);
     public boolean registerListener(SocketListener l) {
         return !listeners.contains(l) && listeners.add(l);

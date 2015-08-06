@@ -9,10 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This class manages listening for an incoming socket connection by using a ServerSocket and
- * serverSocket.accept(). After accepting an incoming socket, onClientSocketAccepted() is called
+ * This class manages listening for an incoming socket connection by using
+ * {@link ServerSocket#accept()}. After accepting an incoming socket,
+ * {@link ServerListener#onServerAcceptedClientSocket(MyServerSocket, Socket)} is called
  * on the registered listeners. When the end of the thread is reached (from error or by calling stop()),
- * onFinished() is called on the registered listeners.
+ * {@link ServerListener#onFinished(MyServerSocket)} is called on the registered listeners.
  *
  * @author Jacob Phillips (12/2014, jphilli85 at gmail)
  */
@@ -41,7 +42,6 @@ public class MyServerSocket {
     }
 
 
-
     private boolean finished;
     public synchronized boolean isFinished() { return finished; }
     private synchronized void finish() {
@@ -57,7 +57,6 @@ public class MyServerSocket {
 
     private Thread thread;
 
-
     public void start() {
         start(port);
     }
@@ -67,7 +66,9 @@ public class MyServerSocket {
         thread = new Thread(new ServerThread());
         thread.start();
     }
+    private boolean stopping;
     public void stop() {
+        stopping = true;
         if (thread != null) {
             thread.interrupt();
             thread = null;
@@ -79,6 +80,7 @@ public class MyServerSocket {
                 Log.e(TAG, "Failed to close server socket.");
             }
         }
+        stopping = false;
     }
 
     private int acceptCount;
@@ -100,21 +102,23 @@ public class MyServerSocket {
             }
             try {
                 while (acceptCount < acceptLimit && !Thread.currentThread().isInterrupted()) {
-                    client = getServerSocket().accept();
+                    client = getServerSocket().accept(); // Blocks thread
                     ++acceptCount;
                     setAcceptedSocket(client);
                 }
             } catch (IOException e) {
-                Log.w(TAG, "Failed to accept socket on port " + port + " for client #" + (acceptCount + 1));
+                if (stopping) {
+                    Log.i(TAG, "Server stopped. Accepted " + acceptCount + " connections.");
+                } else {
+                    Log.e(TAG, "Failed to accept socket on port " +
+                            port + " while waiting for connection #" + (acceptCount + 1));
+                }
             }
             finish();
         }
     }
 
 
-    /**
-     * Allow other objects to react to events.
-     */
     public interface ServerListener {
         /** called on server thread */
         void onServerAcceptedClientSocket(MyServerSocket mss, Socket socket);
@@ -123,7 +127,7 @@ public class MyServerSocket {
         /** called on server thread */
         void onServerSocketListening(MyServerSocket mss, ServerSocket ss);
     }
-    private final List<ServerListener> listeners = new ArrayList<ServerListener>(1);
+    private final List<ServerListener> listeners = new ArrayList<>(1);
     public boolean registerListener(ServerListener l) {
         return !listeners.contains(l) && listeners.add(l);
     }

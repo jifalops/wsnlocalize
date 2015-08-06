@@ -39,7 +39,6 @@ public class AggregateScanResult {
         return rssi.size();
     }
 
-
     /** Uses the max rssi from up to the 10 most recent results,
      * but they must be less than 1 minute old. */
     public int effectiveRssi() {

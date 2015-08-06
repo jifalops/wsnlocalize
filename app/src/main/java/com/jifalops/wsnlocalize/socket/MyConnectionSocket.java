@@ -22,18 +22,17 @@ import java.util.concurrent.BlockingQueue;
  * this class can be used multiple times, but it is restricted to the address and port it was
  * originally created for.
  *
- * @author Jacob Phillips (12/2014, jphilli85 at gmail)
+ * @author Jacob Phillips (12/2014, jifalops at gmail)
  */
 public class MyConnectionSocket {
     private static final String TAG = MyConnectionSocket.class.getSimpleName();
-
 
     private Socket socket;
     private final InetAddress address;
     private final int port;
     private Thread sendThread;
     private Thread receiveThread;
-    private final BlockingQueue<String> sendQueue = new ArrayBlockingQueue<String>(10);
+    private final BlockingQueue<String> sendQueue = new ArrayBlockingQueue<>(10);
 
     public MyConnectionSocket(InetAddress address, int port) {
         this.address = address;
@@ -76,8 +75,9 @@ public class MyConnectionSocket {
         sendThread.start();
     }
 
+    private boolean stopping;
     public synchronized void stop() {
-        started = false;
+        stopping = true;
         if (sendThread != null) {
             sendThread.interrupt();
             sendThread = null;
@@ -93,6 +93,8 @@ public class MyConnectionSocket {
                 Log.e(TAG, "Failed to close connection socket.");
             }
         }
+        started = false;
+        stopping = false;
     }
 
     public boolean send(String msg) {
@@ -142,7 +144,11 @@ public class MyConnectionSocket {
                     String msg = sendQueue.take();
                     sendMessage(msg);
                 } catch (InterruptedException ie) {
-                    Log.d(TAG, "Message sending loop interrupted, exiting");
+                    if (stopping) {
+                        Log.i(TAG, "Send thread stopped.");
+                    } else {
+                        Log.e(TAG, "Message sending loop interrupted, exiting");
+                    }
                 }
             }
             finish();
@@ -151,9 +157,9 @@ public class MyConnectionSocket {
         private void sendMessage(String msg) {
             try {
                 if (socket == null) {
-                    Log.d(TAG, "Socket is null, wtf?");
+                    Log.e(TAG, "Socket is null, wtf?");
                 } else if (socket.getOutputStream() == null) {
-                    Log.d(TAG, "Socket output stream is null, wtf?");
+                    Log.e(TAG, "Socket output stream is null, wtf?");
                 }
 
                 PrintWriter out = new PrintWriter(
@@ -165,14 +171,14 @@ public class MyConnectionSocket {
                 for (ConnectionListener l : listeners) {
                     l.onMessageSent(MyConnectionSocket.this, msg);
                 }
+                Log.v(TAG, "Sent message: " + msg);
             } catch (UnknownHostException e) {
-                Log.d(TAG, "Unknown Host");
+                Log.e(TAG, "Unknown Host");
             } catch (IOException e) {
-                Log.d(TAG, "I/O Exception");
+                Log.e(TAG, "I/O Exception");
             } catch (Exception e) {
-                Log.d(TAG, "Exception during sendMessage()");
+                Log.e(TAG, "Exception during sendMessage()");
             }
-            Log.v(TAG, "Sent message: " + msg);
         }
     }
 
@@ -196,20 +202,18 @@ public class MyConnectionSocket {
                     }
                 }
                 input.close();
-
             } catch (IOException e) {
-                Log.d(TAG, "Error running receive thread, " + e.getMessage());
+                if (stopping) {
+                    Log.i(TAG, "Receive thread stopped.");
+                } else {
+                    Log.e(TAG, "Error running receive thread, " + e.getMessage());
+                }
             }
             finish();
         }
     }
 
 
-
-
-    /**
-     * Allow other objects to react to events.
-     */
     public interface ConnectionListener {
         /** called on send thread */
         void onSocketCreated(MyConnectionSocket mcs, Socket socket);
@@ -220,7 +224,7 @@ public class MyConnectionSocket {
         /** called on send or receive thread. */
         void onFinished(MyConnectionSocket socket);
     }
-    private final List<ConnectionListener> listeners = new ArrayList<ConnectionListener>(1);
+    private final List<ConnectionListener> listeners = new ArrayList<>(1);
     public boolean registerListener(ConnectionListener l) {
         return !listeners.contains(l) && listeners.add(l);
     }

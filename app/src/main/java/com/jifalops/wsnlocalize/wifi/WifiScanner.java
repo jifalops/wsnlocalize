@@ -34,7 +34,7 @@ public class WifiScanner {
     }
 
 
-    final BroadcastReceiver scanReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver scanReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             List<ScanResult> results = manager.getScanResults();
@@ -44,8 +44,8 @@ public class WifiScanner {
         }
     };
 
-    /** scanPeriod is in millis. */
-    public void start(int scanPeriod) {
+    public void start() { start(1000); }
+    public void start(int scanPeriodMillis) {
         if (enabled) return;
         enabled = true;
 
@@ -59,10 +59,8 @@ public class WifiScanner {
             public void run() {
                 manager.startScan();
             }
-        }, 0, scanPeriod);
+        }, 0, scanPeriodMillis);
     }
-    public void start() { start(1000); }
-
 
     public void stop() {
         if (!enabled) return;
@@ -77,9 +75,6 @@ public class WifiScanner {
     public boolean isEnabled() { return enabled; }
 
 
-    /**
-     * Allow other objects to react to node events.
-     */
     public interface ScanListener {
         void onScanResults(List<ScanResult> scanResults);
     }

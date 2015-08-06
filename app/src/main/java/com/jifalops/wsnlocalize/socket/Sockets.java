@@ -7,7 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * @author Jacob Phillips (12/2014, jphilli85 at gmail)
+ * @author Jacob Phillips (12/2014, jifalops at gmail)
  */
 public class Sockets {
     public static String toString(ServerSocket socket, Object... objects) {

@@ -9,6 +9,9 @@
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/jifalops/wsnlocalize/socket/MyServerSocket.java" charset="US-ASCII" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/jifalops/wsnlocalize/socket/MySocketManager.java" charset="US-ASCII" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/jifalops/wsnlocalize/socket/Sockets.java" charset="US-ASCII" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/jifalops/wsnlocalize/util/Calc.java" charset="US-ASCII" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/jifalops/wsnlocalize/util/Const.java" charset="US-ASCII" />
+    <file url="file://$PROJECT_DIR$/app/src/main/java/com/jifalops/wsnlocalize/util/Conv.java" charset="US-ASCII" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/jifalops/wsnlocalize/util/PersistentIntentService.java" charset="US-ASCII" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/jifalops/wsnlocalize/util/PersistentIntentService.java" charset="US-ASCII" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/jifalops/wsnlocalize/util/PersistentIntentServiceFragment.java" charset="US-ASCII" />
@@ -18,6 +21,7 @@
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/jifalops/wsnlocalize/wifi/SoftApManager.java" charset="US-ASCII" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/jifalops/wsnlocalize/wifi/WifiHelper.java" charset="US-ASCII" />
     <file url="file://$PROJECT_DIR$/app/src/main/java/com/jifalops/wsnlocalize/wifi/WifiScanner.java" charset="US-ASCII" />
+    <file url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_nsdtest.xml" charset="US-ASCII" />
     <file url="PROJECT" charset="UTF-8" />
   </component>
 </project>

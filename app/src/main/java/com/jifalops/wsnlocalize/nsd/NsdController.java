@@ -9,6 +9,7 @@ import com.jifalops.wsnlocalize.socket.MyServerSocket;
 import com.jifalops.wsnlocalize.socket.MySocketManager;
 import com.jifalops.wsnlocalize.socket.Sockets;
 
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -19,7 +20,7 @@ import java.util.List;
  * See {@link MySocketManager}.
  * It also initiates reconnecting.
  *
- * @author Jacob Phillips (01/2015, jphilli85 at gmail)
+ * @author Jacob Phillips (01/2015, jifalops at gmail)
  */
 public class NsdController {
     private static final String TAG = NsdController.class.getSimpleName();
@@ -35,12 +36,11 @@ public class NsdController {
     public NsdHelper getNsdHelper() {
         return nsdHelper;
     }
-
     public MySocketManager getSocketManager() {
         return socketManager;
     }
 
-    public void enableNsd() {
+    public void startNsd() {
         nsdHelper.registerListener(nsdListener);
         nsdHelper.initializeNsd();
 
@@ -50,7 +50,7 @@ public class NsdController {
         nsdHelper.discoverServices();
     }
 
-    public void disableNsd() {
+    public void stopNsd() {
         nsdHelper.stopDiscovery();
         socketManager.stopServer();
         socketManager.stopConnections();
@@ -59,21 +59,31 @@ public class NsdController {
         nsdHelper.unregisterListener(nsdListener);
     }
 
+    /** Convenience method for {@link MySocketManager#send(String)} */
+    public int send(String msg) {
+        return socketManager.send(msg);
+    }
+
+    /** Convenience method for {@link MySocketManager#send(InetAddress, String)} */
+    public int send(InetAddress address, String msg) {
+        return socketManager.send(address, msg);
+    }
 
     private final MySocketManager.SocketListener socketListener = new MySocketManager.SocketListener() {
 
         @Override
         public void onServerAcceptedClientSocket(MyServerSocket mss, Socket socket) {
             Log.i(TAG, "Server accepted socket to " + Sockets.toString(socket));
-            for (NsdContollerListener l : listeners) {
+            for (NsdListener l : listeners) {
                 l.onServerAcceptedClientSocket(mss, socket);
             }
         }
 
         @Override
         public void onServerFinished(MyServerSocket mss) {
-            Log.v(TAG, "Server on port " + mss.getPort() + " closed. It had accepted " + mss.getAcceptCount() + " sockets total.");
-            for (NsdContollerListener l : listeners) {
+            Log.v(TAG, "Server on port " + mss.getPort() + " closed. It had accepted " +
+                    mss.getAcceptCount() + " sockets total.");
+            for (NsdListener l : listeners) {
                 l.onServerFinished(mss);
             }
         }
@@ -81,7 +91,7 @@ public class NsdController {
         @Override
         public void onServerSocketListening(MyServerSocket mss, ServerSocket ss) {
             Log.v(TAG, "Server now listening on port " + ss.getLocalPort());
-            for (NsdContollerListener l : listeners) {
+            for (NsdListener l : listeners) {
                 l.onServerSocketListening(mss, ss);
             }
             nsdHelper.registerService(ss.getLocalPort());
@@ -90,7 +100,7 @@ public class NsdController {
         @Override
         public void onMessageSent(MyConnectionSocket mcs, String msg) {
             Log.v(TAG, "Sent message to " + Sockets.toString(mcs.getSocket()));
-            for (NsdContollerListener l : listeners) {
+            for (NsdListener l : listeners) {
                 l.onMessageSent(mcs, msg);
             }
         }
@@ -98,7 +108,7 @@ public class NsdController {
         @Override
         public void onMessageReceived(MyConnectionSocket mcs, String msg) {
             Log.v(TAG, "Received message from " + Sockets.toString(mcs.getSocket()));
-            for (NsdContollerListener l : listeners) {
+            for (NsdListener l : listeners) {
                 l.onMessageReceived(mcs, msg);
             }
         }
@@ -106,7 +116,7 @@ public class NsdController {
         @Override
         public void onClientFinished(MyConnectionSocket mcs) {
             Log.v(TAG, "Client finished: " + Sockets.toString(mcs.getAddress(), mcs.getPort()));
-            for (NsdContollerListener l : listeners) {
+            for (NsdListener l : listeners) {
                 l.onClientFinished(mcs);
             }
         }
@@ -114,7 +124,7 @@ public class NsdController {
         @Override
         public void onClientSocketCreated(MyConnectionSocket mcs, Socket socket) {
             Log.v(TAG, "Client socket created for " + Sockets.toString(socket));
-            for (NsdContollerListener l : listeners) {
+            for (NsdListener l : listeners) {
                 l.onClientSocketCreated(mcs, socket);
             }
         }
@@ -123,30 +133,27 @@ public class NsdController {
     private final NsdHelper.NsdHelperListener nsdListener = new NsdHelper.NsdHelperListener() {
         @Override
         public void onServiceRegistered(NsdServiceInfo info) {
-            for (NsdContollerListener l : listeners) {
+            for (NsdListener l : listeners) {
                 l.onServiceRegistered(info);
             }
         }
 
         @Override
         public void onAcceptableServiceResolved(NsdServiceInfo info) {
-            for (NsdContollerListener l : listeners) {
+            for (NsdListener l : listeners) {
                 l.onAcceptableServiceResolved(info);
             }
             socketManager.startConnection(new MyConnectionSocket(info.getHost(), info.getPort()));
         }
     };
 
-    /**
-     * Allow other objects to react to events.
-     */
-    public static abstract class NsdContollerListener implements NsdHelper.NsdHelperListener, MySocketManager.SocketListener {}
-    private final List<NsdContollerListener> listeners = new ArrayList<NsdContollerListener>(1);
-    public boolean registerListener(NsdContollerListener l) {
-        if (listeners.contains(l)) return false;
-        return listeners.add(l);
+    public static abstract class NsdListener implements
+            NsdHelper.NsdHelperListener, MySocketManager.SocketListener {}
+    private final List<NsdListener> listeners = new ArrayList<>(1);
+    public boolean registerListener(NsdListener l) {
+        return !listeners.contains(l) && listeners.add(l);
     }
-    public boolean unregisterListener(NsdContollerListener l) {
+    public boolean unregisterListener(NsdListener l) {
         return listeners.remove(l);
     }
 }

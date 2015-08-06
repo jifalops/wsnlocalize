@@ -3,8 +3,8 @@ package com.jifalops.wsnlocalize.nsd;
 import android.net.nsd.NsdServiceInfo;
 
 /**
-* Created by Jacob Phillips.
-*/
+ * Created by jake on 8/6/15.
+ */
 public interface NsdServiceFilter {
     boolean isAcceptableService(NsdServiceInfo info);
 }
