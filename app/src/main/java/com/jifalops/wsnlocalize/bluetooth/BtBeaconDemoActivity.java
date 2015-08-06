@@ -1,4 +1,4 @@
-package com.jifalops.wsnlocalize;
+package com.jifalops.wsnlocalize.bluetooth;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
@@ -13,8 +13,11 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jifalops.wsnlocalize.R;
+import com.jifalops.wsnlocalize.util.Calc;
 
-public class BtBeaconActivity extends Activity {
+
+public class BtBeaconDemoActivity extends Activity {
     private static final int REQUEST_BT_DISCOVERABLE = 1;
     private BtBeacon btBeacon;
     private TextView textView;
@@ -23,13 +26,9 @@ public class BtBeaconActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_btbeacon);
+        final ScrollView scroll = (ScrollView) findViewById(R.id.scrollView);
         textView = (TextView) findViewById(R.id.text);
-        autoScrollTextView(textView, (ScrollView) findViewById(R.id.scrollView));
-        btBeacon = BtBeacon.getInstance(this);
-    }
-
-    private void autoScrollTextView(TextView tv, final ScrollView sv) {
-        tv.addTextChangedListener(new TextWatcher() {
+        textView.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
@@ -40,14 +39,15 @@ public class BtBeaconActivity extends Activity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                sv.post(new Runnable() {
+                scroll.post(new Runnable() {
                     @Override
                     public void run() {
-                        sv.fullScroll(View.FOCUS_DOWN);
+                        scroll.fullScroll(View.FOCUS_DOWN);
                     }
                 });
             }
         });
+        btBeacon = BtBeacon.getInstance(this);
     }
 
     @Override
@@ -86,17 +86,15 @@ public class BtBeaconActivity extends Activity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+        return id == R.id.action_settings || super.onOptionsItemSelected(item);
     }
 
 
     private final BtBeacon.BtBeaconListener btBeaconListener = new BtBeacon.BtBeaconListener() {
         @Override
         public void onDeviceFound(BluetoothDevice device, short rssi) {
-            textView.append("RX " + rssi + "dBm from " + device.getAddress() + ".\n");
+            textView.append("Received " + rssi + "dBm from " + device.getAddress() + " (" +
+                    String.format("%1.1f", Calc.freeSpacePathLoss(rssi, 2400)) + "m).\n");
         }
 
         @Override

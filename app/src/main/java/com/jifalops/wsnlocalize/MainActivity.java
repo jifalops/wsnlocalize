@@ -9,7 +9,9 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.jifalops.wsnlocalize.nsd.NsdTestingActivity;
+import com.jifalops.wsnlocalize.bluetooth.BtBeaconDemoActivity;
+import com.jifalops.wsnlocalize.bluetooth.BtLeBeaconDemoActivity;
+import com.jifalops.wsnlocalize.nsd.NsdDemoActivity;
 
 
 /**
@@ -24,9 +26,10 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         layout = (LinearLayout) findViewById(R.id.linearLayout);
-        addToLayout("Bluetooth Beacon Activity", BtBeaconActivity.class);
+        addToLayout("Bluetooth Beacon Demo Activity", BtBeaconDemoActivity.class);
+        addToLayout("Bluetooth Low Energy Beacon Demo Activity", BtLeBeaconDemoActivity.class);
         addToLayout("This is a test", "This is only a test", null);
-        addToLayout("NSD Testing Activity", NsdTestingActivity.class);
+        addToLayout("NSD Demo Activity", NsdDemoActivity.class);
     }
 
     private void addToLayout(String text, final Class<?> clazz) {

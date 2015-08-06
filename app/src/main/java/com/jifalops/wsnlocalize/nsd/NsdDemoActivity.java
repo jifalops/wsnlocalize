@@ -36,7 +36,7 @@ import com.jifalops.wsnlocalize.wifi.WifiHelper;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class NsdTestingActivity extends Activity {
+public class NsdDemoActivity extends Activity {
     private NsdController nsdController;
     private TextView statusView;
     private EditText sendView;

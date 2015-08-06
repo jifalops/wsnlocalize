@@ -9,6 +9,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
 
     <uses-feature android:name="android.hardware.bluetooth" android:required="true"/>
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="false"/>
     <uses-feature android:name="android.hardware.wifi" android:required="true"/>
 
     <application
@@ -27,8 +28,15 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".BtBeaconActivity" />
-        <activity android:name=".nsd.NsdTestingActivity" />
+        <activity
+            android:name=".bluetooth.BtBeaconDemoActivity"
+            android:label="BT Beacon Demo"/>
+        <activity
+            android:name=".bluetooth.BtLeBeaconDemoActivity"
+            android:label="BT-LE Beacon Demo"/>
+        <activity
+            android:name=".nsd.NsdDemoActivity"
+            android:label="NSD Demo"/>
     </application>
 
 </manifest>

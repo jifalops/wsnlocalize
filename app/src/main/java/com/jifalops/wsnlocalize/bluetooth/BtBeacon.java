@@ -1,4 +1,4 @@
-package com.jifalops.wsnlocalize;
+package com.jifalops.wsnlocalize.bluetooth;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
