@@ -5,6 +5,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.support.annotation.Nullable;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -23,7 +24,6 @@ public final class WifiHelper {
     private ConnectivityManager connManager;
     private SoftApManager apManager = null;
 
-    // Singleton
     private static WifiHelper instance;
     public static WifiHelper getInstance(Context ctx) {
         if (instance == null) instance = new WifiHelper(ctx);
@@ -48,8 +48,6 @@ public final class WifiHelper {
     public ConnectivityManager getConnectionManager() {
         return connManager;
     }
-
-
 
     /*
      * ConnectionManager related
@@ -80,10 +78,14 @@ public final class WifiHelper {
     public boolean isWifiEnabled() {
         return wifiManager.isWifiEnabled();
     }
+
+    @Nullable
     public String getMacAddress() {
         WifiInfo info = wifiManager.getConnectionInfo();
-        return info == null ? "" : info.getMacAddress();
+        return info == null ? null : info.getMacAddress();
     }
+
+    @Nullable
     public String getIpAddress() {
         WifiInfo info = wifiManager.getConnectionInfo();
         if (info == null) return null;
@@ -108,10 +110,10 @@ public final class WifiHelper {
      * SoftAccessPointManager basic state
      */
     public boolean setSoftApEnabled(boolean enabled) {
-        return apManager.setEnabled(enabled);
+        return apManager != null && apManager.setEnabled(enabled);
     }
 
     public boolean isSoftApEnabled() {
-        return apManager.isEnabled();
+        return apManager != null && apManager.isEnabled();
     }
 }
