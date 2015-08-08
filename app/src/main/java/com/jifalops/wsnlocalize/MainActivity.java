@@ -30,6 +30,7 @@ public class MainActivity extends Activity {
         addToLayout("Bluetooth Beacon Demo Activity", BtBeaconDemoActivity.class);
         addToLayout("Bluetooth Low Energy Beacon Demo Activity", BtLeBeaconDemoActivity.class);
         addToLayout("NSD Demo Activity", NsdDemoActivity.class);
+        addToLayout("RSSI Reporting", RssiActivity.class);
     }
 
     private void addToLayout(String text, final Class<?> clazz) {
