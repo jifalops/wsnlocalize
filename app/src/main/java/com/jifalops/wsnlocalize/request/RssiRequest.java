@@ -14,17 +14,18 @@ import java.util.Map;
  *
  */
 public class RssiRequest extends AbsRequest {
-    private String localWifiMac, localBtMac, remoteWifiMac, remoteBtMac, method;
-    private double rssi, actualDistance;
+    private final String localWifiMac, localBtMac, remoteWifiMac, remoteBtMac, remoteDesc, method;
+    private final double rssi, actualDistance;
 
     public RssiRequest(String localWifiMac, String localBtMac, String remoteWifiMac, String remoteBtMac,
-                       String method, double rssi, double actualDistance,
-                       Response.Listener<JSONObject> listener, Response.ErrorListener errorListener) {
+                       String remoteDesc, String method, double rssi, double actualDistance,
+                       Response.Listener<MyResponse> listener, Response.ErrorListener errorListener) {
         super(listener, errorListener);
         this.localWifiMac = localWifiMac;
         this.localBtMac = localBtMac;
         this.remoteWifiMac = remoteWifiMac;
         this.remoteBtMac = remoteBtMac;
+        this.remoteDesc = remoteDesc;
         this.method = method;
         this.rssi = rssi;
         this.actualDistance = actualDistance;
@@ -38,9 +39,10 @@ public class RssiRequest extends AbsRequest {
         params.put("localBtMac", localBtMac);
         params.put("remoteWifiMac", remoteWifiMac);
         params.put("remoteBtMac", remoteBtMac);
+        params.put("remoteDesc", remoteDesc);
         params.put("method", method);
         params.put("rssi", rssi +"");
-        params.put("actualDistance", actualDistance +"");
+        params.put("actual", actualDistance +"");
         params.put("api", Build.VERSION.SDK_INT +"");
         return params;
     }

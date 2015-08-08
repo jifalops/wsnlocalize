@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.net.wifi.WifiManager;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
+import android.widget.Toast;
 
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -48,6 +49,7 @@ public class App extends ServiceThreadApplication {
 
         initWifiMac();
         initBtMac();
+        tryDeviceRequest();
     }
 
     private void initWifiMac() {
@@ -90,15 +92,20 @@ public class App extends ServiceThreadApplication {
 
     private void tryDeviceRequest() {
         if (!TextUtils.isEmpty(wifiMac) && !TextUtils.isEmpty(btMac)) {
-            sendRequest(new DeviceRequest(wifiMac, btMac, new Response.Listener<JSONObject>() {
+            sendRequest(new DeviceRequest(wifiMac, btMac, new Response.Listener<AbsRequest.MyResponse>() {
                 @Override
-                public void onResponse(JSONObject jsonObject) {
-                    //
+                public void onResponse(AbsRequest.MyResponse response) {
+                    if (response.responseCode != 200 && response.responseCode != 31) {
+                        Toast.makeText(App.this,
+                            response.responseCode + ": " + response.responseMessage +
+                                " Result: " + response.queryResult,
+                            Toast.LENGTH_LONG).show();
+                    }
                 }
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError volleyError) {
-                    //
+                    Toast.makeText(App.this, volleyError.toString(), Toast.LENGTH_LONG).show();
                 }
             }));
         }

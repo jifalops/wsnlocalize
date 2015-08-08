@@ -37,6 +37,9 @@
         <activity
             android:name=".nsd.NsdDemoActivity"
             android:label="NSD Demo"/>
+        <activity
+            android:name=".RssiActivity"
+            android:label="RSSI Reporting"/>
     </application>
 
 </manifest>

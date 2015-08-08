@@ -20,11 +20,30 @@ public abstract class AbsRequest extends Request<JSONObject> {
     protected static final String REQUEST_TYPE = "requestType";
     public static final String URL = "http://localization.jifalops.com/logging_service.php";
 
-    private Listener<JSONObject> listener;
+    public static class MyResponse {
+        public final String responseMessage, queryResult;
+        public final int responseCode;
+        private MyResponse(JSONObject response) {
+            int code = 0;
+            String msg = "", result = "";
+            try {
+                code = response.getInt("responseCode");
+                msg = response.getString("responseMessage");
+                result = response.getString("queryResult");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            responseCode = code;
+            responseMessage = msg;
+            queryResult = result;
+        }
+    }
 
-    public AbsRequest(Listener<JSONObject> reponseListener, ErrorListener errorListener) {
+    private Listener<MyResponse> listener;
+
+    public AbsRequest(Listener<MyResponse> responseListener, ErrorListener errorListener) {
         super(Method.POST, URL, errorListener);
-        this.listener = reponseListener;
+        this.listener = responseListener;
     }
 
     @Override
@@ -43,6 +62,6 @@ public abstract class AbsRequest extends Request<JSONObject> {
 
     @Override
     protected void deliverResponse(JSONObject response) {
-        listener.onResponse(response);
+        listener.onResponse(new MyResponse(response));
     }
 }

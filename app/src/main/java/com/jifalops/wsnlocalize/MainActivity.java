@@ -26,9 +26,9 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         layout = (LinearLayout) findViewById(R.id.linearLayout);
+        addToLayout("Wifi: " + App.getInstance().getWifiMac(), "BT: " + App.getInstance().getBtMac(), null);
         addToLayout("Bluetooth Beacon Demo Activity", BtBeaconDemoActivity.class);
         addToLayout("Bluetooth Low Energy Beacon Demo Activity", BtLeBeaconDemoActivity.class);
-        addToLayout("This is a test", "This is only a test", null);
         addToLayout("NSD Demo Activity", NsdDemoActivity.class);
     }
 

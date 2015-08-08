@@ -17,7 +17,7 @@ public class DeviceRequest extends AbsRequest {
     private String wifiMac, btMac;
 
     public DeviceRequest(String wifiMac, String btMac,
-             Response.Listener<JSONObject> listener, Response.ErrorListener errorListener) {
+             Response.Listener<MyResponse> listener, Response.ErrorListener errorListener) {
         super(listener, errorListener);
         this.wifiMac = wifiMac;
         this.btMac = btMac;
