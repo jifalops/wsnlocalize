@@ -14,6 +14,9 @@ import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * ServiceThreadApplication provides an Application and related Service that can be bound to by using
  * {@link #bindLocalService()} and {@link #unbindLocalService()}. See
@@ -73,6 +76,8 @@ public class ServiceThreadApplication extends Application {
         private Handler mServiceHandler;
         private final IBinder mBinder = new LocalBinder();
         private boolean mIsPersistent;
+        // Activities can use when running in the background.
+        private Map<String, Object> cache = new HashMap<>();
 
         private class LocalBinder extends Binder {
             LocalService getService() {
@@ -148,6 +153,14 @@ public class ServiceThreadApplication extends Application {
 
         public Thread.State getThreadState() {
             return mHandlerThread.getState();
+        }
+
+        public Object getCachedObject(String key) {
+            return cache.get(key);
+        }
+        /** Returns the displaced object if one exists. */
+        public Object setCachedObject(String key, Object obj) {
+            return cache.put(key, obj);
         }
     }
 }

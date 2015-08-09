@@ -33,6 +33,18 @@ public class RssiRequest extends AbsRequest {
             this.actualDistance = actualDistance;
         }
 
+        public RssiRecord(String jsonObject) throws JSONException {
+            JSONObject json = new JSONObject(jsonObject);
+            localWifiMac = json.getString("localWifiMac");
+            localBtMac = json.getString("localBtMac");
+            remoteWifiMac = json.getString("remoteWifiMac");
+            remoteBtMac = json.getString("remoteBtMac");
+            remoteName = json.getString("remoteName");
+            rssiMethod = json.getString("method");
+            rssi = (float) json.getDouble("rssi");
+            actualDistance = (float) json.getDouble("actual");
+        }
+
         @Override
         public String toString() {
             JSONObject json = new JSONObject();

@@ -23,6 +23,10 @@ import com.jifalops.wsnlocalize.wifi.WifiHelper;
 
 import org.json.JSONObject;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 /**
  * App is the central area for managing global application state.
  */
@@ -97,9 +101,9 @@ public class App extends ServiceThreadApplication {
                 public void onResponse(AbsRequest.MyResponse response) {
                     if (response.responseCode != 200 && response.responseCode != 31) {
                         Toast.makeText(App.this,
-                            response.responseCode + ": " + response.responseMessage +
-                                " Result: " + response.queryResult,
-                            Toast.LENGTH_LONG).show();
+                                response.responseCode + ": " + response.responseMessage +
+                                        " Result: " + response.queryResult,
+                                Toast.LENGTH_LONG).show();
                     }
                 }
             }, new Response.ErrorListener() {
@@ -118,7 +122,6 @@ public class App extends ServiceThreadApplication {
     public String getWifiMac() {
         return wifiMac;
     }
-
     public String getBtMac() {
         return btMac;
     }
