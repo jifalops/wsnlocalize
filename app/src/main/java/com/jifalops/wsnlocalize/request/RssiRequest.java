@@ -18,11 +18,12 @@ import java.util.Map;
  */
 public class RssiRequest extends AbsRequest {
     public static class RssiRecord {
-        public final String localWifiMac,  localBtMac,  remoteWifiMac,  remoteBtMac, remoteName, rssiMethod;
-        public final float rssi, actualDistance;
+        public final String localWifiMac,  localBtMac, rssiMethod;
+        public String remoteWifiMac,  remoteBtMac, remoteName;
+        public final float rssi, frequency, actualDistance;
         public RssiRecord(String localWifiMac, String localBtMac, String remoteWifiMac,
                           String remoteBtMac, String remoteName, String rssiMethod,
-                          float rssi, float actualDistance) {
+                          float rssi, float frequency, float actualDistance) {
             this.localWifiMac = localWifiMac;
             this.localBtMac = localBtMac;
             this.remoteWifiMac = remoteWifiMac;
@@ -30,6 +31,7 @@ public class RssiRequest extends AbsRequest {
             this.remoteName = remoteName;
             this.rssiMethod = rssiMethod;
             this.rssi = rssi;
+            this.frequency = frequency;
             this.actualDistance = actualDistance;
         }
 
@@ -42,6 +44,7 @@ public class RssiRequest extends AbsRequest {
             remoteName = json.getString("remoteName");
             rssiMethod = json.getString("method");
             rssi = (float) json.getDouble("rssi");
+            frequency = (float) json.getDouble("frequency");
             actualDistance = (float) json.getDouble("actual");
         }
 
@@ -56,6 +59,7 @@ public class RssiRequest extends AbsRequest {
                 json.put("remoteName", remoteName);
                 json.put("method", rssiMethod);
                 json.put("rssi", rssi);
+                json.put("frequency", frequency);
                 json.put("actual", actualDistance);
             } catch (JSONException e) {
                 Log.e("RssiRequest", "JSON Exception", e);

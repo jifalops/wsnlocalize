@@ -118,25 +118,27 @@ public class BtLeBeacon {
 
         @Override
         public void onStartFailure(int errorCode) {
+            String errorMsg = "(description not available)";
             switch (errorCode) {
                 case AdvertiseCallback.ADVERTISE_FAILED_ALREADY_STARTED:
-                    Log.i(TAG, "Advertise failed: already started.");
+                    errorMsg = "already started";
                     break;
                 case AdvertiseCallback.ADVERTISE_FAILED_DATA_TOO_LARGE:
-                    Log.i(TAG, "Advertise failed: data too large.");
+                    errorMsg = "data too large";
                     break;
                 case AdvertiseCallback.ADVERTISE_FAILED_FEATURE_UNSUPPORTED:
-                    Log.i(TAG, "Advertise failed: feature unsupported.");
+                    errorMsg = "feature unsupported";
                     break;
                 case AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR:
-                    Log.i(TAG, "Advertise failed: internal error.");
+                    errorMsg = "internal error";
                     break;
                 case AdvertiseCallback.ADVERTISE_FAILED_TOO_MANY_ADVERTISERS:
-                    Log.i(TAG, "Advertise failed: too many advertisers.");
+                    errorMsg = "too many advertisers";
                     break;
             }
+            Log.i(TAG, "Advertise failed (" + errorCode + "): " + errorMsg);
             for (BtLeBeaconListener l : listeners) {
-                l.onAdvertiseStartFailure(errorCode);
+                l.onAdvertiseStartFailure(errorCode, errorMsg);
             }
         }
     };
@@ -163,22 +165,24 @@ public class BtLeBeacon {
 
         @Override
         public void onScanFailed(int errorCode) {
+            String errorMsg = "(description not available)";
             switch (errorCode) {
                 case ScanCallback.SCAN_FAILED_ALREADY_STARTED:
-                    Log.i(TAG, "Scan failed: already started.");
+                    errorMsg = "already started";
                     break;
                 case ScanCallback.SCAN_FAILED_APPLICATION_REGISTRATION_FAILED:
-                    Log.i(TAG, "Scan failed: app registration failed.");
+                    errorMsg = "app registration failed";
                     break;
                 case ScanCallback.SCAN_FAILED_FEATURE_UNSUPPORTED:
-                    Log.i(TAG, "Scan failed: feature unsupported.");
+                    errorMsg = "feature unsupported";
                     break;
                 case ScanCallback.SCAN_FAILED_INTERNAL_ERROR:
-                    Log.i(TAG, "Scan failed: internal error.");
+                    errorMsg = "internal error";
                     break;
             }
+            Log.i(TAG, "Scan failed (" + errorCode + "): " + errorMsg);
             for (BtLeBeaconListener l : listeners) {
-                l.onScanFailed(errorCode);
+                l.onScanFailed(errorCode, errorMsg);
             }
         }
 
@@ -194,13 +198,13 @@ public class BtLeBeacon {
         /** See {@link AdvertiseCallback#onStartSuccess(AdvertiseSettings)} */
         void onAdvertiseStartSuccess(AdvertiseSettings settingsInEffect);
         /** See {@link AdvertiseCallback#onStartFailure(int)} */
-        void onAdvertiseStartFailure(int errorCode);
+        void onAdvertiseStartFailure(int errorCode, String errorMsg);
         /** See {@link ScanCallback#onScanResult(int, ScanResult)} */
         void onScanResult(int callbackType, ScanResult result);
         /** See {@link ScanCallback#onBatchScanResults(List)} */
         void onBatchScanResults(List<ScanResult> results);
         /** See {@link ScanCallback#onScanFailed(int)} */
-        void onScanFailed(int errorCode);
+        void onScanFailed(int errorCode, String errorMsg);
     }
     private final List<BtLeBeaconListener> listeners = new ArrayList<>(1);
     public boolean registerListener(BtLeBeaconListener l) {

@@ -18,18 +18,17 @@ import java.util.TimerTask;
 public class WifiScanner {
     Context context;
     WifiManager manager;
-    Timer timer;
     boolean enabled;
 
     private static WifiScanner instance;
     public static WifiScanner getInstance(Context ctx) {
         if (instance == null) {
-            instance = new WifiScanner(ctx.getApplicationContext());
+            instance = new WifiScanner(ctx);
         }
         return instance;
     }
     private WifiScanner(Context ctx) {
-        context = ctx;
+        context = ctx.getApplicationContext();
         manager = (WifiManager) ctx.getSystemService(Context.WIFI_SERVICE);
     }
 
@@ -41,38 +40,22 @@ public class WifiScanner {
             for (ScanListener l : listeners) {
                 l.onScanResults(results);
             }
+            manager.startScan();
         }
     };
 
-    public void start() { start(1000); }
-    public void start(int scanPeriodMillis) {
+    public void startScanning() {
         if (enabled) return;
         enabled = true;
-
         context.registerReceiver(scanReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
-        if (timer != null) {
-            timer.cancel();
-        }
-        timer = new Timer();
-        timer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                manager.startScan();
-            }
-        }, 0, scanPeriodMillis);
+        manager.startScan();
     }
 
-    public void stop() {
+    public void stopScanning() {
         if (!enabled) return;
         enabled = false;
-
         context.unregisterReceiver(scanReceiver);
-        if (timer != null) {
-            timer.cancel();
-        }
     }
-
-    public boolean isEnabled() { return enabled; }
 
 
     public interface ScanListener {

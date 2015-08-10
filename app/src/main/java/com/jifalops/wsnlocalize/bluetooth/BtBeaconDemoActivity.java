@@ -107,7 +107,7 @@ public class BtBeaconDemoActivity extends Activity {
         }
 
         @Override
-        public void onDiscoveryRestarting() {
+        public void onDiscoveryStarting() {
             textView.append("Discovery is (re)starting...\n");
         }
     };

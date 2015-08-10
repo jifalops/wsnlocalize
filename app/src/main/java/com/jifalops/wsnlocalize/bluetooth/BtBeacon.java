@@ -32,7 +32,16 @@ public class BtBeacon {
 
     private Context ctx;
     private BluetoothAdapter btAdapter;
+    private boolean registered;
 
+    public BluetoothAdapter getAdapter() {
+        return btAdapter;
+    }
+
+    public boolean isDiscoverable() {
+        return btAdapter != null &&
+                btAdapter.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE;
+    }
 
     /**
      * Start the beaconing process. The user will be prompted to enable discoverability.
@@ -70,6 +79,7 @@ public class BtBeacon {
                 new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_STARTED));
         ctx.registerReceiver(discoveryFinishedReceiver,
                 new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
+        registered = true;
         btAdapter.startDiscovery();
     }
 
@@ -79,12 +89,15 @@ public class BtBeacon {
     public void stopBeaconing(Activity a, int reqCode) {
         if (btAdapter != null && btAdapter.isEnabled() &&
                 btAdapter.getScanMode() == BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
-            ctx.unregisterReceiver(scanModeChangedReceiver);
-            ctx.unregisterReceiver(scanReceiver);
-            ctx.unregisterReceiver(discoveryStartedReceiver);
-            ctx.unregisterReceiver(discoveryFinishedReceiver);
             btAdapter.cancelDiscovery();
             requestBtDiscoverable(1, a, reqCode);
+            if (registered) {
+                ctx.unregisterReceiver(scanModeChangedReceiver);
+                ctx.unregisterReceiver(scanReceiver);
+                ctx.unregisterReceiver(discoveryStartedReceiver);
+                ctx.unregisterReceiver(discoveryFinishedReceiver);
+                registered = false;
+            }
         }
     }
 
@@ -114,7 +127,7 @@ public class BtBeacon {
         @Override
         public void onReceive(Context context, Intent intent) {
             for (BtBeaconListener l : listeners) {
-                l.onDiscoveryRestarting();
+                l.onDiscoveryStarting();
             }
         }
     };
@@ -149,7 +162,7 @@ public class BtBeacon {
     public interface BtBeaconListener {
         void onDeviceFound(BluetoothDevice device, short rssi);
         void onThisDeviceDiscoverableChanged(boolean discoverable);
-        void onDiscoveryRestarting();
+        void onDiscoveryStarting();
     }
     private final List<BtBeaconListener> listeners = new ArrayList<>(1);
     public boolean registerListener(BtBeaconListener l) {

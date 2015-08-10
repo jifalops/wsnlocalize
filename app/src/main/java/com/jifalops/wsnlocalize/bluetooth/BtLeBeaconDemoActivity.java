@@ -123,24 +123,8 @@ public class BtLeBeaconDemoActivity extends Activity {
         }
 
         @Override
-        public void onAdvertiseStartFailure(int errorCode) {
-            switch (errorCode) {
-                case AdvertiseCallback.ADVERTISE_FAILED_ALREADY_STARTED:
-                    textView.append("Advertise failed: already started.\n");
-                    break;
-                case AdvertiseCallback.ADVERTISE_FAILED_DATA_TOO_LARGE:
-                    textView.append("Advertise failed: data too large.\n");
-                    break;
-                case AdvertiseCallback.ADVERTISE_FAILED_FEATURE_UNSUPPORTED:
-                    textView.append("Advertise failed: feature unsupported.\n");
-                    break;
-                case AdvertiseCallback.ADVERTISE_FAILED_INTERNAL_ERROR:
-                    textView.append("Advertise failed: internal error.\n");
-                    break;
-                case AdvertiseCallback.ADVERTISE_FAILED_TOO_MANY_ADVERTISERS:
-                    textView.append("Advertise failed: too many advertisers.\n");
-                    break;
-            }
+        public void onAdvertiseStartFailure(int errorCode, String errorMsg) {
+            textView.append("Advertise failed to start ("+errorCode+"): "+errorMsg);
         }
 
         @Override
@@ -157,21 +141,8 @@ public class BtLeBeaconDemoActivity extends Activity {
         }
 
         @Override
-        public void onScanFailed(int errorCode) {
-            switch (errorCode) {
-                case ScanCallback.SCAN_FAILED_ALREADY_STARTED:
-                    textView.append("Scan failed: already started.\n");
-                    break;
-                case ScanCallback.SCAN_FAILED_APPLICATION_REGISTRATION_FAILED:
-                    textView.append("Scan failed: app registration failed.\n");
-                    break;
-                case ScanCallback.SCAN_FAILED_FEATURE_UNSUPPORTED:
-                    textView.append("Scan failed: feature unsupported.\n");
-                    break;
-                case ScanCallback.SCAN_FAILED_INTERNAL_ERROR:
-                    textView.append("Scan failed: internal error.\n");
-                    break;
-            }
+        public void onScanFailed(int errorCode, String errorMsg) {
+            textView.append("Scan failed ("+errorCode+"): "+errorMsg);
         }
 
         private void printScanResult(ScanResult result) {
