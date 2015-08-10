@@ -44,16 +44,15 @@ public class RssiActivity extends Activity {
 
     private static class Device {
         final int id;
-        String wifiMac, btMac, name;
-        public Device(int id, String name, String wifiMac, String btMac) {
+        String mac, desc;
+        public Device(int id, String mac, String desc) {
             this.id = id;
-            this.wifiMac = wifiMac;
-            this.btMac = btMac;
-            this.name = name;
+            this.mac = mac;
+            this.desc = desc;
         }
         @Override
         public String toString() {
-            return id + ": " + name + " " + wifiMac + " " + btMac;
+            return id + ": " + desc + " " + mac;
         }
     }
 
@@ -231,7 +230,7 @@ public class RssiActivity extends Activity {
         collectedCount = prefs.getInt("collected", 0);
         deserializeRssiRecords(prefs.getString("toSend", ""));
         updateCountViews();
-        addEvent("Device is " + (btBeacon.isDiscoverable() ? "" : "not ") +
+        addEvent("Mac is " + (btBeacon.isDiscoverable() ? "" : "not ") +
                 "discoverable (may be inaccurate).");
     }
 
@@ -245,18 +244,17 @@ public class RssiActivity extends Activity {
         collectSwitch.setChecked(false);
     }
 
-    private void addRecord(String name, String wifiMac, String btMac,
+    private void addRecord(String localMac, String remoteMac, String remoteDesc,
                            String method, float rssi, float freq) {
-        Device d = getDevice(name, wifiMac, btMac);
+        Device d = getDevice(remoteMac, remoteDesc);
         if (collectEnabled) {
             if (d.id == deviceId) {
                 RssiRequest.RssiRecord record = new RssiRequest.RssiRecord(
-                        App.getInstance().getWifiMac(), App.getInstance().getBtMac(),
-                        d.wifiMac, d.btMac, d.name, method, rssi, freq, distance);
+                        localMac, remoteMac, remoteDesc, method, rssi, freq, distance);
                 rssiRecords.add(record);
                 collectedCount++;
                 updateCountViews();
-                addEvent("Device " + d.id + ": " + rssi + " dBm (" + freq + " MHz) at " +
+                addEvent("Mac " + d.id + ": " + rssi + " dBm (" + freq + " MHz) at " +
                         distance + "m (" + method + ").");
             } else {
                 addEvent("Ignoring " + rssi + " dBm (" + freq + " MHz) for device " +
@@ -265,36 +263,19 @@ public class RssiActivity extends Activity {
         }
     }
 
-    private Device getDevice(String name, String wifiMac, String btMac) {
+    private Device getDevice(String mac, String desc) {
         Device device = null;
         for (Device d : devices) {
-            if ((!TextUtils.isEmpty(d.btMac) && d.btMac.equals(btMac)) ||
-                    (!TextUtils.isEmpty(d.wifiMac) && d.wifiMac.equals(wifiMac))) {
+            if (d.mac.equals(mac)) {
                 device = d;
                 break;
             }
         }
         if (device == null) {
-            device = new Device(devices.size()+1, name, wifiMac, btMac);
+            device = new Device(devices.size()+1, mac, desc);
             devices.add(device);
             deviceLogView.append(device.toString() + "\n");
             addEvent("Found new device, " + device.id);
-        } else {
-            if (TextUtils.isEmpty(device.name) && !TextUtils.isEmpty(name)) device.name = name;
-            if (TextUtils.isEmpty(device.wifiMac) && !TextUtils.isEmpty(wifiMac)) device.wifiMac = wifiMac;
-            if (TextUtils.isEmpty(device.btMac) && !TextUtils.isEmpty(btMac)) device.btMac = btMac;
-            // fill in any previous records
-            for (RssiRequest.RssiRecord r : rssiRecords) {
-                if ((!TextUtils.isEmpty(device.btMac) && device.btMac.equals(r.remoteBtMac)) ||
-                        (!TextUtils.isEmpty(device.wifiMac) && device.wifiMac.equals(r.remoteWifiMac))) {
-                    if (TextUtils.isEmpty(r.remoteName) &&
-                            !TextUtils.isEmpty(device.name)) r.remoteName = device.name;
-                    if (TextUtils.isEmpty(r.remoteWifiMac) &&
-                            !TextUtils.isEmpty(device.wifiMac)) r.remoteWifiMac = device.wifiMac;
-                    if (TextUtils.isEmpty(r.remoteBtMac) &&
-                            !TextUtils.isEmpty(device.btMac)) r.remoteBtMac = device.btMac;
-                }
-            }
         }
         return device;
     }
@@ -352,7 +333,8 @@ public class RssiActivity extends Activity {
     private final BtBeacon.BtBeaconListener btBeaconListener = new BtBeacon.BtBeaconListener() {
         @Override
         public void onDeviceFound(BluetoothDevice device, short rssi) {
-            addRecord(device.getName(), "", device.getAddress(), "BtBeacon", rssi, 2400);
+            addRecord(App.getInstance().getBtMac(), device.getAddress(), device.getName(),
+                    "BtBeacon", rssi, 2400);
         }
 
         @Override
@@ -404,7 +386,7 @@ public class RssiActivity extends Activity {
         private void handleScanResult(ScanResult result) {
             BluetoothDevice device = result.getDevice();
             if (device != null) {
-                addRecord(device.getName(), "", device.getAddress(),
+                addRecord(App.getInstance().getBtMac(), device.getAddress(), device.getName(),
                         "BtLeBeacon", result.getRssi(), 2400);
             } else {
                 addEvent("BT-LE received " + result.getRssi() + " dBm from null device.");
@@ -417,7 +399,8 @@ public class RssiActivity extends Activity {
         public void onScanResults(List<android.net.wifi.ScanResult> scanResults) {
             addEvent("WifiScanner found " + scanResults.size() + " results.");
             for (android.net.wifi.ScanResult r : scanResults) {
-                addRecord(r.SSID, r.BSSID, "", "WifiScan", r.level, r.frequency);
+                addRecord(App.getInstance().getWifiMac(), r.BSSID, r.SSID,
+                        "WifiScan", r.level, r.frequency);
             }
         }
     };

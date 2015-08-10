@@ -100,9 +100,9 @@ public class BtBeaconDemoActivity extends Activity {
         @Override
         public void onThisDeviceDiscoverableChanged(boolean discoverable) {
             if (discoverable) {
-                textView.append("Device is now discoverable.\n");
+                textView.append("Mac is now discoverable.\n");
             } else {
-                textView.append("Device is no longer discoverable.\n");
+                textView.append("Mac is no longer discoverable.\n");
             }
         }
 

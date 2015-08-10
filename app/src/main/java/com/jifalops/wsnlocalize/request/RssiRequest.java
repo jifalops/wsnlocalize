@@ -18,51 +18,43 @@ import java.util.Map;
  */
 public class RssiRequest extends AbsRequest {
     public static class RssiRecord {
-        public final String localWifiMac,  localBtMac, rssiMethod;
-        public String remoteWifiMac,  remoteBtMac, remoteName;
-        public final float rssi, frequency, actualDistance;
-        public RssiRecord(String localWifiMac, String localBtMac, String remoteWifiMac,
-                          String remoteBtMac, String remoteName, String rssiMethod,
-                          float rssi, float frequency, float actualDistance) {
-            this.localWifiMac = localWifiMac;
-            this.localBtMac = localBtMac;
-            this.remoteWifiMac = remoteWifiMac;
-            this.remoteBtMac = remoteBtMac;
-            this.remoteName = remoteName;
+        public final String localMac, remoteMac, remoteDesc, rssiMethod;
+        public final float rssi, freq, distance;
+        public RssiRecord(String localMac, String remoteMac, String remoteDesc, String rssiMethod,
+                          float rssi, float freq, float distance) {
+            this.localMac = localMac;
+            this.remoteMac = remoteMac;
+            this.remoteDesc = remoteDesc;
             this.rssiMethod = rssiMethod;
             this.rssi = rssi;
-            this.frequency = frequency;
-            this.actualDistance = actualDistance;
+            this.freq = freq;
+            this.distance = distance;
         }
 
         public RssiRecord(String jsonObject) throws JSONException {
             JSONObject json = new JSONObject(jsonObject);
-            localWifiMac = json.getString("localWifiMac");
-            localBtMac = json.getString("localBtMac");
-            remoteWifiMac = json.getString("remoteWifiMac");
-            remoteBtMac = json.getString("remoteBtMac");
-            remoteName = json.getString("remoteName");
+            localMac = json.getString("localMac");
+            remoteMac = json.getString("remoteMac");
+            remoteDesc = json.getString("remoteDesc");
             rssiMethod = json.getString("method");
             rssi = (float) json.getDouble("rssi");
-            frequency = (float) json.getDouble("frequency");
-            actualDistance = (float) json.getDouble("actual");
+            freq = (float) json.getDouble("freq");
+            distance = (float) json.getDouble("distance");
         }
 
         @Override
         public String toString() {
             JSONObject json = new JSONObject();
             try {
-                json.put("localWifiMac", localWifiMac);
-                json.put("localBtMac", localBtMac);
-                json.put("remoteWifiMac", remoteWifiMac);
-                json.put("remoteBtMac", remoteBtMac);
-                json.put("remoteName", remoteName);
+                json.put("localMac", localMac);
+                json.put("remoteMac", remoteMac);
+                json.put("remoteDesc", remoteDesc);
                 json.put("method", rssiMethod);
                 json.put("rssi", rssi);
-                json.put("frequency", frequency);
-                json.put("actual", actualDistance);
+                json.put("freq", freq);
+                json.put("distance", distance);
             } catch (JSONException e) {
-                Log.e("RssiRequest", "JSON Exception", e);
+                e.printStackTrace();
             }
             return json.toString();
         }

@@ -17,15 +17,12 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.Volley;
 import com.jifalops.wsnlocalize.bluetooth.BtHelper;
 import com.jifalops.wsnlocalize.request.AbsRequest;
-import com.jifalops.wsnlocalize.request.DeviceRequest;
+import com.jifalops.wsnlocalize.request.MacRequest;
 import com.jifalops.wsnlocalize.util.ServiceThreadApplication;
 import com.jifalops.wsnlocalize.wifi.WifiHelper;
 
-import org.json.JSONObject;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * App is the central area for managing global application state.
@@ -96,7 +93,10 @@ public class App extends ServiceThreadApplication {
 
     private void tryDeviceRequest() {
         if (!TextUtils.isEmpty(wifiMac) && !TextUtils.isEmpty(btMac)) {
-            sendRequest(new DeviceRequest(wifiMac, btMac, new Response.Listener<AbsRequest.MyResponse>() {
+            List<MacRequest.Mac> macs = new ArrayList<>(2);
+            macs.add(new MacRequest.Mac(wifiMac, "Jake's Nexus 6 WiFi"));
+            macs.add(new MacRequest.Mac(btMac, "Jake's Nexus 6 Bluetooth"));
+            sendRequest(new MacRequest(macs, new Response.Listener<AbsRequest.MyResponse>() {
                 @Override
                 public void onResponse(AbsRequest.MyResponse response) {
                     if (response.responseCode != 200 && response.responseCode != 31) {
