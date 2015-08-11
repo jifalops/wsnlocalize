@@ -19,9 +19,10 @@ import java.util.Map;
 public class RssiRequest extends AbsRequest {
     public static class RssiRecord {
         public final String localMac, remoteMac, remoteDesc, rssiMethod;
-        public final float rssi, freq, distance;
+        public final int rssi, freq;
+        public final float distance;
         public RssiRecord(String localMac, String remoteMac, String remoteDesc, String rssiMethod,
-                          float rssi, float freq, float distance) {
+                          int rssi, int freq, float distance) {
             this.localMac = localMac;
             this.remoteMac = remoteMac;
             this.remoteDesc = remoteDesc;
@@ -37,8 +38,8 @@ public class RssiRequest extends AbsRequest {
             remoteMac = json.getString("remoteMac");
             remoteDesc = json.getString("remoteDesc");
             rssiMethod = json.getString("method");
-            rssi = (float) json.getDouble("rssi");
-            freq = (float) json.getDouble("freq");
+            rssi = json.getInt("rssi");
+            freq = json.getInt("freq");
             distance = (float) json.getDouble("distance");
         }
 

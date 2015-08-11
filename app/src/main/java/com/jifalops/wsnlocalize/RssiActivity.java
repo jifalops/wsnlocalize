@@ -3,14 +3,11 @@ package com.jifalops.wsnlocalize;
 import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.AdvertiseSettings;
-import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
@@ -148,23 +145,30 @@ public class RssiActivity extends Activity {
             public void onClick(View v) {
                 final List<RssiRequest.RssiRecord> records = new ArrayList<>(rssiRecords);
                 rssiRecords.clear();
+                updateCountViews();
                 App.getInstance().sendRequest(new RssiRequest(records,
                         new Response.Listener<AbsRequest.MyResponse>() {
                             @Override
                             public void onResponse(AbsRequest.MyResponse response) {
                                 if (response.responseCode == 200) {
-
+                                    Toast.makeText(RssiActivity.this,
+                                            "Sent " + records.size() + " records successfully",
+                                            Toast.LENGTH_LONG).show();
                                 } else {
                                     Toast.makeText(RssiActivity.this,
                                             response.responseCode + ": " + response.responseMessage +
                                                     " Result: " + response.queryResult,
                                             Toast.LENGTH_LONG).show();
+                                    rssiRecords.addAll(records);
+                                    updateCountViews();
                                 }
                             }
                         }, new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError volleyError) {
                         Toast.makeText(RssiActivity.this, volleyError.toString(), Toast.LENGTH_LONG).show();
+                        rssiRecords.addAll(records);
+                        updateCountViews();
                     }
                 }));
             }
@@ -230,7 +234,7 @@ public class RssiActivity extends Activity {
         collectedCount = prefs.getInt("collected", 0);
         deserializeRssiRecords(prefs.getString("toSend", ""));
         updateCountViews();
-        addEvent("Mac is " + (btBeacon.isDiscoverable() ? "" : "not ") +
+        addEvent("Device is " + (btBeacon.isDiscoverable() ? "" : "not ") +
                 "discoverable (may be inaccurate).");
     }
 
@@ -245,16 +249,16 @@ public class RssiActivity extends Activity {
     }
 
     private void addRecord(String localMac, String remoteMac, String remoteDesc,
-                           String method, float rssi, float freq) {
+                           String method, int rssi, int freq) {
         Device d = getDevice(remoteMac, remoteDesc);
         if (collectEnabled) {
-            if (d.id == deviceId) {
+            if (d.id == deviceId && rssi != 0) {
                 RssiRequest.RssiRecord record = new RssiRequest.RssiRecord(
                         localMac, remoteMac, remoteDesc, method, rssi, freq, distance);
                 rssiRecords.add(record);
                 collectedCount++;
                 updateCountViews();
-                addEvent("Mac " + d.id + ": " + rssi + " dBm (" + freq + " MHz) at " +
+                addEvent("Device " + d.id + ": " + rssi + " dBm (" + freq + " MHz) at " +
                         distance + "m (" + method + ").");
             } else {
                 addEvent("Ignoring " + rssi + " dBm (" + freq + " MHz) for device " +
@@ -333,7 +337,8 @@ public class RssiActivity extends Activity {
     private final BtBeacon.BtBeaconListener btBeaconListener = new BtBeacon.BtBeaconListener() {
         @Override
         public void onDeviceFound(BluetoothDevice device, short rssi) {
-            addRecord(App.getInstance().getBtMac(), device.getAddress(), device.getName(),
+            addRecord(App.getInstance().getBtMac(), device.getAddress(),
+                    device.getName() + " (Bluetooth)",
                     "BtBeacon", rssi, 2400);
         }
 
@@ -386,7 +391,8 @@ public class RssiActivity extends Activity {
         private void handleScanResult(ScanResult result) {
             BluetoothDevice device = result.getDevice();
             if (device != null) {
-                addRecord(App.getInstance().getBtMac(), device.getAddress(), device.getName(),
+                addRecord(App.getInstance().getBtMac(), device.getAddress(),
+                        device.getName() + " (Bluetooth LE)",
                         "BtLeBeacon", result.getRssi(), 2400);
             } else {
                 addEvent("BT-LE received " + result.getRssi() + " dBm from null device.");
@@ -399,7 +405,8 @@ public class RssiActivity extends Activity {
         public void onScanResults(List<android.net.wifi.ScanResult> scanResults) {
             addEvent("WifiScanner found " + scanResults.size() + " results.");
             for (android.net.wifi.ScanResult r : scanResults) {
-                addRecord(App.getInstance().getWifiMac(), r.BSSID, r.SSID,
+                addRecord(App.getInstance().getWifiMac(), r.BSSID, r.SSID  +
+                                " (WiFi " + r.frequency + "MHz)",
                         "WifiScan", r.level, r.frequency);
             }
         }

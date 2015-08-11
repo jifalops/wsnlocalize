@@ -94,8 +94,8 @@ public class App extends ServiceThreadApplication {
     private void tryDeviceRequest() {
         if (!TextUtils.isEmpty(wifiMac) && !TextUtils.isEmpty(btMac)) {
             List<MacRequest.Mac> macs = new ArrayList<>(2);
-            macs.add(new MacRequest.Mac(wifiMac, "Jake's Nexus 6 WiFi"));
-            macs.add(new MacRequest.Mac(btMac, "Jake's Nexus 6 Bluetooth"));
+            macs.add(new MacRequest.Mac(wifiMac, "WiFi"));
+            macs.add(new MacRequest.Mac(btMac, "Bluetooth"));
             sendRequest(new MacRequest(macs, new Response.Listener<AbsRequest.MyResponse>() {
                 @Override
                 public void onResponse(AbsRequest.MyResponse response) {
