@@ -6,6 +6,8 @@
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
 
     <uses-feature android:name="android.hardware.bluetooth" android:required="true"/>
@@ -29,11 +31,17 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".DemoActivity"
+            android:label="Demos"/>
+        <activity
             android:name=".bluetooth.BtBeaconDemoActivity"
             android:label="BT Beacon Demo"/>
         <activity
             android:name=".bluetooth.BtLeBeaconDemoActivity"
             android:label="BT-LE Beacon Demo"/>
+        <activity
+            android:name=".wifi.WifiScannerDemoActivity"
+            android:label="WiFi Scanner Demo"/>
         <activity
             android:name=".nsd.NsdDemoActivity"
             android:label="NSD Demo"/>

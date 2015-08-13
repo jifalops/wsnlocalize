@@ -9,22 +9,26 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.jifalops.wsnlocalize.bluetooth.BtBeaconDemoActivity;
+import com.jifalops.wsnlocalize.bluetooth.BtLeBeaconDemoActivity;
+import com.jifalops.wsnlocalize.nsd.NsdDemoActivity;
+import com.jifalops.wsnlocalize.wifi.WifiScannerDemoActivity;
+
 /**
- * MainActivity is the starting point when using the app. Its main purpose is to allow the user
- * to enter various areas of the app.
+ *
  */
-public class MainActivity extends Activity {
+public class DemoActivity extends Activity {
     private LinearLayout layout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_demo);
         layout = (LinearLayout) findViewById(R.id.linearLayout);
-        addToLayout("Wifi: " + App.getInstance().getWifiMac(),
-                    "BT:   " + App.getInstance().getBtMac(), null);
-        addToLayout("Demos", "Examples of app components", DemoActivity.class);
-        addToLayout("RSSI Reporting", "Log actual distances to the central database", RssiActivity.class);
+        addToLayout("Bluetooth",  "Beacon & Scanner", BtBeaconDemoActivity.class);
+        addToLayout("Bluetooth Low Energy", "Beacon & Scanner", BtLeBeaconDemoActivity.class);
+        addToLayout("WiFi", "Scanner only", WifiScannerDemoActivity.class);
+        addToLayout("Network Service Discovery (chat)", "Requires multiple devices", NsdDemoActivity.class);
     }
 
     private void addToLayout(String text, final Class<?> clazz) {
@@ -34,7 +38,7 @@ public class MainActivity extends Activity {
             v.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    startActivity(new Intent(MainActivity.this, clazz));
+                    startActivity(new Intent(DemoActivity.this, clazz));
                 }
             });
         }
@@ -49,7 +53,7 @@ public class MainActivity extends Activity {
             v.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    startActivity(new Intent(MainActivity.this, clazz));
+                    startActivity(new Intent(DemoActivity.this, clazz));
                 }
             });
         }

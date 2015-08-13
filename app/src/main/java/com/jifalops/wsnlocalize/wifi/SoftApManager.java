@@ -32,7 +32,8 @@ public final class SoftApManager {
     private SoftApManager(Context context) throws NoSuchMethodException {
         mWifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
 
-        wifiControlMethod = mWifiManager.getClass().getMethod("setWifiApEnabled", WifiConfiguration.class, boolean.class);
+        wifiControlMethod = mWifiManager.getClass().getMethod("setWifiApEnabled",
+                WifiConfiguration.class, boolean.class);
         wifiApConfigurationMethod = mWifiManager.getClass().getMethod("getWifiApConfiguration", null);
         wifiApState = mWifiManager.getClass().getMethod("getWifiApState");
     }

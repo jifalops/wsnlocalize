@@ -99,13 +99,13 @@ public class App extends ServiceThreadApplication {
             sendRequest(new MacRequest(macs, new Response.Listener<AbsRequest.MyResponse>() {
                 @Override
                 public void onResponse(AbsRequest.MyResponse response) {
-                    if (response.responseCode != 200 && response.responseCode != 31) {
+//                    if (response.responseCode != 200 && response.responseCode != 31) {
                         Toast.makeText(App.this,
                                 response.responseCode + ": " + response.responseMessage +
-                                        " Result: " + response.queryResult,
+                                        ". Result: " + response.queryResult,
                                 Toast.LENGTH_LONG).show();
                     }
-                }
+//                }
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError volleyError) {

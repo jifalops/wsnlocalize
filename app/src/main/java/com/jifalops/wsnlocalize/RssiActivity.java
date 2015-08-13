@@ -1,18 +1,22 @@
 package com.jifalops.wsnlocalize;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.ScanResult;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -79,7 +83,7 @@ public class RssiActivity extends Activity {
         toSendCountView = (TextView) findViewById(R.id.toSendCount);
         collectSwitch = (Switch) findViewById(R.id.collectSwitch);
 
-        final EditText deviceIdView = (EditText) findViewById(R.id.deviceId);
+        final TextView deviceIdView = (TextView) findViewById(R.id.deviceId);
         final EditText distanceView = (EditText) findViewById(R.id.distanceMeters);
         Button sendButton = (Button) findViewById(R.id.sendButton);
 
@@ -88,27 +92,32 @@ public class RssiActivity extends Activity {
 
         autoScroll((ScrollView) findViewById(R.id.eventScrollView), eventLogView);
         autoScroll((ScrollView) findViewById(R.id.deviceScrollView), deviceLogView);
-        deviceIdView.addTextChangedListener(new TextWatcher() {
+        deviceIdView.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                try {
-                    int id = Integer.valueOf(s.toString());
-                    Device d = devices.get(id - 1);
-                    if (d != null) deviceId = id;
-                } catch (Exception e) {
-                    if (deviceId != 0) {
-                        deviceId = 0;
-                        deviceIdView.setText("0");
+            public void onClick(View v) {
+                AlertDialog.Builder b = new AlertDialog.Builder(RssiActivity.this);
+                final EditText input = new EditText(RssiActivity.this);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT);
+                input.setLayoutParams(lp);
+                input.setInputType(InputType.TYPE_CLASS_NUMBER);
+                b.setView(input);
+                b.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        try {
+                            int id = Integer.valueOf(input.getText().toString());
+                            Device d = devices.get(id - 1);
+                            if (d != null) deviceId = id;
+                        } catch (Exception e) {
+                            if (deviceId != 0) {
+                                deviceId = 0;
+                                deviceIdView.setText("0");
+                            }
+                        }
                     }
-                }
+                });
             }
         });
         distanceView.addTextChangedListener(new TextWatcher() {
@@ -126,17 +135,6 @@ public class RssiActivity extends Activity {
                     distance = Float.valueOf(s.toString());
                 } catch (NumberFormatException e) {
                     distanceView.setText(distance + "");
-                }
-            }
-        });
-        collectSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                collectEnabled = isChecked;
-                if (isChecked) {
-                    startCollection();
-                } else {
-                    stopCollection();
                 }
             }
         });
@@ -234,6 +232,18 @@ public class RssiActivity extends Activity {
         collectedCount = prefs.getInt("collected", 0);
         deserializeRssiRecords(prefs.getString("toSend", ""));
         updateCountViews();
+        collectSwitch.setOnCheckedChangeListener(null);
+        collectSwitch.setChecked(collectEnabled);
+        collectSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    startCollection();
+                } else {
+                    stopCollection();
+                }
+            }
+        });
         addEvent("Device is " + (btBeacon.isDiscoverable() ? "" : "not ") +
                 "discoverable (may be inaccurate).");
     }
@@ -294,15 +304,17 @@ public class RssiActivity extends Activity {
     }
 
     public void startCollection() {
+        collectEnabled = true;
         btBeacon.registerListener(btBeaconListener);
         btBeacon.startBeaconing(this, REQUEST_BT_DISCOVERABLE);
         btLeBeacon.registerListener(btLeBeaconListener);
         btLeBeacon.startBeaconing(this, REQUEST_BT_ENABLE);
         wifiScanner.registerListener(wifiScanListener);
-        wifiScanner.startScanning();
+        wifiScanner.startScanning(3000);
     }
 
     public void stopCollection() {
+        collectEnabled = false;
         btBeacon.stopBeaconing(this, REQUEST_BT_DISCOVERABLE);
         btBeacon.unregisterListener(btBeaconListener);
         btLeBeacon.stopBeaconing();
@@ -403,7 +415,7 @@ public class RssiActivity extends Activity {
     private final WifiScanner.ScanListener wifiScanListener = new WifiScanner.ScanListener() {
         @Override
         public void onScanResults(List<android.net.wifi.ScanResult> scanResults) {
-            addEvent("WifiScanner found " + scanResults.size() + " results.");
+            addEvent("WifiBeacon found " + scanResults.size() + " results.");
             for (android.net.wifi.ScanResult r : scanResults) {
                 addRecord(App.getInstance().getWifiMac(), r.BSSID, r.SSID  +
                                 " (WiFi " + r.frequency + "MHz)",

@@ -19,7 +19,6 @@ package com.jifalops.wsnlocalize.nsd;
 import android.app.Activity;
 import android.net.nsd.NsdServiceInfo;
 import android.os.Bundle;
-import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -44,7 +43,7 @@ public class NsdDemoActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_nsdtest);
+        setContentView(R.layout.activity_nsd);
         statusView = (TextView) findViewById(R.id.status);
         sendView = (EditText) findViewById(R.id.chatInput);
         autoScrollTextView(statusView, (ScrollView) findViewById(R.id.scrollView));

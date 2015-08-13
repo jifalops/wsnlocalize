@@ -6,11 +6,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
+import android.os.Handler;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
 /**
  * Created by Jacob Phillips.
@@ -19,32 +18,21 @@ public class WifiScanner {
     Context context;
     WifiManager manager;
     boolean enabled;
+    int intervalMillis;
 
     private static WifiScanner instance;
     public static WifiScanner getInstance(Context ctx) {
-        if (instance == null) {
-            instance = new WifiScanner(ctx);
-        }
+        if (instance == null) instance = new WifiScanner(ctx.getApplicationContext());
         return instance;
     }
     private WifiScanner(Context ctx) {
-        context = ctx.getApplicationContext();
+        context = ctx;
         manager = (WifiManager) ctx.getSystemService(Context.WIFI_SERVICE);
     }
 
-
-    private final BroadcastReceiver scanReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            List<ScanResult> results = manager.getScanResults();
-            for (ScanListener l : listeners) {
-                l.onScanResults(results);
-            }
-            manager.startScan();
-        }
-    };
-
-    public void startScanning() {
+    public void startScanning() { startScanning(0); }
+    public void startScanning(int intervalMillis) {
+        this.intervalMillis = intervalMillis;
         if (enabled) return;
         enabled = true;
         context.registerReceiver(scanReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
@@ -56,6 +44,22 @@ public class WifiScanner {
         enabled = false;
         context.unregisterReceiver(scanReceiver);
     }
+
+    private final BroadcastReceiver scanReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            List<ScanResult> results = manager.getScanResults();
+            for (ScanListener l : listeners) {
+                l.onScanResults(results);
+            }
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    manager.startScan();
+                }
+            }, intervalMillis);
+        }
+    };
 
 
     public interface ScanListener {
