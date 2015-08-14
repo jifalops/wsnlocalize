@@ -66,7 +66,8 @@ public class RssiActivity extends Activity {
     private final List<Device> devices = new ArrayList<>();
     private final List<RssiRequest.RssiRecord> rssiRecords = new ArrayList<>();
 
-    private int deviceId, collectedCount;
+    private int collectedCount;
+    private final List<Integer> deviceIds = new ArrayList<>();
     private float distance;
     private boolean collectEnabled;
 
@@ -104,21 +105,35 @@ public class RssiActivity extends Activity {
                         LinearLayout.LayoutParams.WRAP_CONTENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT);
                 input.setLayoutParams(lp);
-                input.setInputType(InputType.TYPE_CLASS_NUMBER);
+//                input.setInputType(InputType.TYPE_CLASS_NUMBER);
                 b.setView(input);
-                b.setTitle("Device ID");
+                b.setTitle("Device IDs (comma separated)");
                 b.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
+                        deviceIdView.setText("");
+                        deviceIds.clear();
                         try {
-                            int id = Integer.valueOf(input.getText().toString());
-                            Device d = devices.get(id - 1);
-                            if (d != null) deviceId = id;
-                        } catch (Exception e) {
-                            if (deviceId != 0) {
-                                deviceId = 0;
-                                deviceIdView.setText("0");
+                            String[] ids = input.getText().toString().split(",");
+                            int id;
+                            for (String s : ids) {
+                                id = Integer.valueOf(s);
+                                Device d = devices.get(id - 1);
+                                if (d != null) deviceIds.add(id);
                             }
+                        } catch (Exception ignored) {}
+                        boolean first = true;
+                        for (int id : deviceIds) {
+                            if (first) {
+                                deviceIdView.append(id+"");
+                                first = false;
+                            } else {
+                                deviceIdView.append(","+id);
+                            }
+
+                        }
+                        if (deviceIds.size() == 0) {
+                            deviceIdView.setText("0,0,0");
                         }
                     }
                 });
@@ -266,9 +281,9 @@ public class RssiActivity extends Activity {
     private void addRecord(String localMac, String remoteMac, String remoteDesc,
                            String method, int rssi, int freq) {
         Device d = getDevice(remoteMac, remoteDesc);
-        String time = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.US).format(new Date());
         if (collectEnabled) {
-            if (d.id == deviceId && rssi != 0) {
+            if (deviceIds.contains(d.id) && rssi != 0 && distance != 0) {
+                String time = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.US).format(new Date());
                 RssiRequest.RssiRecord record = new RssiRequest.RssiRecord(
                         localMac, remoteMac, remoteDesc, method, rssi, freq, distance, time);
                 rssiRecords.add(record);
