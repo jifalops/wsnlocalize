@@ -54,6 +54,7 @@ public class WifiScannerDemoActivity extends Activity {
         if (scanner.manager.isWifiEnabled()) {
             startScanning();
         } else {
+            textView.append("Turning on WiFi...\n");
             registerReceiver(new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
@@ -111,22 +112,12 @@ public class WifiScannerDemoActivity extends Activity {
     }
 
     private final WifiScanner.ScanListener scanListener = new WifiScanner.ScanListener() {
-        int count = 0;
         @Override
         public void onScanResults(List<ScanResult> scanResults) {
             textView.append("Found " + scanResults.size() + " devices:\n");
             for (ScanResult sr : scanResults) {
                 textView.append(sr.level + "dBm " + sr.frequency + "MHz " +
                         sr.SSID + " " + sr.BSSID + "\n");
-            }
-            count++;
-            if (count == 10) {
-                try {
-                    SoftApManager.getInstance(WifiScannerDemoActivity.this).setEnabled(true);
-                } catch (NoSuchMethodException e) {
-                    Toast.makeText(WifiScannerDemoActivity.this,
-                            "Hot-spot not available.", Toast.LENGTH_LONG).show();
-                }
             }
         }
     };

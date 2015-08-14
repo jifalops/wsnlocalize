@@ -33,8 +33,11 @@ import com.jifalops.wsnlocalize.wifi.WifiScanner;
 import org.json.JSONArray;
 import org.json.JSONException;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 /**
  *
@@ -98,11 +101,12 @@ public class RssiActivity extends Activity {
                 AlertDialog.Builder b = new AlertDialog.Builder(RssiActivity.this);
                 final EditText input = new EditText(RssiActivity.this);
                 LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                        LinearLayout.LayoutParams.MATCH_PARENT,
-                        LinearLayout.LayoutParams.MATCH_PARENT);
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT);
                 input.setLayoutParams(lp);
                 input.setInputType(InputType.TYPE_CLASS_NUMBER);
                 b.setView(input);
+                b.setTitle("Device ID");
                 b.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -118,6 +122,7 @@ public class RssiActivity extends Activity {
                         }
                     }
                 });
+                b.show();
             }
         });
         distanceView.addTextChangedListener(new TextWatcher() {
@@ -261,10 +266,11 @@ public class RssiActivity extends Activity {
     private void addRecord(String localMac, String remoteMac, String remoteDesc,
                            String method, int rssi, int freq) {
         Device d = getDevice(remoteMac, remoteDesc);
+        String time = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.US).format(new Date());
         if (collectEnabled) {
             if (d.id == deviceId && rssi != 0) {
                 RssiRequest.RssiRecord record = new RssiRequest.RssiRecord(
-                        localMac, remoteMac, remoteDesc, method, rssi, freq, distance);
+                        localMac, remoteMac, remoteDesc, method, rssi, freq, distance, time);
                 rssiRecords.add(record);
                 collectedCount++;
                 updateCountViews();
