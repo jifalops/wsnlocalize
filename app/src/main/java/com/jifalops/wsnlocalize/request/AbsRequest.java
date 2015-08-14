@@ -4,6 +4,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.NetworkResponse;
 import com.android.volley.ParseError;
 import com.android.volley.Request;
@@ -44,6 +46,10 @@ public abstract class AbsRequest extends Request<JSONObject> {
     public AbsRequest(Listener<MyResponse> responseListener, ErrorListener errorListener) {
         super(Method.POST, URL, errorListener);
         this.listener = responseListener;
+        // Do not retry. If a request fails, they instead can be manually retried.
+        // (Data was being submitted multiple times.)
+        setRetryPolicy(new DefaultRetryPolicy(5000, 0,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
     }
 
     @Override
