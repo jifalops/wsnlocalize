@@ -1,8 +1,7 @@
-package com.jifalops.wsnlocalize.neuralnet.pso;
+package com.jifalops.wsnlocalize.neuralnet;
 
 import com.jifalops.wsnlocalize.neuralnet.MlpWeightMetrics;
 import com.jifalops.wsnlocalize.neuralnet.NeuralNetwork;
-import com.jifalops.wsnlocalize.neuralnet.WeightVector;
 
 /**
  *
@@ -19,18 +18,20 @@ public class ParticleSwarm extends NeuralNetwork {
     double VmaxMin = .2;
     double VmaxMax = .8;
 
-    ParticleSwarm(Particle[] pop, MlpWeightMetrics metrics) {
-        super(pop, metrics);
+    // Adding velocity and particle-best info for population.
+    protected final double[][] v;
+    protected double[][] pbest;
+
+    ParticleSwarm(double[][] positions, double[][] velocities, MlpWeightMetrics metrics) {
+        super(positions, metrics);
+        v = velocities;
+        pbest = positions.clone();
     }
 
     private void updateVelocities() {
-        Particle[] p = (Particle[]) pop;
-        WeightVector gbest = pop[bestIndex];
-        for (int i = 0; i < pop.length; i++) {
-            for (int j = 0; j < pop[0].getSize(); j++) {
-                p[i].setVelocity(j, calcVelocity(
-                        p[i].getWeight(j), p[i].getVelocity(j),
-                        p[i].getBest(j), gbest.getWeight(j)));
+        for (int i = 0; i < weights.length; i++) {
+            for (int j = 0; j < weights[0].length; j++) {
+                v[i][j] = calcVelocity(weights[i][j], v[i][j], pbest[i][j], gbest[j]);
             }
         }
     }
@@ -42,9 +43,10 @@ public class ParticleSwarm extends NeuralNetwork {
     }
 
     private void updateWeights() {
-        Particle[] p = (Particle[]) pop;
-        for (int i = 0; i < pop.length; i++) {
-            p[i].setWeight(i, p[i].getWeight(i) + p[i].getVelocity(i));
+        for (int i = 0; i < weights.length; i++) {
+            for (int j = 0; j < weights[0].length; j++) {
+                weights[i][j] += v[i][j];
+            }
         }
     }
 
