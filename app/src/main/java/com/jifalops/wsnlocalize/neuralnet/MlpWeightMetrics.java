@@ -1,4 +1,4 @@
-package com.jifalops.wsnlocalize.ffnn;
+package com.jifalops.wsnlocalize.neuralnet;
 
 /**
  *
@@ -6,8 +6,11 @@ package com.jifalops.wsnlocalize.ffnn;
 public class MlpWeightMetrics extends SampleMetrics {
     final int hidden, weights,
             hiddenBiasesStart, hiddenToOutputStart, outputBiasesStart;
-    MlpWeightMetrics(SampleMetrics sm, int hidden) {
-        super(sm.inputs, sm.outputs);
+    MlpWeightMetrics(int inputs, int outputs) {
+        this(inputs, outputs, Math.round((inputs + outputs) / 2));
+    }
+    MlpWeightMetrics(int inputs, int outputs, int hidden) {
+        super(inputs, outputs);
         this.hidden = hidden;
         hiddenBiasesStart = inputs * hidden;
         hiddenToOutputStart = hiddenBiasesStart + hidden;

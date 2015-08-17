@@ -1,4 +1,4 @@
-package com.jifalops.wsnlocalize.ffnn;
+package com.jifalops.wsnlocalize.neuralnet;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -9,23 +9,6 @@ import java.util.List;
  */
 public class Util {
     private Util() {}
-    static final int INIT_ZEROS = 0;
-    static final int INIT_RANDOM_NEGATIVE_ONE_TO_ONE = 1;
-
-    static void initWeights(double[] weights, int initType) {
-        switch (initType) {
-            case INIT_ZEROS:
-                for (int i = 0; i < weights.length; i++) {
-                    weights[i] = 0;
-                }
-                break;
-            case INIT_RANDOM_NEGATIVE_ONE_TO_ONE:
-                for (int i = 0; i < weights.length; i++) {
-                    weights[i] = (Math.random() - 0.5) * 2; // [-1, 1)
-                }
-                break;
-        }
-    }
 
 
     /**
@@ -38,11 +21,12 @@ public class Util {
         double[] gamma = new double[m.hidden];
         double[] z = new double[m.hidden];
 
-
+        int start;
         // Weights for connections between input and hidden neurons.
         for (int i = 0; i < m.inputs; i++) {
+            start = i * m.hidden;
             for (int j = 0; j < m.hidden; j++) {
-                gamma[j] += weights[i * m.hidden + j] * sample[i];
+                gamma[j] += weights[start + j] * sample[i];
             }
         }
 
@@ -54,8 +38,9 @@ public class Util {
             z[j] = 1 / (1 + Math.exp(-gamma[j]));
 
             // Weights for connections between hidden and output neurons.
+            start = m.hiddenToOutputStart + j * m.outputs;
             for (int k = 0; k < m.outputs; k++) {
-                outputs[k] += weights[m.hiddenToOutputStart + j * m.outputs + k] * z[j];
+                outputs[k] += weights[start + k] * z[j];
             }
         }
 

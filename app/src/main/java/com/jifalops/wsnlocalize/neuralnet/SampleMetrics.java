@@ -1,4 +1,4 @@
-package com.jifalops.wsnlocalize.ffnn;
+package com.jifalops.wsnlocalize.neuralnet;
 
 /**
  *
