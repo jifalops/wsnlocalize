@@ -4,17 +4,19 @@ package com.jifalops.wsnlocalize.ffnn;
  *
  */
 public abstract class NeuralNetwork {
-    Population pop;
+    final double[][] pop;
+    final MlpWeightMetrics metrics;
+    int best = -1;
 
-    public abstract double[] train(DataSet data);
+    public abstract double[] train(double[][] data);
 
-
-    public NeuralNetwork(Population pop) {
+    public NeuralNetwork(double[][] pop, MlpWeightMetrics metrics) {
         this.pop = pop;
+        this.metrics = metrics;
     }
 
 
-    public double test(DataSet data) {
-        return pop.pop[pop.best].calculateError(data, pop.metrics);
+    public double test(double[][] data) {
+        return Util.calculateError(pop[best], data, metrics);
     }
 }

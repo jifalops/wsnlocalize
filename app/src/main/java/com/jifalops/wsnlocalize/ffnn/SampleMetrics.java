@@ -1,7 +1,7 @@
 package com.jifalops.wsnlocalize.ffnn;
 
 /**
- * Created by jake on 8/17/15.
+ *
  */
 class SampleMetrics {
     final int inputs, outputs;
