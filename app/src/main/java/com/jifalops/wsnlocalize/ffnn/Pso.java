@@ -11,6 +11,6 @@ public class Pso {
     double c2 = 1.496;
     double VmaxMin = .2;
     double VmaxMax = .8;
-    Random rnd = new Random();
+
 
 }
