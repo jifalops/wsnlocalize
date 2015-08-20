@@ -10,6 +10,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,43 @@ import java.util.Map;
  *
  */
 public class RssiRequest extends AbsRequest {
+    public static class RssiFilter {
+        public interface FilterCallback {
+            void onRecordReady(RssiRecord record);
+        }
+        private final FilterCallback callback;
+        private final List<RssiRecord> records = new ArrayList<>();
+        private final int maxTimeMillis, maxCount;
+        private long startTimeNanos;
+        public RssiFilter(int maxTimeMillis, int maxCount, FilterCallback callback) {
+            this.maxTimeMillis = maxTimeMillis;
+            this.maxCount = maxCount;
+            this.callback = callback;
+        }
+        public void add(RssiRecord record) {
+            records.add(record);
+            checkLimits();
+        }
+        private void checkLimits() {
+            if (startTimeNanos == 0) startTimeNanos = System.nanoTime();
+            long time = (System.nanoTime() - startTimeNanos) / 1_000_000;
+            if (time >= maxTimeMillis || records.size() >= maxCount) {
+                callback.onRecordReady(findBestRecord());
+                records.clear();
+                startTimeNanos = 0;
+            }
+        }
+        private RssiRecord findBestRecord() {
+            RssiRecord best = records.get(0);
+            for (RssiRecord r : records) {
+                if (r.rssi > best.rssi) {
+                    best = r;
+                }
+            }
+            return best;
+        }
+    }
+
     public static class RssiRecord {
         public final String localMac, remoteMac, remoteDesc, rssiMethod, time;
         public final int rssi, freq;

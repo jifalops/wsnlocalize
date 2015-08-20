@@ -8,14 +8,14 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Created by Jacob Phillips.
+ *
  */
 public class AggregateScanResult {
     public String bssid;
     public String ssid;
     public int freq;
-    public List<Integer> rssi = new ArrayList<Integer>();
-    public List<Long> time = new ArrayList<Long>();
+    public List<Integer> rssi = new ArrayList<>();
+    public List<Long> time = new ArrayList<>();
 
     boolean add(ScanResult result) {
         if (bssid == null) {
@@ -42,7 +42,7 @@ public class AggregateScanResult {
     /** Uses the max rssi from up to the 10 most recent results,
      * but they must be less than 1 minute old. */
     public int effectiveRssi() {
-        long cutoff = (System.nanoTime() / 1000) - 1000000*60;
+        long cutoff = (System.nanoTime() / 1000) - 60_000_000;
         int index;
         for (index=0; index<time.size(); ++index) {
             if (time.get(index) > cutoff) {
@@ -61,7 +61,7 @@ public class AggregateScanResult {
     }
 
     public long elapsedTime() {
-        List<Long> tmp = new ArrayList<Long>(time);
+        List<Long> tmp = new ArrayList<>(time);
         Collections.sort(tmp);
         return tmp.get(tmp.size()-1) - tmp.get(0);
     }

@@ -67,7 +67,7 @@ public class BtBeacon {
 
         if (btAdapter == null || !btAdapter.isEnabled() ||
                 btAdapter.getScanMode() != BluetoothAdapter.SCAN_MODE_CONNECTABLE_DISCOVERABLE) {
-            requestBtDiscoverable(0, a, reqCode);
+            requestBtDiscoverable(3600, a, reqCode);
             return;
         }
 

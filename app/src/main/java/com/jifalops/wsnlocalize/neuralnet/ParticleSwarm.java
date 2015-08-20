@@ -1,8 +1,5 @@
 package com.jifalops.wsnlocalize.neuralnet;
 
-import com.jifalops.wsnlocalize.neuralnet.MlpWeightMetrics;
-import com.jifalops.wsnlocalize.neuralnet.NeuralNetwork;
-
 /**
  *
  */

@@ -45,6 +45,10 @@ import java.util.Locale;
 public class RssiActivity extends Activity {
     private static final int REQUEST_BT_ENABLE = 1;
     private static final int REQUEST_BT_DISCOVERABLE = 2;
+    private static final String METHOD_BT = "BtBeacon";
+    private static final String METHOD_BTLE = "BtLeBeacon";
+    private static final String METHOD_WIFI = "WifiScan";
+
 
     private static class Device {
         final int id;
@@ -286,7 +290,13 @@ public class RssiActivity extends Activity {
                 String time = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.US).format(new Date());
                 RssiRequest.RssiRecord record = new RssiRequest.RssiRecord(
                         localMac, remoteMac, remoteDesc, method, rssi, freq, distance, time);
-                rssiRecords.add(record);
+                if (method.equals(METHOD_BT)) {
+                    btFilter.add(record);
+                } else if (method.equals(METHOD_BTLE)) {
+                    btLeFilter.add(record);
+                } else if (method.equals(METHOD_WIFI)) {
+                    wifiFilter.add(record);
+                }
                 collectedCount++;
                 updateCountViews();
                 addEvent("Device " + d.id + ": " + rssi + " dBm (" + freq + " MHz) at " +
@@ -372,7 +382,7 @@ public class RssiActivity extends Activity {
         public void onDeviceFound(BluetoothDevice device, short rssi) {
             addRecord(App.getInstance().getBtMac(), device.getAddress(),
                     device.getName() + " (Bluetooth)",
-                    "BtBeacon", rssi, 2400);
+                    METHOD_BT, rssi, 2400);
         }
 
         @Override
@@ -426,7 +436,7 @@ public class RssiActivity extends Activity {
             if (device != null) {
                 addRecord(App.getInstance().getBtMac(), device.getAddress(),
                         device.getName() + " (Bluetooth LE)",
-                        "BtLeBeacon", result.getRssi(), 2400);
+                        METHOD_BTLE, result.getRssi(), 2400);
             } else {
                 addEvent("BT-LE received " + result.getRssi() + " dBm from null device.");
             }
@@ -440,8 +450,20 @@ public class RssiActivity extends Activity {
             for (android.net.wifi.ScanResult r : scanResults) {
                 addRecord(App.getInstance().getWifiMac(), r.BSSID, r.SSID  +
                                 " (WiFi " + r.frequency + "MHz)",
-                        "WifiScan", r.level, r.frequency);
+                        METHOD_WIFI, r.level, r.frequency);
             }
         }
     };
+
+    private final RssiRequest.RssiFilter.FilterCallback filterCallback =
+            new RssiRequest.RssiFilter.FilterCallback() {
+        @Override
+        public void onRecordReady(RssiRequest.RssiRecord record) {
+            rssiRecords.add(record);
+        }
+    };
+
+    private final RssiRequest.RssiFilter btFilter = new RssiRequest.RssiFilter(10000, 2, filterCallback);
+    private final RssiRequest.RssiFilter btLeFilter = new RssiRequest.RssiFilter(5000, 50, filterCallback);
+    private final RssiRequest.RssiFilter wifiFilter = new RssiRequest.RssiFilter(5000, 10, filterCallback);
 }
