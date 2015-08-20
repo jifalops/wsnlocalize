@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
-import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.Button;
@@ -27,6 +26,7 @@ import com.android.volley.VolleyError;
 import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
 import com.jifalops.wsnlocalize.request.AbsRequest;
+import com.jifalops.wsnlocalize.request.RssiFilter;
 import com.jifalops.wsnlocalize.request.RssiRequest;
 import com.jifalops.wsnlocalize.wifi.WifiScanner;
 
@@ -64,13 +64,13 @@ public class RssiActivity extends Activity {
         }
     }
 
-    private TextView eventLogView, deviceLogView, collectedCountView, toSendCountView;
+    private TextView eventLogView, deviceLogView, collectedCountView, filteredCountView, toSendCountView;
     private Switch collectSwitch;
 
     private final List<Device> devices = new ArrayList<>();
     private final List<RssiRequest.RssiRecord> rssiRecords = new ArrayList<>();
 
-    private int collectedCount;
+    private int collectedCount, filteredCount;
     private final List<Integer> deviceIds = new ArrayList<>();
     private float distance;
     private boolean collectEnabled;
@@ -88,6 +88,7 @@ public class RssiActivity extends Activity {
         eventLogView = (TextView) findViewById(R.id.eventLog);
         deviceLogView = (TextView) findViewById(R.id.deviceLog);
         collectedCountView = (TextView) findViewById(R.id.collectedCount);
+        filteredCountView = (TextView) findViewById(R.id.filteredCount);
         toSendCountView = (TextView) findViewById(R.id.toSendCount);
         collectSwitch = (Switch) findViewById(R.id.collectSwitch);
 
@@ -167,7 +168,7 @@ public class RssiActivity extends Activity {
             public void onClick(View v) {
                 final List<RssiRequest.RssiRecord> records = new ArrayList<>(rssiRecords);
                 rssiRecords.clear();
-                updateCountViews();
+                toSendCountView.setText("0");
                 App.getInstance().sendRequest(new RssiRequest(records,
                         new Response.Listener<AbsRequest.MyResponse>() {
                             @Override
@@ -182,7 +183,7 @@ public class RssiActivity extends Activity {
                                                     " Result: " + response.queryResult,
                                             Toast.LENGTH_LONG).show();
                                     rssiRecords.addAll(records);
-                                    updateCountViews();
+                                    toSendCountView.setText(rssiRecords.size() + "");
                                 }
                             }
                         }, new Response.ErrorListener() {
@@ -190,7 +191,7 @@ public class RssiActivity extends Activity {
                     public void onErrorResponse(VolleyError volleyError) {
                         Toast.makeText(RssiActivity.this, volleyError.toString(), Toast.LENGTH_LONG).show();
                         rssiRecords.addAll(records);
-                        updateCountViews();
+                        toSendCountView.setText(rssiRecords.size()+"");
                     }
                 }));
             }
@@ -254,8 +255,13 @@ public class RssiActivity extends Activity {
     protected void onResume() {
         super.onResume();
         collectedCount = prefs.getInt("collected", 0);
+        filteredCount = prefs.getInt("filtered", 0);
         deserializeRssiRecords(prefs.getString("toSend", ""));
-        updateCountViews();
+
+        collectedCountView.setText(collectedCount+"");
+        filteredCountView.setText(filteredCount+"");
+        toSendCountView.setText(rssiRecords.size()+"");
+
         collectSwitch.setOnCheckedChangeListener(null);
         collectSwitch.setChecked(collectEnabled);
         collectSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
@@ -276,6 +282,7 @@ public class RssiActivity extends Activity {
     protected void onPause() {
         super.onPause();
         prefs.edit().putInt("collected", collectedCount)
+                .putInt("filtered", filteredCount)
                 .putString("toSend", serializeRssiRecords(rssiRecords))
                 .apply();
         rssiRecords.clear();
@@ -298,7 +305,7 @@ public class RssiActivity extends Activity {
                     wifiFilter.add(record);
                 }
                 collectedCount++;
-                updateCountViews();
+                collectedCountView.setText(collectedCount+"");
                 addEvent("Device " + d.id + ": " + rssi + " dBm (" + freq + " MHz) at " +
                         distance + "m (" + method + ").");
             } else {
@@ -329,11 +336,6 @@ public class RssiActivity extends Activity {
         eventLogView.append(event + "\n");
     }
 
-    private void updateCountViews() {
-        collectedCountView.setText(collectedCount+"");
-        toSendCountView.setText(rssiRecords.size() + "");
-    }
-
     public void startCollection() {
         collectEnabled = true;
         btBeacon.registerListener(btBeaconListener);
@@ -341,7 +343,7 @@ public class RssiActivity extends Activity {
         btLeBeacon.registerListener(btLeBeaconListener);
         btLeBeacon.startBeaconing(this, REQUEST_BT_ENABLE);
         wifiScanner.registerListener(wifiScanListener);
-        wifiScanner.startScanning(3000);
+        wifiScanner.startScanning();
     }
 
     public void stopCollection() {
@@ -455,15 +457,18 @@ public class RssiActivity extends Activity {
         }
     };
 
-    private final RssiRequest.RssiFilter.FilterCallback filterCallback =
-            new RssiRequest.RssiFilter.FilterCallback() {
+    private final RssiFilter.FilterCallback filterCallback =
+            new RssiFilter.FilterCallback() {
         @Override
-        public void onRecordReady(RssiRequest.RssiRecord record) {
+        public void onRecordReady(RssiRequest.RssiRecord record, int recordsFiltered) {
             rssiRecords.add(record);
+            toSendCountView.setText(rssiRecords.size()+"");
+            filteredCount += recordsFiltered;
+            filteredCountView.setText(filteredCount+"");
         }
     };
 
-    private final RssiRequest.RssiFilter btFilter = new RssiRequest.RssiFilter(10000, 2, filterCallback);
-    private final RssiRequest.RssiFilter btLeFilter = new RssiRequest.RssiFilter(5000, 50, filterCallback);
-    private final RssiRequest.RssiFilter wifiFilter = new RssiRequest.RssiFilter(5000, 10, filterCallback);
+    private final RssiFilter btFilter = new RssiFilter(10000, 2, filterCallback);
+    private final RssiFilter btLeFilter = new RssiFilter(5000, 50, filterCallback);
+    private final RssiFilter wifiFilter = new RssiFilter(5000, 10, filterCallback);
 }
