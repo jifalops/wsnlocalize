@@ -468,7 +468,7 @@ public class RssiActivity extends Activity {
         }
     };
 
-    private final RssiFilter btFilter = new RssiFilter(10000, 2, filterCallback);
-    private final RssiFilter btLeFilter = new RssiFilter(5000, 50, filterCallback);
-    private final RssiFilter wifiFilter = new RssiFilter(5000, 10, filterCallback);
+    private final RssiFilter btFilter = new RssiFilter(20000, 4, filterCallback);
+    private final RssiFilter btLeFilter = new RssiFilter(10000, 50, filterCallback);
+    private final RssiFilter wifiFilter = new RssiFilter(10000, 10, filterCallback);
 }
