@@ -43,11 +43,11 @@ public class RssiFilter {
 
     private final FilterCallback callback;
     private final List<DeviceRssiList> deviceRecords = new ArrayList<>();
-    private final int maxTimeMillis, maxCount;
+    private final int minTimeMillis, minCount;
 
-    public RssiFilter(int maxTimeMillis, int maxCount, FilterCallback callback) {
-        this.maxTimeMillis = maxTimeMillis;
-        this.maxCount = maxCount;
+    public RssiFilter(int minTimeMillis, int minCount, FilterCallback callback) {
+        this.minTimeMillis = minTimeMillis;
+        this.minCount = minCount;
         this.callback = callback;
     }
 
@@ -74,7 +74,7 @@ public class RssiFilter {
 
     private void checkLimits(DeviceRssiList d) {
         long time = (System.nanoTime() - d.startTimeNanos) / 1_000_000;
-        if (time >= maxTimeMillis || d.size() >= maxCount) {
+        if (time >= minTimeMillis && d.size() >= minCount) {
             callback.onRecordReady(d.findBestRecord(), d.size() - 1);
             d.clear();
         }

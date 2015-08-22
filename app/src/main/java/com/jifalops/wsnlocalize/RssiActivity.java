@@ -11,6 +11,9 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.SubMenu;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CompoundButton;
@@ -26,6 +29,7 @@ import com.android.volley.VolleyError;
 import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
 import com.jifalops.wsnlocalize.request.AbsRequest;
+import com.jifalops.wsnlocalize.request.DeviceRequest;
 import com.jifalops.wsnlocalize.request.RssiFilter;
 import com.jifalops.wsnlocalize.request.RssiRequest;
 import com.jifalops.wsnlocalize.wifi.WifiScanner;
@@ -45,6 +49,9 @@ import java.util.Locale;
 public class RssiActivity extends Activity {
     private static final int REQUEST_BT_ENABLE = 1;
     private static final int REQUEST_BT_DISCOVERABLE = 2;
+    private static final int LOG_IMPORTANT = 1;
+    private static final int LOG_INFORMATIVE = 2;
+    private static final int LOG_ALL = 3;
     private static final String METHOD_BT = "BtBeacon";
     private static final String METHOD_BTLE = "BtLeBeacon";
     private static final String METHOD_WIFI = "WifiScan";
@@ -70,7 +77,7 @@ public class RssiActivity extends Activity {
     private final List<Device> devices = new ArrayList<>();
     private final List<RssiRequest.RssiRecord> rssiRecords = new ArrayList<>();
 
-    private int collectedCount, filteredCount;
+    private int collectedCount, filteredCount, logLevel = LOG_INFORMATIVE;
     private final List<Integer> deviceIds = new ArrayList<>();
     private float distance;
     private boolean collectEnabled;
@@ -241,14 +248,31 @@ public class RssiActivity extends Activity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_main, menu);
+        SubMenu sub = menu.addSubMenu("Log Level");
+        sub.add(1, LOG_IMPORTANT, 1, "Important").setCheckable(true);
+        sub.add(1, LOG_INFORMATIVE, 2, "Informative").setCheckable(true).setChecked(true);
+        sub.add(1, LOG_ALL, 3, "All").setCheckable(true);
+        sub.setGroupCheckable(1, true, true);
+        return true;
     }
-
     @Override
-    protected void onStop() {
-        super.onStop();
-
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                return true;
+            case LOG_IMPORTANT:
+                logLevel = LOG_IMPORTANT;
+                return true;
+            case LOG_INFORMATIVE:
+                logLevel = LOG_INFORMATIVE;
+                return true;
+            case LOG_ALL:
+                logLevel = LOG_ALL;
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -274,8 +298,9 @@ public class RssiActivity extends Activity {
                 }
             }
         });
+
         addEvent("Device is " + (btBeacon.isDiscoverable() ? "" : "not ") +
-                "discoverable (may be inaccurate).");
+                "discoverable (may be inaccurate).", LOG_INFORMATIVE);
     }
 
     @Override
@@ -307,10 +332,10 @@ public class RssiActivity extends Activity {
                 collectedCount++;
                 collectedCountView.setText(collectedCount+"");
                 addEvent("Device " + d.id + ": " + rssi + " dBm (" + freq + " MHz) at " +
-                        distance + "m (" + method + ").");
+                        distance + "m (" + method + ").", LOG_IMPORTANT);
             } else {
                 addEvent("Ignoring " + rssi + " dBm (" + freq + " MHz) for device " +
-                        d.id + " (" + method + ").");
+                        d.id + " (" + method + ").", LOG_ALL);
             }
         }
     }
@@ -327,13 +352,15 @@ public class RssiActivity extends Activity {
             device = new Device(devices.size()+1, mac, desc);
             devices.add(device);
             deviceLogView.append(device.toString() + "\n");
-            addEvent("Found new device, " + device.id);
+            addEvent("Found new device, " + device.id, LOG_INFORMATIVE);
         }
         return device;
     }
 
-    private void addEvent(String event) {
-        eventLogView.append(event + "\n");
+    private void addEvent(String event, int level) {
+        if (level <= logLevel) {
+            eventLogView.append(event + "\n");
+        }
     }
 
     public void startCollection() {
@@ -376,7 +403,7 @@ public class RssiActivity extends Activity {
             e.printStackTrace();
         }
         rssiRecords.addAll(list);
-        addEvent("Loaded " + list.size() + " records from memory.");
+        addEvent("Loaded " + list.size() + " records from memory.", LOG_INFORMATIVE);
     }
 
     private final BtBeacon.BtBeaconListener btBeaconListener = new BtBeacon.BtBeaconListener() {
@@ -389,30 +416,30 @@ public class RssiActivity extends Activity {
 
         @Override
         public void onThisDeviceDiscoverableChanged(boolean discoverable) {
-            addEvent("BT Discoverability changed to " + discoverable);
+            addEvent("BT Discoverability changed to " + discoverable, LOG_INFORMATIVE);
         }
 
         @Override
         public void onDiscoveryStarting() {
-            addEvent("Scanning for BT devices...");
+            addEvent("Scanning for BT devices...", LOG_ALL);
         }
     };
 
     private final BtLeBeacon.BtLeBeaconListener btLeBeaconListener = new BtLeBeacon.BtLeBeaconListener() {
         @Override
         public void onAdvertiseNotSupported() {
-            addEvent("BT-LE advertisement not supported on this device.");
+            addEvent("BT-LE advertisement not supported on this device.", LOG_IMPORTANT);
         }
 
         @Override
         public void onAdvertiseStartSuccess(AdvertiseSettings settingsInEffect) {
             addEvent("BT-LE advertising started at " +
-                    settingsInEffect.getTxPowerLevel() + " dBm.");
+                    settingsInEffect.getTxPowerLevel() + " dBm.", LOG_IMPORTANT);
         }
 
         @Override
         public void onAdvertiseStartFailure(int errorCode, String errorMsg) {
-            addEvent("BT-LE advertisements failed to start (" + errorCode + "): " + errorMsg);
+            addEvent("BT-LE advertisements failed to start (" + errorCode + "): " + errorMsg, LOG_IMPORTANT);
         }
 
         @Override
@@ -422,7 +449,7 @@ public class RssiActivity extends Activity {
 
         @Override
         public void onBatchScanResults(List<ScanResult> results) {
-            addEvent("Received " + results.size() + " batch scan results (BtLeBeacon).");
+            addEvent("Received " + results.size() + " batch scan results (BtLeBeacon).", LOG_ALL);
             for (ScanResult sr : results) {
                 handleScanResult(sr);
             }
@@ -430,7 +457,7 @@ public class RssiActivity extends Activity {
 
         @Override
         public void onScanFailed(int errorCode, String errorMsg) {
-            addEvent("BT-LE scan failed (" + errorCode + "): " + errorMsg);
+            addEvent("BT-LE scan failed (" + errorCode + "): " + errorMsg, LOG_IMPORTANT);
         }
 
         private void handleScanResult(ScanResult result) {
@@ -440,7 +467,7 @@ public class RssiActivity extends Activity {
                         device.getName() + " (Bluetooth LE)",
                         METHOD_BTLE, result.getRssi(), 2400);
             } else {
-                addEvent("BT-LE received " + result.getRssi() + " dBm from null device.");
+                addEvent("BT-LE received " + result.getRssi() + " dBm from null device.", LOG_INFORMATIVE);
             }
         }
     };
@@ -448,7 +475,7 @@ public class RssiActivity extends Activity {
     private final WifiScanner.ScanListener wifiScanListener = new WifiScanner.ScanListener() {
         @Override
         public void onScanResults(List<android.net.wifi.ScanResult> scanResults) {
-            addEvent("WifiBeacon found " + scanResults.size() + " results.");
+            addEvent("WifiBeacon found " + scanResults.size() + " results.", LOG_ALL);
             for (android.net.wifi.ScanResult r : scanResults) {
                 addRecord(App.getInstance().getWifiMac(), r.BSSID, r.SSID  +
                                 " (WiFi " + r.frequency + "MHz)",
@@ -462,13 +489,17 @@ public class RssiActivity extends Activity {
         @Override
         public void onRecordReady(RssiRequest.RssiRecord record, int recordsFiltered) {
             rssiRecords.add(record);
-            toSendCountView.setText(rssiRecords.size()+"");
+            toSendCountView.setText(rssiRecords.size() + "");
             filteredCount += recordsFiltered;
             filteredCountView.setText(filteredCount+"");
+
+            Device d = getDevice(record.remoteMac, record.remoteDesc);
+            addEvent(d.id + " queued " + record.rssi + "dBm " + record.rssiMethod
+                    + ", filtered " + recordsFiltered, LOG_IMPORTANT);
         }
     };
 
-    private final RssiFilter btFilter = new RssiFilter(20000, 4, filterCallback);
-    private final RssiFilter btLeFilter = new RssiFilter(10000, 50, filterCallback);
-    private final RssiFilter wifiFilter = new RssiFilter(10000, 10, filterCallback);
+    private final RssiFilter btFilter = new RssiFilter(10000, 4, filterCallback);
+    private final RssiFilter btLeFilter = new RssiFilter(10000, 20, filterCallback);
+    private final RssiFilter wifiFilter = new RssiFilter(10000, 5, filterCallback);
 }
