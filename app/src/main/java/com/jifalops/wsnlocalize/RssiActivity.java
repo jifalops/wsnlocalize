@@ -77,7 +77,7 @@ public class RssiActivity extends Activity {
     private final List<Device> devices = new ArrayList<>();
     private final List<RssiRequest.RssiRecord> rssiRecords = new ArrayList<>();
 
-    private int collectedCount, filteredCount, logLevel = LOG_INFORMATIVE;
+    private int collectedCount, filteredCount, logLevel = LOG_IMPORTANT;
     private final List<Integer> deviceIds = new ArrayList<>();
     private float distance;
     private boolean collectEnabled;
@@ -251,8 +251,8 @@ public class RssiActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_main, menu);
         SubMenu sub = menu.addSubMenu("Log Level");
-        sub.add(1, LOG_IMPORTANT, 1, "Important").setCheckable(true);
-        sub.add(1, LOG_INFORMATIVE, 2, "Informative").setCheckable(true).setChecked(true);
+        sub.add(1, LOG_IMPORTANT, 1, "Important").setCheckable(true).setChecked(true);
+        sub.add(1, LOG_INFORMATIVE, 2, "Informative").setCheckable(true);
         sub.add(1, LOG_ALL, 3, "All").setCheckable(true);
         sub.setGroupCheckable(1, true, true);
         return true;
@@ -332,7 +332,7 @@ public class RssiActivity extends Activity {
                 collectedCount++;
                 collectedCountView.setText(collectedCount+"");
                 addEvent("Device " + d.id + ": " + rssi + " dBm (" + freq + " MHz) at " +
-                        distance + "m (" + method + ").", LOG_IMPORTANT);
+                        distance + "m (" + method + ").", LOG_INFORMATIVE);
             } else {
                 addEvent("Ignoring " + rssi + " dBm (" + freq + " MHz) for device " +
                         d.id + " (" + method + ").", LOG_ALL);
@@ -370,7 +370,7 @@ public class RssiActivity extends Activity {
         btLeBeacon.registerListener(btLeBeaconListener);
         btLeBeacon.startBeaconing(this, REQUEST_BT_ENABLE);
         wifiScanner.registerListener(wifiScanListener);
-        wifiScanner.startScanning();
+        wifiScanner.startScanning(1000);
     }
 
     public void stopCollection() {
@@ -475,7 +475,7 @@ public class RssiActivity extends Activity {
     private final WifiScanner.ScanListener wifiScanListener = new WifiScanner.ScanListener() {
         @Override
         public void onScanResults(List<android.net.wifi.ScanResult> scanResults) {
-            addEvent("WifiBeacon found " + scanResults.size() + " results.", LOG_ALL);
+            addEvent("WifiScan found " + scanResults.size() + " results.", LOG_ALL);
             for (android.net.wifi.ScanResult r : scanResults) {
                 addRecord(App.getInstance().getWifiMac(), r.BSSID, r.SSID  +
                                 " (WiFi " + r.frequency + "MHz)",
@@ -486,20 +486,29 @@ public class RssiActivity extends Activity {
 
     private final RssiFilter.FilterCallback filterCallback =
             new RssiFilter.FilterCallback() {
+        long lastTime = 0;
         @Override
-        public void onRecordReady(RssiRequest.RssiRecord record, int recordsFiltered) {
+        public void onRecordReady(RssiRequest.RssiRecord record, int recordsFiltered, long elapsedMillis) {
+            if (lastTime == 0) lastTime = System.nanoTime();
+            String elapsed = formatMillis((System.nanoTime() - lastTime) / 1_000_000);
+            lastTime = System.nanoTime();
             rssiRecords.add(record);
             toSendCountView.setText(rssiRecords.size() + "");
             filteredCount += recordsFiltered;
             filteredCountView.setText(filteredCount+"");
 
             Device d = getDevice(record.remoteMac, record.remoteDesc);
-            addEvent(d.id + " queued " + record.rssi + "dBm " + record.rssiMethod
-                    + ", filtered " + recordsFiltered, LOG_IMPORTANT);
+            addEvent("#" + d.id + " queued " + record.rssi + " dBm " + record.rssiMethod
+                    + ", filtered " + recordsFiltered + " in " + formatMillis(elapsedMillis)
+                    + " (" + elapsed + ")", LOG_IMPORTANT);
         }
     };
 
-    private final RssiFilter btFilter = new RssiFilter(10000, 4, filterCallback);
+    private String formatMillis(long millis) {
+        return String.format(Locale.US, "%.1fs", ((double)millis)/1000);
+    }
+
+    private final RssiFilter btFilter = new RssiFilter(10000, 5, filterCallback);
     private final RssiFilter btLeFilter = new RssiFilter(10000, 20, filterCallback);
-    private final RssiFilter wifiFilter = new RssiFilter(10000, 5, filterCallback);
+    private final RssiFilter wifiFilter = new RssiFilter(10000, 10, filterCallback);
 }

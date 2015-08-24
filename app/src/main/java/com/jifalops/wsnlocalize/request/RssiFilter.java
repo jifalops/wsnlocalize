@@ -8,7 +8,7 @@ import java.util.List;
  */
 public class RssiFilter {
     public interface FilterCallback {
-        void onRecordReady(RssiRequest.RssiRecord record, int recordsFiltered);
+        void onRecordReady(RssiRequest.RssiRecord record, int recordsFiltered, long elapsedMillis);
     }
 
     private static class DeviceRssiList extends ArrayList<RssiRequest.RssiRecord> {
@@ -75,7 +75,7 @@ public class RssiFilter {
     private void checkLimits(DeviceRssiList d) {
         long time = (System.nanoTime() - d.startTimeNanos) / 1_000_000;
         if (time >= minTimeMillis && d.size() >= minCount) {
-            callback.onRecordReady(d.findBestRecord(), d.size() - 1);
+            callback.onRecordReady(d.findBestRecord(), d.size() - 1, time);
             d.clear();
         }
     }
