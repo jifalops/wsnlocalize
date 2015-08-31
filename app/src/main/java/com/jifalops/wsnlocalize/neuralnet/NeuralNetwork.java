@@ -14,13 +14,12 @@ public abstract class NeuralNetwork {
     protected final double[] errors;
     protected final MlpWeightMetrics weightMetrics;
     protected TrainingStatus status;
+    protected Scaler scaler;
 
-    private TrainingMetrics trainingMetrics;
-    private ScaleMetrics scaleMetrics;
-
-    public NeuralNetwork(double[][] population, MlpWeightMetrics weightMetrics) {
+    public NeuralNetwork(double[][] population, MlpWeightMetrics weightMetrics, Scaler scaler) {
         this.population = population;
         this.weightMetrics = weightMetrics;
+        this.scaler = scaler;
         this.errors = new double[population.length];
     }
 
@@ -36,12 +35,8 @@ public abstract class NeuralNetwork {
 
     protected abstract void trainSampleBySample(double[][] samples);
 
-    public double[] trainSampleBySample(double[][] samples, ScaleMetrics metrics,
-                                        TerminationConditions conditions) {
-        scaleMetrics = metrics;
-
-        trainingMetrics = new TrainingMetrics(samples);
-        samples = randomize(scale(samples, weightMetrics, metrics));
+    public double[] trainSampleBySample(double[][] samples, TerminationConditions conditions) {
+        samples = scaler.scaleAndRandomize(samples);
         status = new TrainingStatus(weightMetrics, conditions);
         double stdDev;
         int generation = 0;
@@ -120,53 +115,5 @@ public abstract class NeuralNetwork {
             }
         }
         return pop;
-    }
-
-    public static double[][] scale(double[][] data, SampleMetrics metrics, ScaleMetrics s) {
-        int samples = data.length;
-        int cols = data[0].length;
-        double[][] scaled = new double[samples][cols];
-        double min, max, diff,
-                inDiff = s.inputMax - s.inputMin,
-                outDiff = s.outputMax - s.outputMin;
-        for (int i = 0; i < metrics.numInputs; i++) {
-            min = Double.MAX_VALUE;
-            max = Double.MIN_VALUE;
-            for (int j = 0; j < samples; j++) {
-                if (data[j][i] < min) min = data[j][i];
-                if (data[j][i] > max) max = data[j][i];
-            }
-            diff = max - min;
-            for (int j = 0; j < samples; j++) {
-                scaled[j][i] = s.inputMin + (data[j][i] - min) * inDiff / diff;
-            }
-        }
-
-        for (int i = metrics.numInputs; i < cols; i++) {
-            min = Double.MAX_VALUE;
-            max = Double.MIN_VALUE;
-            for (int j = 0; j < samples; j++) {
-                if (data[j][i] < min) min = data[j][i];
-                if (data[j][i] > max) max = data[j][i];
-            }
-            diff = max - min;
-            for (int j = 0; j < samples; j++) {
-                scaled[j][i] = s.outputMin + (data[j][i] - min) * outDiff / diff;
-            }
-        }
-
-        return scaled;
-    }
-
-    public static double[][] unscale(double[][] data, SampleMetrics metrics, double inputMin,
-                                   double inputMax, double outputMin, double outputMax) {
-
-    }
-
-
-    public static double[][] randomize(double[][] data) {
-        List<double[]> rand = Arrays.asList(data);
-        Collections.shuffle(rand);
-        return rand.toArray(new double[data.length][data[0].length]);
     }
 }
