@@ -59,7 +59,7 @@ public class Stats {
         return median;
     }
 
-    public static double[] mode(double[] array) {
+    public static double[] modes(double[] array) {
         double[] modes;
         List<Double> modeList = new ArrayList<>();
         Map<Double, Integer> counts = new HashMap<>();

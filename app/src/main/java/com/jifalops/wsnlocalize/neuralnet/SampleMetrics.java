@@ -4,9 +4,9 @@ package com.jifalops.wsnlocalize.neuralnet;
  *
  */
 class SampleMetrics {
-    final int inputs, outputs;
+    final int numInputs, numOutputs;
     SampleMetrics(int numInputs, int numOutputs) {
-        inputs = numInputs;
-        outputs = numOutputs;
+        this.numInputs = numInputs;
+        this.numOutputs = numOutputs;
     }
 }

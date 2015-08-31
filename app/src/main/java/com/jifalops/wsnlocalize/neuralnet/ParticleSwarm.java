@@ -11,24 +11,25 @@ public class ParticleSwarm extends NeuralNetwork {
     /** Social learning constant */
     double c2 = 1.496;
 
-    // limit the max velocity
-    double VmaxMin = .2;
-    double VmaxMax = .8;
-
     // Adding velocity and particle-best info for population.
     protected final double[][] v;
     protected double[][] pbest;
+    protected double[] pbestError;
 
-    ParticleSwarm(double[][] positions, double[][] velocities, MlpWeightMetrics metrics) {
-        super(positions, metrics);
+    ParticleSwarm(double[][] particles, double[][] velocities, MlpWeightMetrics metrics) {
+        super(particles, metrics);
         v = velocities;
-        pbest = positions.clone();
+        pbest = new double[particles.length][particles[0].length];
+        pbestError = new double[particles.length];
+        for (int i = 0; i < pbestError.length; ++i) {
+            pbestError[i] = Double.MAX_VALUE;
+        }
     }
 
     private void updateVelocities() {
-        for (int i = 0; i < weights.length; i++) {
-            for (int j = 0; j < weights[0].length; j++) {
-                v[i][j] = calcVelocity(weights[i][j], v[i][j], pbest[i][j], gbest[j]);
+        for (int i = 0; i < population.length; i++) {
+            for (int j = 0; j < population[0].length; j++) {
+                v[i][j] = calcVelocity(population[i][j], v[i][j], pbest[i][j], getGlobalBest()[j]);
             }
         }
     }
@@ -39,16 +40,30 @@ public class ParticleSwarm extends NeuralNetwork {
                 (Math.random() * c2 * (gbest - pos));       // social learning
     }
 
-    private void updateWeights() {
-        for (int i = 0; i < weights.length; i++) {
-            for (int j = 0; j < weights[0].length; j++) {
-                weights[i][j] += v[i][j];
+    private void updatePositions() {
+        for (int i = 0; i < population.length; i++) {
+            for (int j = 0; j < population[0].length; j++) {
+                population[i][j] += v[i][j];
             }
         }
     }
 
+    private void updateParticles() {
+        updateVelocities();
+        updatePositions();
+    }
+
     @Override
-    public double[] train(double[][] data) {
-        return new double[0];
+    public void trainSampleBySample(double[][] samples) {
+        updateParticles();
+        for (int i = 0; i < population.length; i++) {
+            errors[i] = calcError(population[i], samples);
+            if (errors[i] < pbestError[i]) {
+                pbest[i] = population[i];
+                pbestError[i] = errors[i];
+
+                status.updateIfBest(population[i], errors[i]);
+            }
+        }
     }
 }
