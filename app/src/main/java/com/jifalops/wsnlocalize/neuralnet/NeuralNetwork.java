@@ -2,10 +2,6 @@ package com.jifalops.wsnlocalize.neuralnet;
 
 import com.jifalops.wsnlocalize.util.Stats;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 /**
  *
  */
