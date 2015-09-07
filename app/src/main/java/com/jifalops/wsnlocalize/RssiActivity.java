@@ -28,8 +28,8 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
+import com.jifalops.wsnlocalize.data.RssiRecordOld;
 import com.jifalops.wsnlocalize.request.AbsRequest;
-import com.jifalops.wsnlocalize.request.DeviceRequest;
 import com.jifalops.wsnlocalize.request.RssiFilter;
 import com.jifalops.wsnlocalize.request.RssiRequest;
 import com.jifalops.wsnlocalize.wifi.WifiScanner;
@@ -75,7 +75,7 @@ public class RssiActivity extends Activity {
     private Switch collectSwitch;
 
     private final List<Device> devices = new ArrayList<>();
-    private final List<RssiRequest.RssiRecord> rssiRecords = new ArrayList<>();
+    private final List<RssiRecordOld> rssiRecords = new ArrayList<>();
 
     private int collectedCount, filteredCount, logLevel = LOG_IMPORTANT;
     private final List<Integer> deviceIds = new ArrayList<>();
@@ -173,7 +173,7 @@ public class RssiActivity extends Activity {
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final List<RssiRequest.RssiRecord> records = new ArrayList<>(rssiRecords);
+                final List<RssiRecordOld> records = new ArrayList<>(rssiRecords);
                 rssiRecords.clear();
                 toSendCountView.setText("0");
                 App.getInstance().sendRequest(new RssiRequest(records,
@@ -320,7 +320,7 @@ public class RssiActivity extends Activity {
         if (collectEnabled) {
             if (deviceIds.contains(d.id) && rssi != 0 && distance != 0) {
                 String time = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.US).format(new Date());
-                RssiRequest.RssiRecord record = new RssiRequest.RssiRecord(
+                RssiRecordOld record = new RssiRecordOld(
                         localMac, remoteMac, remoteDesc, method, rssi, freq, distance, time);
                 if (method.equals(METHOD_BT)) {
                     btFilter.add(record);
@@ -383,21 +383,21 @@ public class RssiActivity extends Activity {
         wifiScanner.unregisterListener(wifiScanListener);
     }
 
-    private String serializeRssiRecords(List<RssiRequest.RssiRecord> records) {
+    private String serializeRssiRecords(List<RssiRecordOld> records) {
         JSONArray array = new JSONArray();
-        for (RssiRequest.RssiRecord r : records) {
+        for (RssiRecordOld r : records) {
             array.put(r.toString());
         }
         return array.toString();
     }
 
     private void deserializeRssiRecords(String records) {
-        List<RssiRequest.RssiRecord> list = new ArrayList<>();
+        List<RssiRecordOld> list = new ArrayList<>();
         JSONArray array;
         try {
             array = new JSONArray(records);
             for (int i = 0, len = array.length(); i < len; i++) {
-                list.add(new RssiRequest.RssiRecord(array.getString(i)));
+                list.add(new RssiRecordOld(array.getString(i)));
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -488,7 +488,7 @@ public class RssiActivity extends Activity {
             new RssiFilter.FilterCallback() {
         long lastTime = 0;
         @Override
-        public void onRecordReady(RssiRequest.RssiRecord record, int recordsFiltered, long elapsedMillis) {
+        public void onRecordReady(RssiRecordOld record, int recordsFiltered, long elapsedMillis) {
             if (lastTime == 0) lastTime = System.nanoTime();
             String elapsed = formatMillis((System.nanoTime() - lastTime) / 1_000_000);
             lastTime = System.nanoTime();

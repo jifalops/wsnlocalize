@@ -1,5 +1,7 @@
 package com.jifalops.wsnlocalize.request;
 
+import com.jifalops.wsnlocalize.data.RssiRecordOld;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,14 +10,14 @@ import java.util.List;
  */
 public class RssiFilter {
     public interface FilterCallback {
-        void onRecordReady(RssiRequest.RssiRecord record, int recordsFiltered, long elapsedMillis);
+        void onRecordReady(RssiRecordOld record, int recordsFiltered, long elapsedMillis);
     }
 
-    private static class DeviceRssiList extends ArrayList<RssiRequest.RssiRecord> {
+    private static class DeviceRssiList extends ArrayList<RssiRecordOld> {
         long startTimeNanos = 0;
 
         @Override
-        public boolean add(RssiRequest.RssiRecord r) {
+        public boolean add(RssiRecordOld r) {
             if (startTimeNanos == 0) startTimeNanos = System.nanoTime();
             return super.add(r);
         }
@@ -26,9 +28,9 @@ public class RssiFilter {
             startTimeNanos = 0;
         }
 
-        RssiRequest.RssiRecord findBestRecord() {
-            RssiRequest.RssiRecord best = get(0);
-            for (RssiRequest.RssiRecord r : this) {
+        RssiRecordOld findBestRecord() {
+            RssiRecordOld best = get(0);
+            for (RssiRecordOld r : this) {
                 if (r.rssi > best.rssi) {
                     best = r;
                 }
@@ -36,7 +38,7 @@ public class RssiFilter {
             return best;
         }
 
-        boolean isDeviceForRecord(RssiRequest.RssiRecord r) {
+        boolean isDeviceForRecord(RssiRecordOld r) {
             return size() > 0 && get(0).remoteMac.equals(r.remoteMac);
         }
     }
@@ -51,7 +53,7 @@ public class RssiFilter {
         this.callback = callback;
     }
 
-    private DeviceRssiList addAndGetDevice(RssiRequest.RssiRecord record) {
+    private DeviceRssiList addAndGetDevice(RssiRecordOld record) {
         DeviceRssiList device = null;
         for (DeviceRssiList d : deviceRecords) {
             if (d.isDeviceForRecord(record)) {
@@ -67,7 +69,7 @@ public class RssiFilter {
         return device;
     }
 
-    public void add(RssiRequest.RssiRecord record) {
+    public void add(RssiRecordOld record) {
         DeviceRssiList d = addAndGetDevice(record);
         checkLimits(d);
     }
