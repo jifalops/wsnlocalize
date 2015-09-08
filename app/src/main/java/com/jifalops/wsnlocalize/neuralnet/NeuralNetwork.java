@@ -20,6 +20,7 @@ public abstract class NeuralNetwork {
     public double[] getGlobalBest() {
         return status.getBest();
     }
+    public double getGlobalBestError() { return status.getBestError(); }
 
     public double test(double[][] data) {
         if (status == null) return 0;

@@ -29,6 +29,13 @@ import com.android.volley.VolleyError;
 import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
 import com.jifalops.wsnlocalize.data.RssiRecordOld;
+import com.jifalops.wsnlocalize.data.RssiWindower;
+import com.jifalops.wsnlocalize.data.Trainer;
+import com.jifalops.wsnlocalize.data.TrainingTrigger;
+import com.jifalops.wsnlocalize.file.Recorder;
+import com.jifalops.wsnlocalize.file.RssiReaderWriter;
+import com.jifalops.wsnlocalize.file.WindowReaderWriter;
+import com.jifalops.wsnlocalize.neuralnet.Depso;
 import com.jifalops.wsnlocalize.request.AbsRequest;
 import com.jifalops.wsnlocalize.request.RssiFilter;
 import com.jifalops.wsnlocalize.request.RssiRequest;
@@ -52,10 +59,6 @@ public class RssiTrainingActivity extends Activity {
     private static final int LOG_IMPORTANT = 1;
     private static final int LOG_INFORMATIVE = 2;
     private static final int LOG_ALL = 3;
-    private static final String METHOD_BT = "BtBeacon";
-    private static final String METHOD_BTLE = "BtLeBeacon";
-    private static final String METHOD_WIFI = "WifiScan";
-
 
     private static class Device {
         final int id;
@@ -71,16 +74,21 @@ public class RssiTrainingActivity extends Activity {
         }
     }
 
-    private TextView eventLogView, deviceLogView, collectedCountView, filteredCountView, toSendCountView;
+    private TextView eventLogView, deviceLogView,
+            rssiCollectedCountView, rssiToSendCountView,
+            windowsCollectedCountView, windowsToSendCountView;
     private Switch collectSwitch;
 
-    private final List<Device> devices = new ArrayList<>();
-    private final List<RssiRecordOld> rssiRecords = new ArrayList<>();
+    private Trainer btTrainer, btleTrainer, wifiTrainer;
+    private Recorder btRecorder, btleRecorder, wifiRecorder;
 
-    private int collectedCount, filteredCount, logLevel = LOG_IMPORTANT;
+
+    private final List<Device> devices = new ArrayList<>();
+
+    private int rssiCollectedCount, windowsCollectedCount, logLevel = LOG_IMPORTANT;
     private final List<Integer> deviceIds = new ArrayList<>();
     private float distance;
-    private boolean collectEnabled;
+    private boolean collectEnabled, btEnabled, btleEnabled, wifiEnabled;
 
     SharedPreferences prefs;
 
@@ -249,7 +257,7 @@ public class RssiTrainingActivity extends Activity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_rssitraining, menu);
         SubMenu sub = menu.addSubMenu("Log Level");
         sub.add(1, LOG_IMPORTANT, 1, "Important").setCheckable(true).setChecked(true);
         sub.add(1, LOG_INFORMATIVE, 2, "Informative").setCheckable(true);

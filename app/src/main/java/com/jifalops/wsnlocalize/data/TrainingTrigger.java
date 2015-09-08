@@ -41,7 +41,7 @@ public class TrainingTrigger {
                     r.distance
                 };
             }
-            callback.onTimeToTrain(records, samples);
+            callback.onTimeToTrain(records, WindowScaler.scaleAndRandomize(samples));
             records.clear();
             startTime = 0;
         }

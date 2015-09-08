@@ -20,6 +20,7 @@ public class TrainingStatus {
     double[] getBest() {
         return best;
     }
+    double getBestError() { return bestError[0]; }
 
     boolean updateIfBest(double[] weights, double error) {
         if (error < bestError[0]) {
