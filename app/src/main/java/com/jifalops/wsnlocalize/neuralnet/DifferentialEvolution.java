@@ -7,19 +7,24 @@ import java.util.Random;
  *
  */
 public class DifferentialEvolution extends NeuralNetwork {
-    double F = 0.75;
-    double CR = 0.9;
+    static final double F = 0.5;
+    static final double CR = 0.9;
 
-    Random random = new Random();
+    static Random random = new Random();
 
-    public DifferentialEvolution(double[][] population, MlpWeightMetrics weightMetrics, Scaler scaler) {
-        super(population, weightMetrics, scaler);
+    public DifferentialEvolution(double[][] population, MlpWeightMetrics weightMetrics) {
+        super(population, weightMetrics);
+    }
+
+    @Override
+    protected void onGenerationStarting(int index) {
+
     }
 
     @Override
     protected void trainSampleBySample(double[][] samples) {
         for (int i = 0; i < population.length; i++) {
-            double[] crossed = crossover(population[i], mutate(i));
+            double[] crossed = crossover(population[i], mutate(population, i, F), CR);
             double err = calcError(crossed, samples);
             errors[i] = calcError(population[i], samples);
             if (err < errors[i]) {
@@ -31,9 +36,9 @@ public class DifferentialEvolution extends NeuralNetwork {
     }
 
     /** TODO check this against literature. */
-    double[] mutate(int index) {
-        double[] mutated = new double[weightMetrics.numWeights];
-        double[][] rands = getRandomIndividuals(4, index);
+    static double[] mutate(double[][] population, int index, double F) {
+        double[] mutated = new double[population[0].length];
+        double[][] rands = getRandomIndividuals(population, 4, index);
         for (int i = 0, len = mutated.length; i < len; ++i) {
             mutated[i] = population[index][i] + F *
                     (rands[0][i] - rands[1][i] + rands[2][i] - rands[3][i]);
@@ -41,7 +46,7 @@ public class DifferentialEvolution extends NeuralNetwork {
         return mutated;
     }
 
-    double[] crossover(double[] original, double[] mutated) {
+    static double[] crossover(double[] original, double[] mutated, double CR) {
         int len = original.length;
         double[] crossed = new double[len];
         int index = random.nextInt(len);
@@ -64,9 +69,9 @@ public class DifferentialEvolution extends NeuralNetwork {
         return diff;
     }
 
-    double[][] getRandomIndividuals(int count, int indexToAvoid) {
-        double[][] individuals = new double[count][weightMetrics.numWeights];
-        int[] indexes = getRandomIndexes(count, indexToAvoid);
+    static double[][] getRandomIndividuals(double[][] population, int count, int indexToAvoid) {
+        double[][] individuals = new double[count][population[0].length];
+        int[] indexes = getRandomIndexes(population, count, indexToAvoid);
         while (count > 0) {
             individuals[count - 1] = population[indexes[count - 1]];
             --count;
@@ -75,7 +80,7 @@ public class DifferentialEvolution extends NeuralNetwork {
     }
 
     /** Returns [count] unique integers from 0 to the population size. */
-    int[] getRandomIndexes(int count, int indexToAvoid) {
+    static int[] getRandomIndexes(double[][] population, int count, int indexToAvoid) {
         int[] indexes = new int[count];
         Arrays.fill(indexes, -1);
         int index;

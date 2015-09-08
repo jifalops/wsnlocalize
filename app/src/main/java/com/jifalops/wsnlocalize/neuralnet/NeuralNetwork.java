@@ -10,12 +10,10 @@ public abstract class NeuralNetwork {
     protected final double[] errors;
     protected final MlpWeightMetrics weightMetrics;
     protected TrainingStatus status;
-    protected Scaler scaler;
 
-    public NeuralNetwork(double[][] population, MlpWeightMetrics weightMetrics, Scaler scaler) {
+    public NeuralNetwork(double[][] population, MlpWeightMetrics weightMetrics) {
         this.population = population;
         this.weightMetrics = weightMetrics;
-        this.scaler = scaler;
         this.errors = new double[population.length];
     }
 
@@ -28,15 +26,15 @@ public abstract class NeuralNetwork {
         return calcError(status.getBest(), data);
     }
 
-
+    protected abstract void onGenerationStarting(int index);
     protected abstract void trainSampleBySample(double[][] samples);
 
     public double[] trainSampleBySample(double[][] samples, TerminationConditions conditions) {
-        samples = scaler.scaleAndRandomize(samples);
         status = new TrainingStatus(weightMetrics, conditions);
         double stdDev;
         int generation = 0;
         do {
+            onGenerationStarting(generation);
             trainSampleBySample(samples);
             stdDev = Stats.stdDev(errors);
             generation++;
