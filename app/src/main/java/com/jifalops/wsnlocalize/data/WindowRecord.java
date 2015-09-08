@@ -48,6 +48,7 @@ public class WindowRecord {
             return json.toString();
         }
     }
+
     public static class Rss extends Statistics {
         public final int count;
         public Rss(int count, int min, int max, int range,
@@ -72,6 +73,7 @@ public class WindowRecord {
             return json.toString();
         }
     }
+
     public static class Elapsed extends Statistics {
         public final int millis;
         public Elapsed(int millis, int min, int max, int range,
@@ -96,23 +98,21 @@ public class WindowRecord {
             return json.toString();
         }
     }
-    public final String signal;
+
     public final Rss rss;
     public final Elapsed elapsed;
 
-    public WindowRecord(String signal, RssiList records) {
-        this.signal = signal;
-        RssiList list = records.getRecords(signal);
-        int len = list.size();
+    public WindowRecord(List<RssiRecord> records) {
+        int len = records.size();
         double[] rssi = new double[len];
         double[] el = new double[len-1];
         long last = 0;
         for (int i = 0; i < len; ++i) {
-            rssi[i] = list.get(i).rssi;
+            rssi[i] = records.get(i).rssi;
             if (i != 0) {
-                el[i-1] = list.get(i).time - last;
+                el[i-1] = records.get(i).time - last;
             }
-            last = list.get(i).time;
+            last = records.get(i).time;
         }
         int min = (int) Stats.min(rssi);
         int max = (int) Stats.max(rssi);
@@ -128,7 +128,6 @@ public class WindowRecord {
 
     public WindowRecord(String jsonObject) throws JSONException {
         JSONObject json = new JSONObject(jsonObject);
-        signal = json.getString("signal");
         rss = new Rss(json.getString("rss"));
         elapsed = new Elapsed(json.getString("elapsed"));
     }
@@ -137,7 +136,6 @@ public class WindowRecord {
     public String toString() {
         JSONObject json = new JSONObject();
         try {
-            json.put("signal", signal);
             json.put("rss", rss.toString());
             json.put("elapsed", elapsed.toString());
         } catch (JSONException e) {
