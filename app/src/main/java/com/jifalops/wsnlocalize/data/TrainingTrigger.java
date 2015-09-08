@@ -5,11 +5,14 @@ import java.util.List;
 
 /**
  *  Collects a list of {@link WindowRecord} until the count AND time limits are reached.
- *  It then calls {@link Callback#onTimeToTrain(List)} and clears the internal list.
+ *  It then calls {@link Callback#onTimeToTrain(List, double[][])} and clears the internal list.
  */
 public class TrainingTrigger {
     public interface Callback {
-        void onTimeToTrain(List<WindowRecord> records);
+        /**
+         * @param samples format of the WindowRecords to be used for training in a neural network.
+         */
+        void onTimeToTrain(List<WindowRecord> records, double[][] samples);
     }
     public final int minCount;
     public final long minElapsedMillis;
@@ -27,7 +30,18 @@ public class TrainingTrigger {
         if (startTime == 0) startTime = System.nanoTime();
         long time = (System.nanoTime() - startTime) / 1_000_000;
         if (records.size() >= minCount && time >= minElapsedMillis) {
-            callback.onTimeToTrain(records);
+            double[][] samples = new double[records.size()][13];
+            for (int i = 0, len = samples.length; i < len; ++i) {
+                WindowRecord r = records.get(i);
+                samples[i] = new double[] {
+                    r.rss.min, r.rss.max, r.rss.range,
+                    r.rss.mean, r.rss.median, r.rss.stdDev,
+                    r.elapsed.min, r.elapsed.max, r.elapsed.range,
+                    r.elapsed.mean, r.elapsed.median, r.elapsed.stdDev,
+                    r.distance
+                };
+            }
+            callback.onTimeToTrain(records, samples);
             records.clear();
             startTime = 0;
         }

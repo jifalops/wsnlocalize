@@ -5,17 +5,19 @@ import com.jifalops.wsnlocalize.util.Stats;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
  *
  */
 public class WindowRecord {
-    private static class Statistics {
-        public final int min, max, range;
+    public static class Rss {
+        public final int count, min, max, range;
         public final double mean, median, stdDev;
-        public Statistics(int min, int max, int range,
+        public Rss(int count, int min, int max, int range,
                    double mean, double median, double stdDev) {
+            this.count = count;
             this.min = min;
             this.max = max;
             this.range = range;
@@ -23,86 +25,55 @@ public class WindowRecord {
             this.median = median;
             this.stdDev = stdDev;
         }
-        public Statistics(String jsonObject) throws JSONException {
-            JSONObject json = new JSONObject(jsonObject);
-            min = json.getInt("min");
-            max = json.getInt("max");
-            range = json.getInt("range");
-            mean = json.getDouble("mean");
-            median = json.getDouble("median");
-            stdDev = json.getDouble("stdDev");
+        public Rss(String[] csv) {
+            count = Integer.valueOf(csv[0]);
+            min = Integer.valueOf(csv[1]);
+            max = Integer.valueOf(csv[2]);
+            range = Integer.valueOf(csv[3]);
+            mean = Double.valueOf(csv[4]);
+            median = Double.valueOf(csv[5]);
+            stdDev = Double.valueOf(csv[6]);
         }
         @Override
         public String toString() {
-            JSONObject json = new JSONObject();
-            try {
-                json.put("min", min);
-                json.put("max", max);
-                json.put("range", range);
-                json.put("mean", mean);
-                json.put("median", median);
-                json.put("stdDev", stdDev);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            return json.toString();
+            return count +","+ min +","+ max +","+ range +","+ mean +","+ median +","+ stdDev;
         }
     }
 
-    public static class Rss extends Statistics {
-        public final int count;
-        public Rss(int count, int min, int max, int range,
-                   double mean, double median, double stdDev) {
-            super(min, max, range, mean, median, stdDev);
-            this.count = count;
-        }
-        public Rss(String jsonObject) throws JSONException {
-            super(jsonObject);
-            JSONObject json = new JSONObject(jsonObject);
-            count = json.getInt("count");
-        }
-        @Override
-        public String toString() {
-            JSONObject json = new JSONObject();
-            try {
-                json = new JSONObject(super.toString());
-                json.put("count", count);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            return json.toString();
-        }
-    }
-
-    public static class Elapsed extends Statistics {
-        public final int millis;
+    public static class Elapsed {
+        public final int millis, min, max, range;
+        public final double mean, median, stdDev;
         public Elapsed(int millis, int min, int max, int range,
                    double mean, double median, double stdDev) {
-            super(min, max, range, mean, median, stdDev);
             this.millis = millis;
+            this.min = min;
+            this.max = max;
+            this.range = range;
+            this.mean = mean;
+            this.median = median;
+            this.stdDev = stdDev;
         }
-        public Elapsed(String jsonObject) throws JSONException {
-            super(jsonObject);
-            JSONObject json = new JSONObject(jsonObject);
-            millis = json.getInt("millis");
+        public Elapsed(String[] csv) {
+            millis = Integer.valueOf(csv[0]);
+            min = Integer.valueOf(csv[1]);
+            max = Integer.valueOf(csv[2]);
+            range = Integer.valueOf(csv[3]);
+            mean = Double.valueOf(csv[4]);
+            median = Double.valueOf(csv[5]);
+            stdDev = Double.valueOf(csv[6]);
         }
         @Override
         public String toString() {
-            JSONObject json = new JSONObject();
-            try {
-                json = new JSONObject(super.toString());
-                json.put("millis", millis);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            return json.toString();
+            return millis +","+ min +","+ max +","+ range +","+ mean +","+ median +","+ stdDev;
         }
     }
 
     public final Rss rss;
     public final Elapsed elapsed;
+    public final float distance;
 
     public WindowRecord(List<RssiRecord> records) {
+        distance = records.get(0).distance; // known or unknown.
         int len = records.size();
         double[] rssi = new double[len];
         double[] el = new double[len-1];
@@ -126,21 +97,15 @@ public class WindowRecord {
                 Stats.mean(el), Stats.median(el), Stats.stdDev(el));
     }
 
-    public WindowRecord(String jsonObject) throws JSONException {
-        JSONObject json = new JSONObject(jsonObject);
-        rss = new Rss(json.getString("rss"));
-        elapsed = new Elapsed(json.getString("elapsed"));
+    public WindowRecord(String[] csv) {
+        distance = Float.valueOf(csv[14]);
+        rss = new Rss(csv);
+        System.arraycopy(csv, 7, csv, 0, csv.length-7); // shift left 7
+        elapsed = new Elapsed(csv);
     }
 
     @Override
     public String toString() {
-        JSONObject json = new JSONObject();
-        try {
-            json.put("rss", rss.toString());
-            json.put("elapsed", elapsed.toString());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return json.toString();
+        return rss.toString() +","+ elapsed.toString() +","+ distance;
     }
 }

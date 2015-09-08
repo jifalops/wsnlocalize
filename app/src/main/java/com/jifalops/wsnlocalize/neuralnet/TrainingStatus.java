@@ -24,20 +24,13 @@ public class TrainingStatus {
     boolean updateIfBest(double[] weights, double error) {
         if (error < bestError[0]) {
             best = weights;
-            shiftErrorsRight();
+            System.arraycopy(bestError, 0, bestError, 1, bestError.length - 1); // shift right
             bestError[0] = error;
             return true;
         } else {
             return false;
         }
     }
-
-    private void shiftErrorsRight() {
-        for(int i = bestError.length - 1; i > 0; i--) {
-            bestError[i] = bestError[i-1];
-        }
-    }
-
 
     boolean isComplete(int generation, double errorStdDev) {
         return generation >= term.maxGenerations ||

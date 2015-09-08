@@ -1,5 +1,7 @@
 package com.jifalops.wsnlocalize.data;
 
+import android.text.TextUtils;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -22,25 +24,15 @@ public class RssiRecord {
         this.time = time;
     }
 
-    public RssiRecord(String jsonObject) throws JSONException {
-        JSONObject json = new JSONObject(jsonObject);
-        rssi = json.getInt("rssi");
-        freq = json.getInt("freq");
-        distance = (float) json.getDouble("distance");
-        time = json.getLong("time");
+    public RssiRecord(String[] csv) {
+        rssi = Integer.valueOf(csv[0]);
+        freq = Integer.valueOf(csv[1]);
+        distance = Float.valueOf(csv[2]);
+        time = Long.valueOf(csv[3]);
     }
 
     @Override
     public String toString() {
-        JSONObject json = new JSONObject();
-        try {
-            json.put("rssi", rssi);
-            json.put("freq", freq);
-            json.put("distance", distance);
-            json.put("time", time);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return json.toString();
+        return rssi +","+ freq +","+ distance +","+ time;
     }
 }

@@ -17,8 +17,8 @@ public class Depso extends ParticleSwarm {
 
     private double[][] samples;
 
-    public Depso(double[][] population, double[][] velocities, MlpWeightMetrics weightMetrics, Scaler scaler) {
-        super(population, velocities, weightMetrics, scaler);
+    public Depso(double[][] population, double[][] velocities, MlpWeightMetrics weightMetrics) {
+        super(population, velocities, weightMetrics);
     }
 
     @Override
@@ -43,11 +43,6 @@ public class Depso extends ParticleSwarm {
                 }
             }
         }
-    }
-
-    @Override
-    protected void updateVelocities() {
-        super.updateVelocities();
     }
 
     void doDifferentialEvolution(int index) {

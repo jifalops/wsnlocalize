@@ -20,6 +20,7 @@ import com.android.volley.toolbox.HttpHeaderParser;
  */
 public abstract class AbsRequest extends Request<JSONObject> {
     protected static final String REQUEST_TYPE = "requestType";
+    protected static final String REQUEST_SIGNAL = "signal";
     public static final String URL = "http://localization.jifalops.com/logging_service.php";
 
     public static class MyResponse {
