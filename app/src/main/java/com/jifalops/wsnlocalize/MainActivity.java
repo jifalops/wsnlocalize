@@ -24,7 +24,6 @@ public class MainActivity extends Activity {
         addToLayout("Wifi: " + App.getInstance().getWifiMac(),
                     "BT:   " + App.getInstance().getBtMac(), null);
         addToLayout("Demos", "Examples of app components", DemoActivity.class);
-        addToLayout("RSSI Reporting", "Log actual distances to the central database", RssiActivity.class);
         addToLayout("RSSI Training", "Train neural network in real time", RssiTrainingActivity.class);
     }
 

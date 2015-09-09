@@ -32,7 +32,6 @@ import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.file.NumberReaderWriter;
 import com.jifalops.wsnlocalize.file.RssiReaderWriter;
 import com.jifalops.wsnlocalize.file.WindowReaderWriter;
-import com.jifalops.wsnlocalize.request.RssiFilter;
 import com.jifalops.wsnlocalize.wifi.WifiScanner;
 
 import java.io.File;
