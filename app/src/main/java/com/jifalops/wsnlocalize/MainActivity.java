@@ -25,6 +25,7 @@ public class MainActivity extends Activity {
                     "BT:   " + App.getInstance().getBtMac(), null);
         addToLayout("Demos", "Examples of app components", DemoActivity.class);
         addToLayout("RSSI Reporting", "Log actual distances to the central database", RssiActivity.class);
+        addToLayout("RSSI Training", "Train neural network in real time", RssiTrainingActivity.class);
     }
 
     private void addToLayout(String text, final Class<?> clazz) {

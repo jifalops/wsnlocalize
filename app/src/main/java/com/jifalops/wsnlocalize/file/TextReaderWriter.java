@@ -28,6 +28,7 @@ public class TextReaderWriter {
     final File file;
     final HandlerThread thread;
     final Handler handler;
+    protected final Handler creationThreadHandler = new Handler();
     IoCallbacks callbacks;
 
     protected TextReaderWriter(File file) {

@@ -14,7 +14,7 @@ import java.util.List;
  *
  */
 public class Trainer {
-    public abstract class TrainingCallbacks implements RssiWindower.Callback, TrainingTrigger.Callback {
+    public static abstract class TrainingCallbacks implements RssiWindower.Callback, TrainingTrigger.Callback {
         public abstract void onTrainingComplete(double[] weights, double error);
     }
 

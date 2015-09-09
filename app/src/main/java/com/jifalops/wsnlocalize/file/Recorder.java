@@ -11,9 +11,11 @@ import java.util.List;
 public class Recorder {
     final RssiReaderWriter rssi;
     final WindowReaderWriter window;
-    public Recorder(RssiReaderWriter rssi, WindowReaderWriter window) {
+    final NumberReaderWriter num;
+    public Recorder(RssiReaderWriter rssi, WindowReaderWriter window, NumberReaderWriter num) {
         this.rssi = rssi;
         this.window = window;
+        this.num = num;
     }
 
     public void readRssi() {
@@ -32,8 +34,17 @@ public class Recorder {
         window.writeRecords(records, append);
     }
 
+    public void readNumbers() {
+        num.readNumbers();
+    }
+
+    public void writeNumbers(List<double[]> numbers, boolean append) {
+        num.writeNumbers(numbers, append);
+    }
+
     public void close() {
         rssi.close();
         window.close();
+        num.close();
     }
 }

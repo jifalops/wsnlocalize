@@ -11,24 +11,32 @@ import java.util.List;
  */
 public class RssiReaderWriter extends TextReaderWriter {
     public interface RssiCallbacks {
-        /** Called on non-main thread. */
         void onRssiRecordsRead(RssiReaderWriter rw, List<RssiRecord> records);
-        /** Called on non-main thread. */
         void onRssiRecordsWritten(RssiReaderWriter rw, int recordsWritten);
     }
 
     final IoCallbacks ioCallbacks = new IoCallbacks() {
         @Override
         public void onReadCompleted(TextReaderWriter rw, List<String> lines) {
-            List<RssiRecord> records = new ArrayList<>();
+            final List<RssiRecord> records = new ArrayList<>();
             for (String line : lines) {
                 records.add(new RssiRecord(line.split(",")));
             }
-            callbacks.onRssiRecordsRead(RssiReaderWriter.this, records);
+            creationThreadHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    callbacks.onRssiRecordsRead(RssiReaderWriter.this, records);
+                }
+            });
         }
         @Override
-        public void onWriteCompleted(TextReaderWriter rw, int linesWritten) {
-            callbacks.onRssiRecordsWritten(RssiReaderWriter.this, linesWritten);
+        public void onWriteCompleted(TextReaderWriter rw, final int linesWritten) {
+            creationThreadHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    callbacks.onRssiRecordsWritten(RssiReaderWriter.this, linesWritten);
+                }
+            });
         }
     };
 

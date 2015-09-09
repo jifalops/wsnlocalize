@@ -12,24 +12,33 @@ import java.util.List;
  */
 public class WindowReaderWriter extends TextReaderWriter {
     public interface WindowCallbacks {
-        /** Called on non-main thread. */
         void onWindowRecordsRead(WindowReaderWriter rw, List<WindowRecord> records);
-        /** Called on non-main thread. */
         void onWindowRecordsWritten(WindowReaderWriter rw, int recordsWritten);
     }
 
     final IoCallbacks ioCallbacks = new IoCallbacks() {
         @Override
         public void onReadCompleted(TextReaderWriter rw, List<String> lines) {
-            List<WindowRecord> records = new ArrayList<>();
+            final List<WindowRecord> records = new ArrayList<>();
             for (String line : lines) {
                 records.add(new WindowRecord(line.split(",")));
             }
-            callbacks.onWindowRecordsRead(WindowReaderWriter.this, records);
+            creationThreadHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    callbacks.onWindowRecordsRead(WindowReaderWriter.this, records);
+                }
+            });
+
         }
         @Override
-        public void onWriteCompleted(TextReaderWriter rw, int linesWritten) {
-            callbacks.onWindowRecordsWritten(WindowReaderWriter.this, linesWritten);
+        public void onWriteCompleted(TextReaderWriter rw, final int linesWritten) {
+            creationThreadHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    callbacks.onWindowRecordsWritten(WindowReaderWriter.this, linesWritten);
+                }
+            });
         }
     };
 

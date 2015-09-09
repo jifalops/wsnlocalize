@@ -24,26 +24,20 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
+import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.RssiRecordOld;
-import com.jifalops.wsnlocalize.data.RssiWindower;
 import com.jifalops.wsnlocalize.data.Trainer;
-import com.jifalops.wsnlocalize.data.TrainingTrigger;
+import com.jifalops.wsnlocalize.data.WindowRecord;
+import com.jifalops.wsnlocalize.file.NumberReaderWriter;
 import com.jifalops.wsnlocalize.file.Recorder;
 import com.jifalops.wsnlocalize.file.RssiReaderWriter;
 import com.jifalops.wsnlocalize.file.WindowReaderWriter;
-import com.jifalops.wsnlocalize.neuralnet.Depso;
-import com.jifalops.wsnlocalize.request.AbsRequest;
 import com.jifalops.wsnlocalize.request.RssiFilter;
-import com.jifalops.wsnlocalize.request.RssiRequest;
 import com.jifalops.wsnlocalize.wifi.WifiScanner;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-
+import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -54,13 +48,13 @@ import java.util.Locale;
  *
  */
 public class RssiTrainingActivity extends Activity {
-    private static final int REQUEST_BT_ENABLE = 1;
-    private static final int REQUEST_BT_DISCOVERABLE = 2;
-    private static final int LOG_IMPORTANT = 1;
-    private static final int LOG_INFORMATIVE = 2;
-    private static final int LOG_ALL = 3;
+    static final int REQUEST_BT_ENABLE = 1;
+    static final int REQUEST_BT_DISCOVERABLE = 2;
+    static final int LOG_IMPORTANT = 1;
+    static final int LOG_INFORMATIVE = 2;
+    static final int LOG_ALL = 3;
 
-    private static class Device {
+    static class Device {
         final int id;
         String mac, desc;
         public Device(int id, String mac, String desc) {
@@ -74,27 +68,59 @@ public class RssiTrainingActivity extends Activity {
         }
     }
 
-    private TextView eventLogView, deviceLogView,
-            rssiCollectedCountView, rssiToSendCountView,
-            windowsCollectedCountView, windowsToSendCountView;
-    private Switch collectSwitch;
+    static class SignalStuff {
+        final Trainer trainer;
+        final Recorder history;
+        final Recorder toSend;
+        // Loaded from the "To Send" files (needs sent, already in history)
+        final List<RssiRecord> rssiToSend = new ArrayList<>();
+        final List<WindowRecord> windowsToSend = new ArrayList();
+        final List<double[]> weightsToSend = new ArrayList<>();
+        // Newly acquired (needs sent + written to history)
+        final List<RssiRecord> rssiNew = new ArrayList<>();
+        final List<WindowRecord> windowsNew = new ArrayList();
+        final List<double[]> weightsNew = new ArrayList<>();
+        boolean enabled;
+        SignalStuff(Trainer trainer, Recorder history, Recorder toSend) {
+            this.trainer = trainer;
+            this.history = history;
+            this.toSend = toSend;
+        }
+        void load() {
+            // TODO make this a top level class and add access to callbacks
+        }
+        void save() {
+            // Locally only for now.
+            bt.history.writeRssi(bt.rssi, true);
+            bt.history.writeWindows(bt.windows, true);
+            bt.history.writeNumbers(bt.weights, true);
+            bt.toSend.writeRssi(bt.rssi, false);
+            bt.toSend.writeWindows(bt.windows, false);
+            bt.toSend.writeNumbers(bt.weights, false);
+            bt.
+        }
+    }
 
-    private Trainer btTrainer, btleTrainer, wifiTrainer;
-    private Recorder btRecorder, btleRecorder, wifiRecorder;
+    SignalStuff bt, btle, wifi;
 
+    TextView eventLogView, deviceLogView,
+            btRssiCountView, btWindowCountView, btWeightCountView,
+            btleRssiCountView, btleWindowCountView, btleWeightCountView,
+            wifiRssiCountView, wifiWindowCountView, wifiWeightCountView;
+    Switch collectSwitch;
 
-    private final List<Device> devices = new ArrayList<>();
+    final List<Device> devices = new ArrayList<>();
 
-    private int rssiCollectedCount, windowsCollectedCount, logLevel = LOG_IMPORTANT;
-    private final List<Integer> deviceIds = new ArrayList<>();
-    private float distance;
-    private boolean collectEnabled, btEnabled, btleEnabled, wifiEnabled;
+    int logLevel = LOG_IMPORTANT;
+    final List<Integer> deviceIds = new ArrayList<>();
+    float distance;
+    boolean collectEnabled;
 
     SharedPreferences prefs;
 
-    private BtBeacon btBeacon;
-    private BtLeBeacon btLeBeacon;
-    private WifiScanner wifiScanner;
+    BtBeacon btBeacon;
+    BtLeBeacon btLeBeacon;
+    WifiScanner wifiScanner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -102,17 +128,20 @@ public class RssiTrainingActivity extends Activity {
         setContentView(R.layout.activity_rssitraining);
         eventLogView = (TextView) findViewById(R.id.eventLog);
         deviceLogView = (TextView) findViewById(R.id.deviceLog);
-        collectedCountView = (TextView) findViewById(R.id.collectedCount);
-        filteredCountView = (TextView) findViewById(R.id.filteredCount);
-        toSendCountView = (TextView) findViewById(R.id.toSendCount);
+        btRssiCountView = (TextView) findViewById(R.id.btRssiCount);
+        btleRssiCountView = (TextView) findViewById(R.id.btleRssiCount);
+        wifiRssiCountView = (TextView) findViewById(R.id.wifiRssiCount);
+        btWindowCountView = (TextView) findViewById(R.id.btWindowCount);
+        btleWindowCountView = (TextView) findViewById(R.id.btleWindowCount);
+        wifiWindowCountView = (TextView) findViewById(R.id.wifiWindowCount);
+        btWeightCountView = (TextView) findViewById(R.id.btWeightCount);
+        btleWeightCountView = (TextView) findViewById(R.id.btleWeightCount);
+        wifiWeightCountView = (TextView) findViewById(R.id.wifiWeightCount);
         collectSwitch = (Switch) findViewById(R.id.collectSwitch);
 
         final TextView deviceIdView = (TextView) findViewById(R.id.deviceId);
         final EditText distanceView = (EditText) findViewById(R.id.distanceMeters);
         Button sendButton = (Button) findViewById(R.id.sendButton);
-
-        ((TextView) findViewById(R.id.wifiMacView)).setText(App.getInstance().getWifiMac());
-        ((TextView) findViewById(R.id.btMacView)).setText(App.getInstance().getBtMac());
 
         autoScroll((ScrollView) findViewById(R.id.eventScrollView), eventLogView);
         autoScroll((ScrollView) findViewById(R.id.deviceScrollView), deviceLogView);
@@ -141,14 +170,15 @@ public class RssiTrainingActivity extends Activity {
                                 Device d = devices.get(id - 1);
                                 if (d != null) deviceIds.add(id);
                             }
-                        } catch (Exception ignored) {}
+                        } catch (Exception ignored) {
+                        }
                         boolean first = true;
                         for (int id : deviceIds) {
                             if (first) {
-                                deviceIdView.append(id+"");
+                                deviceIdView.append(id + "");
                                 first = false;
                             } else {
-                                deviceIdView.append(","+id);
+                                deviceIdView.append("," + id);
                             }
 
                         }
@@ -181,44 +211,264 @@ public class RssiTrainingActivity extends Activity {
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                final List<RssiRecordOld> records = new ArrayList<>(rssiRecords);
-                rssiRecords.clear();
-                toSendCountView.setText("0");
-                App.getInstance().sendRequest(new RssiRequest(records,
-                        new Response.Listener<AbsRequest.MyResponse>() {
-                            @Override
-                            public void onResponse(AbsRequest.MyResponse response) {
-                                if (response.responseCode == 200) {
-                                    Toast.makeText(RssiTrainingActivity.this,
-                                            "Sent " + records.size() + " records successfully",
-                                            Toast.LENGTH_LONG).show();
-                                } else {
-                                    Toast.makeText(RssiTrainingActivity.this,
-                                            response.responseCode + ": " + response.responseMessage +
-                                                    " Result: " + response.queryResult,
-                                            Toast.LENGTH_LONG).show();
-                                    rssiRecords.addAll(records);
-                                    toSendCountView.setText(rssiRecords.size() + "");
-                                }
-                            }
-                        }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError volleyError) {
-                        Toast.makeText(RssiTrainingActivity.this, volleyError.toString(), Toast.LENGTH_LONG).show();
-                        rssiRecords.addAll(records);
-                        toSendCountView.setText(rssiRecords.size()+"");
-                    }
-                }));
+
             }
         });
 
-        prefs = getSharedPreferences("rssi", MODE_PRIVATE);
+        prefs = getSharedPreferences("rssitraining", MODE_PRIVATE);
         btBeacon = BtBeacon.getInstance(this);
         btLeBeacon = BtLeBeacon.getInstance(this);
         wifiScanner = WifiScanner.getInstance(this);
+
+        bt = new SignalStuff(new Trainer(10, 10_000, 10, 120_000, new Trainer.TrainingCallbacks() {
+            @Override
+            public void onTimeToTrain(List<WindowRecord> records, double[][] samples) {
+
+            }
+
+            @Override
+            public void onWindowRecordReady(WindowRecord record, List<RssiRecord> from) {
+
+            }
+
+            @Override
+            public void onTrainingComplete(double[] weights, double error) {
+
+            }
+        }), new Recorder(new RssiReaderWriter(new File(getExternalFilesDir(null), "bt-rssi-hist.csv"),
+                new RssiReaderWriter.RssiCallbacks() {
+                    @Override
+                    public void onRssiRecordsRead(RssiReaderWriter rw, List<RssiRecord> records) {
+
+                    }
+
+                    @Override
+                    public void onRssiRecordsWritten(RssiReaderWriter rw, int recordsWritten) {
+
+                    }
+                }), new WindowReaderWriter(new File(getExternalFilesDir(null), "bt-window-hist.csv"),
+                new WindowReaderWriter.WindowCallbacks() {
+                    @Override
+                    public void onWindowRecordsRead(WindowReaderWriter rw, List<WindowRecord> records) {
+
+                    }
+
+                    @Override
+                    public void onWindowRecordsWritten(WindowReaderWriter rw, int recordsWritten) {
+
+                    }
+                }), new NumberReaderWriter(new File(getExternalFilesDir(null), "bt-weights-hist.csv"),
+                new NumberReaderWriter.NumberCallbacks() {
+                    @Override
+                    public void onNumbersRead(NumberReaderWriter rw, List<double[]> records) {
+
+                    }
+
+                    @Override
+                    public void onNumbersWritten(NumberReaderWriter rw, int recordsWritten) {
+
+                    }
+                })), new Recorder(new RssiReaderWriter(new File(getExternalFilesDir(null), "bt-rssi-send.csv"),
+                new RssiReaderWriter.RssiCallbacks() {
+                    @Override
+                    public void onRssiRecordsRead(RssiReaderWriter rw, List<RssiRecord> records) {
+
+                    }
+
+                    @Override
+                    public void onRssiRecordsWritten(RssiReaderWriter rw, int recordsWritten) {
+
+                    }
+                }), new WindowReaderWriter(new File(getExternalFilesDir(null), "bt-window-send.csv"),
+                new WindowReaderWriter.WindowCallbacks() {
+                    @Override
+                    public void onWindowRecordsRead(WindowReaderWriter rw, List<WindowRecord> records) {
+
+                    }
+
+                    @Override
+                    public void onWindowRecordsWritten(WindowReaderWriter rw, int recordsWritten) {
+
+                    }
+                }), new NumberReaderWriter(new File(getExternalFilesDir(null), "bt-weights-send.csv"),
+                new NumberReaderWriter.NumberCallbacks() {
+                    @Override
+                    public void onNumbersRead(NumberReaderWriter rw, List<double[]> records) {
+
+                    }
+
+                    @Override
+                    public void onNumbersWritten(NumberReaderWriter rw, int recordsWritten) {
+
+                    }
+                }));
+        btle = new SignalStuff(new Trainer(10, 10_000, 10, 120_000, new Trainer.TrainingCallbacks() {
+            @Override
+            public void onTimeToTrain(List<WindowRecord> records, double[][] samples) {
+
+            }
+
+            @Override
+            public void onWindowRecordReady(WindowRecord record, List<RssiRecord> from) {
+
+            }
+
+            @Override
+            public void onTrainingComplete(double[] weights, double error) {
+
+            }
+        }), new Recorder(new RssiReaderWriter(new File(getExternalFilesDir(null), "btle-rssi-hist.csv"),
+                new RssiReaderWriter.RssiCallbacks() {
+                    @Override
+                    public void onRssiRecordsRead(RssiReaderWriter rw, List<RssiRecord> records) {
+
+                    }
+
+                    @Override
+                    public void onRssiRecordsWritten(RssiReaderWriter rw, int recordsWritten) {
+
+                    }
+                }), new WindowReaderWriter(new File(getExternalFilesDir(null), "btle-window-hist.csv"),
+                new WindowReaderWriter.WindowCallbacks() {
+                    @Override
+                    public void onWindowRecordsRead(WindowReaderWriter rw, List<WindowRecord> records) {
+
+                    }
+
+                    @Override
+                    public void onWindowRecordsWritten(WindowReaderWriter rw, int recordsWritten) {
+
+                    }
+                }), new NumberReaderWriter(new File(getExternalFilesDir(null), "btle-weights-hist.csv"),
+                new NumberReaderWriter.NumberCallbacks() {
+                    @Override
+                    public void onNumbersRead(NumberReaderWriter rw, List<double[]> records) {
+
+                    }
+
+                    @Override
+                    public void onNumbersWritten(NumberReaderWriter rw, int recordsWritten) {
+
+                    }
+                })), new Recorder(new RssiReaderWriter(new File(getExternalFilesDir(null), "btle-rssi-send.csv"),
+                new RssiReaderWriter.RssiCallbacks() {
+                    @Override
+                    public void onRssiRecordsRead(RssiReaderWriter rw, List<RssiRecord> records) {
+
+                    }
+
+                    @Override
+                    public void onRssiRecordsWritten(RssiReaderWriter rw, int recordsWritten) {
+
+                    }
+                }), new WindowReaderWriter(new File(getExternalFilesDir(null), "btle-window-send.csv"),
+                new WindowReaderWriter.WindowCallbacks() {
+                    @Override
+                    public void onWindowRecordsRead(WindowReaderWriter rw, List<WindowRecord> records) {
+
+                    }
+
+                    @Override
+                    public void onWindowRecordsWritten(WindowReaderWriter rw, int recordsWritten) {
+
+                    }
+                }), new NumberReaderWriter(new File(getExternalFilesDir(null), "btle-weights-send.csv"),
+                new NumberReaderWriter.NumberCallbacks() {
+                    @Override
+                    public void onNumbersRead(NumberReaderWriter rw, List<double[]> records) {
+
+                    }
+
+                    @Override
+                    public void onNumbersWritten(NumberReaderWriter rw, int recordsWritten) {
+
+                    }
+                })));
+        wifi = new SignalStuff(new Trainer(10, 10_000, 100, 120_000, new Trainer.TrainingCallbacks() {
+            @Override
+            public void onTimeToTrain(List<WindowRecord> records, double[][] samples) {
+
+            }
+
+            @Override
+            public void onWindowRecordReady(WindowRecord record, List<RssiRecord> from) {
+
+            }
+
+            @Override
+            public void onTrainingComplete(double[] weights, double error) {
+
+            }
+        }), new Recorder(new RssiReaderWriter(new File(getExternalFilesDir(null), "wifi-rssi-hist.csv"),
+                new RssiReaderWriter.RssiCallbacks() {
+                    @Override
+                    public void onRssiRecordsRead(RssiReaderWriter rw, List<RssiRecord> records) {
+
+                    }
+
+                    @Override
+                    public void onRssiRecordsWritten(RssiReaderWriter rw, int recordsWritten) {
+
+                    }
+                }), new WindowReaderWriter(new File(getExternalFilesDir(null), "wifi-window-hist.csv"),
+                new WindowReaderWriter.WindowCallbacks() {
+                    @Override
+                    public void onWindowRecordsRead(WindowReaderWriter rw, List<WindowRecord> records) {
+
+                    }
+
+                    @Override
+                    public void onWindowRecordsWritten(WindowReaderWriter rw, int recordsWritten) {
+
+                    }
+                }), new NumberReaderWriter(new File(getExternalFilesDir(null), "wifi-weights-hist.csv"),
+                new NumberReaderWriter.NumberCallbacks() {
+                    @Override
+                    public void onNumbersRead(NumberReaderWriter rw, List<double[]> records) {
+
+                    }
+
+                    @Override
+                    public void onNumbersWritten(NumberReaderWriter rw, int recordsWritten) {
+
+                    }
+                })), new Recorder(new RssiReaderWriter(new File(getExternalFilesDir(null), "wifi-rssi-send.csv"),
+                new RssiReaderWriter.RssiCallbacks() {
+                    @Override
+                    public void onRssiRecordsRead(RssiReaderWriter rw, List<RssiRecord> records) {
+
+                    }
+
+                    @Override
+                    public void onRssiRecordsWritten(RssiReaderWriter rw, int recordsWritten) {
+
+                    }
+                }), new WindowReaderWriter(new File(getExternalFilesDir(null), "wifi-window-send.csv"),
+                new WindowReaderWriter.WindowCallbacks() {
+                    @Override
+                    public void onWindowRecordsRead(WindowReaderWriter rw, List<WindowRecord> records) {
+
+                    }
+
+                    @Override
+                    public void onWindowRecordsWritten(WindowReaderWriter rw, int recordsWritten) {
+
+                    }
+                }), new NumberReaderWriter(new File(getExternalFilesDir(null), "wifi-weights-send.csv"),
+                new NumberReaderWriter.NumberCallbacks() {
+                    @Override
+                    public void onNumbersRead(NumberReaderWriter rw, List<double[]> records) {
+
+                    }
+
+                    @Override
+                    public void onNumbersWritten(NumberReaderWriter rw, int recordsWritten) {
+
+                    }
+                })));
     }
 
-    private void autoScroll(final ScrollView sv, final TextView tv) {
+    void autoScroll(final ScrollView sv, final TextView tv) {
         tv.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -322,7 +572,7 @@ public class RssiTrainingActivity extends Activity {
         collectSwitch.setChecked(false);
     }
 
-    private void addRecord(String localMac, String remoteMac, String remoteDesc,
+    void addRecord(String localMac, String remoteMac, String remoteDesc,
                            String method, int rssi, int freq) {
         Device d = getDevice(remoteMac, remoteDesc);
         if (collectEnabled) {
@@ -348,7 +598,7 @@ public class RssiTrainingActivity extends Activity {
         }
     }
 
-    private Device getDevice(String mac, String desc) {
+    Device getDevice(String mac, String desc) {
         Device device = null;
         for (Device d : devices) {
             if (d.mac.equals(mac)) {
@@ -365,7 +615,7 @@ public class RssiTrainingActivity extends Activity {
         return device;
     }
 
-    private void addEvent(String event, int level) {
+    void addEvent(String event, int level) {
         if (level <= logLevel) {
             eventLogView.append(event + "\n");
         }
@@ -391,35 +641,12 @@ public class RssiTrainingActivity extends Activity {
         wifiScanner.unregisterListener(wifiScanListener);
     }
 
-    private String serializeRssiRecords(List<RssiRecordOld> records) {
-        JSONArray array = new JSONArray();
-        for (RssiRecordOld r : records) {
-            array.put(r.toString());
-        }
-        return array.toString();
-    }
-
-    private void deserializeRssiRecords(String records) {
-        List<RssiRecordOld> list = new ArrayList<>();
-        JSONArray array;
-        try {
-            array = new JSONArray(records);
-            for (int i = 0, len = array.length(); i < len; i++) {
-                list.add(new RssiRecordOld(array.getString(i)));
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        rssiRecords.addAll(list);
-        addEvent("Loaded " + list.size() + " records from memory.", LOG_INFORMATIVE);
-    }
-
-    private final BtBeacon.BtBeaconListener btBeaconListener = new BtBeacon.BtBeaconListener() {
+    final BtBeacon.BtBeaconListener btBeaconListener = new BtBeacon.BtBeaconListener() {
         @Override
         public void onDeviceFound(BluetoothDevice device, short rssi) {
             addRecord(App.getInstance().getBtMac(), device.getAddress(),
-                    device.getName() + " (Bluetooth)",
-                    METHOD_BT, rssi, 2400);
+                    device.getName() + " (BT)",
+                    RssiRecord.SIGNAL_BT, rssi, 2400);
         }
 
         @Override
@@ -433,7 +660,7 @@ public class RssiTrainingActivity extends Activity {
         }
     };
 
-    private final BtLeBeacon.BtLeBeaconListener btLeBeaconListener = new BtLeBeacon.BtLeBeaconListener() {
+    final BtLeBeacon.BtLeBeaconListener btLeBeaconListener = new BtLeBeacon.BtLeBeaconListener() {
         @Override
         public void onAdvertiseNotSupported() {
             addEvent("BT-LE advertisement not supported on this device.", LOG_IMPORTANT);
@@ -468,31 +695,31 @@ public class RssiTrainingActivity extends Activity {
             addEvent("BT-LE scan failed (" + errorCode + "): " + errorMsg, LOG_IMPORTANT);
         }
 
-        private void handleScanResult(ScanResult result) {
+        void handleScanResult(ScanResult result) {
             BluetoothDevice device = result.getDevice();
             if (device != null) {
                 addRecord(App.getInstance().getBtMac(), device.getAddress(),
-                        device.getName() + " (Bluetooth LE)",
-                        METHOD_BTLE, result.getRssi(), 2400);
+                        device.getName() + " (BTLE)",
+                        RssiRecord.SIGNAL_BTLE, result.getRssi(), 2400);
             } else {
                 addEvent("BT-LE received " + result.getRssi() + " dBm from null device.", LOG_INFORMATIVE);
             }
         }
     };
 
-    private final WifiScanner.ScanListener wifiScanListener = new WifiScanner.ScanListener() {
+    final WifiScanner.ScanListener wifiScanListener = new WifiScanner.ScanListener() {
         @Override
         public void onScanResults(List<android.net.wifi.ScanResult> scanResults) {
             addEvent("WifiScan found " + scanResults.size() + " results.", LOG_ALL);
             for (android.net.wifi.ScanResult r : scanResults) {
                 addRecord(App.getInstance().getWifiMac(), r.BSSID, r.SSID  +
                                 " (WiFi " + r.frequency + "MHz)",
-                        METHOD_WIFI, r.level, r.frequency);
+                        RssiRecord.SIGNAL_WIFI, r.level, r.frequency);
             }
         }
     };
 
-    private final RssiFilter.FilterCallback filterCallback =
+    final RssiFilter.FilterCallback filterCallback =
             new RssiFilter.FilterCallback() {
         long lastTime = 0;
         @Override
@@ -512,11 +739,11 @@ public class RssiTrainingActivity extends Activity {
         }
     };
 
-    private String formatMillis(long millis) {
+    String formatMillis(long millis) {
         return String.format(Locale.US, "%.1fs", ((double)millis)/1000);
     }
 
-    private final RssiFilter btFilter = new RssiFilter(10000, 5, filterCallback);
-    private final RssiFilter btLeFilter = new RssiFilter(10000, 20, filterCallback);
-    private final RssiFilter wifiFilter = new RssiFilter(10000, 10, filterCallback);
+    final RssiFilter btFilter = new RssiFilter(10000, 5, filterCallback);
+    final RssiFilter btLeFilter = new RssiFilter(10000, 20, filterCallback);
+    final RssiFilter wifiFilter = new RssiFilter(10000, 10, filterCallback);
 }
