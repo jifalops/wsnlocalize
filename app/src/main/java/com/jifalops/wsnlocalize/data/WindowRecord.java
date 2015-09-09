@@ -108,4 +108,14 @@ public class WindowRecord {
     public String toString() {
         return rss.toString() +","+ elapsed.toString() +","+ distance;
     }
+    
+    public double[] toArray() {
+        return new double[] {
+                rss.min, rss.max, rss.range,
+                rss.mean, rss.median, rss.stdDev,
+                elapsed.min, elapsed.max, elapsed.range,
+                elapsed.mean, elapsed.median, elapsed.stdDev,
+                distance
+        };
+    }
 }

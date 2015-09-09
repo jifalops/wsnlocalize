@@ -49,7 +49,7 @@ public abstract class NeuralNetwork {
      * The entire sample can be used (inputs + outputs) as long as the inputs
      * occupy the lower indexes (only the inputs will be used).
      */
-    protected double[] calcOutputs(double[] weights, double[] inputsOrSample) {
+    public double[] calcOutputs(double[] weights, double[] inputsOrSample) {
         double[] outputs = new double[weightMetrics.numOutputs];
         double[] gamma = new double[weightMetrics.numHidden];
         double[] z = new double[weightMetrics.numHidden];

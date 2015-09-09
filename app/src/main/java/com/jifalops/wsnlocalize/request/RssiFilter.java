@@ -1,7 +1,5 @@
 package com.jifalops.wsnlocalize.request;
 
-import com.jifalops.wsnlocalize.data.RssiRecordOld;
-
 import java.util.ArrayList;
 import java.util.List;
 

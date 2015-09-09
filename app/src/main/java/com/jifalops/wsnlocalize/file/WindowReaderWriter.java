@@ -19,6 +19,7 @@ public class WindowReaderWriter extends TextReaderWriter {
     final IoCallbacks ioCallbacks = new IoCallbacks() {
         @Override
         public void onReadCompleted(TextReaderWriter rw, List<String> lines) {
+            if (lines.size() == 0) return;
             final List<WindowRecord> records = new ArrayList<>();
             for (String line : lines) {
                 records.add(new WindowRecord(line.split(",")));
@@ -49,8 +50,8 @@ public class WindowReaderWriter extends TextReaderWriter {
         setIoCallbacks(ioCallbacks);
     }
 
-    public void readRecords() {
-        readLines();
+    public boolean readRecords() {
+        return readLines();
     }
 
     public void writeRecords(List<WindowRecord> records, boolean append) {

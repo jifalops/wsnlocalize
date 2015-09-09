@@ -27,11 +27,9 @@ import android.widget.Toast;
 import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
 import com.jifalops.wsnlocalize.data.RssiRecord;
-import com.jifalops.wsnlocalize.data.RssiRecordOld;
 import com.jifalops.wsnlocalize.data.Trainer;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.file.NumberReaderWriter;
-import com.jifalops.wsnlocalize.file.Recorder;
 import com.jifalops.wsnlocalize.file.RssiReaderWriter;
 import com.jifalops.wsnlocalize.file.WindowReaderWriter;
 import com.jifalops.wsnlocalize.request.RssiFilter;
@@ -65,39 +63,6 @@ public class RssiTrainingActivity extends Activity {
         @Override
         public String toString() {
             return id + ": " + desc + " " + mac;
-        }
-    }
-
-    static class SignalStuff {
-        final Trainer trainer;
-        final Recorder history;
-        final Recorder toSend;
-        // Loaded from the "To Send" files (needs sent, already in history)
-        final List<RssiRecord> rssiToSend = new ArrayList<>();
-        final List<WindowRecord> windowsToSend = new ArrayList();
-        final List<double[]> weightsToSend = new ArrayList<>();
-        // Newly acquired (needs sent + written to history)
-        final List<RssiRecord> rssiNew = new ArrayList<>();
-        final List<WindowRecord> windowsNew = new ArrayList();
-        final List<double[]> weightsNew = new ArrayList<>();
-        boolean enabled;
-        SignalStuff(Trainer trainer, Recorder history, Recorder toSend) {
-            this.trainer = trainer;
-            this.history = history;
-            this.toSend = toSend;
-        }
-        void load() {
-            // TODO make this a top level class and add access to callbacks
-        }
-        void save() {
-            // Locally only for now.
-            bt.history.writeRssi(bt.rssi, true);
-            bt.history.writeWindows(bt.windows, true);
-            bt.history.writeNumbers(bt.weights, true);
-            bt.toSend.writeRssi(bt.rssi, false);
-            bt.toSend.writeWindows(bt.windows, false);
-            bt.toSend.writeNumbers(bt.weights, false);
-            bt.
         }
     }
 

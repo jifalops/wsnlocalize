@@ -45,17 +45,17 @@ public class TextReaderWriter {
         this.callbacks = callbacks;
     }
 
-    public void readLines() {
-        post(new Runnable() {
-            @Override
-            public void run() {
-                List<String> lines = new ArrayList<>();
-                if (file.exists()) {
+    public boolean readLines() {
+        if (file.exists()) {
+            post(new Runnable() {
+                @Override
+                public void run() {
+                    List<String> lines = new ArrayList<>();
                     BufferedReader r = null;
                     try {
                         r = new BufferedReader(new FileReader(file));
                         String line;
-                        while ((line = r.readLine()) != null) {
+                        while ((line = r.readLine()) != null && line.length() > 0) {
                             lines.add(line);
                         }
                     } catch (FileNotFoundException e) {
@@ -69,10 +69,12 @@ public class TextReaderWriter {
                             e.printStackTrace();
                         }
                     }
+                    callbacks.onReadCompleted(TextReaderWriter.this, lines);
                 }
-                callbacks.onReadCompleted(TextReaderWriter.this, lines);
-            }
-        });
+            });
+            return true;
+        }
+        return false;
     }
 
     public void writeLines(final List<String> lines, final boolean append) {

@@ -12,7 +12,7 @@ public class TrainingTrigger {
         /**
          * @param samples format of the WindowRecords to be used for training in a neural network.
          */
-        void onTimeToTrain(List<WindowRecord> records, double[][] samples);
+        double[][] onTimeToTrain(List<WindowRecord> records, double[][] samples);
     }
     public final int minCount;
     public final long minElapsedMillis;
@@ -30,20 +30,19 @@ public class TrainingTrigger {
         if (startTime == 0) startTime = System.nanoTime();
         long time = (System.nanoTime() - startTime) / 1_000_000;
         if (records.size() >= minCount && time >= minElapsedMillis) {
-            double[][] samples = new double[records.size()][13];
-            for (int i = 0, len = samples.length; i < len; ++i) {
-                WindowRecord r = records.get(i);
-                samples[i] = new double[] {
-                    r.rss.min, r.rss.max, r.rss.range,
-                    r.rss.mean, r.rss.median, r.rss.stdDev,
-                    r.elapsed.min, r.elapsed.max, r.elapsed.range,
-                    r.elapsed.mean, r.elapsed.median, r.elapsed.stdDev,
-                    r.distance
-                };
-            }
-            callback.onTimeToTrain(records, WindowScaler.scaleAndRandomize(samples));
+            double[][] samples = makeSamples(records);
+            callback.onTimeToTrain(records, samples);
             records.clear();
             startTime = 0;
         }
+    }
+
+    public static double[][] makeSamples(List<WindowRecord> records) {
+        int len = records.size();
+        double[][] samples = new double[len][13];
+        for (int i = 0; i < len; ++i) {
+            samples[i] = records.get(i).toArray();
+        }
+        return samples;
     }
 }

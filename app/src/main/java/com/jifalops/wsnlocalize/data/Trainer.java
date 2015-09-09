@@ -15,12 +15,12 @@ import java.util.List;
  */
 public class Trainer {
     public static abstract class TrainingCallbacks implements RssiWindower.Callback, TrainingTrigger.Callback {
-        public abstract void onTrainingComplete(double[] weights, double error);
+        public abstract void onTrainingComplete(double[] weights, double error, int samples);
     }
 
     private final RssiWindower windower;
     private final TrainingTrigger trigger;
-    private final NeuralNetwork nnet;
+    public final NeuralNetwork nnet;
     private final TerminationConditions termCond;
 
     private final HandlerThread thread;
@@ -64,21 +64,22 @@ public class Trainer {
 
     private final TrainingTrigger.Callback trainingCB = new TrainingTrigger.Callback() {
         @Override
-        public void onTimeToTrain(List<WindowRecord> records, final double[][] samples) {
-            callbacks.onTimeToTrain(records, samples);
+        public double[][] onTimeToTrain(List<WindowRecord> records, final double[][] samples) {
+            final double[][] toTrain = callbacks.onTimeToTrain(records, samples);
             post(new Runnable() {
                 @Override
                 public void run() {
-                    final double[] weights = nnet.trainSampleBySample(samples, termCond);
+                    final double[] weights = nnet.trainSampleBySample(toTrain, termCond);
                     final double error = nnet.getGlobalBestError();
                     uiHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callbacks.onTrainingComplete(weights, error);
+                            callbacks.onTrainingComplete(weights, error, toTrain.length);
                         }
                     });
                 }
             });
+            return toTrain;
         }
     };
 }
