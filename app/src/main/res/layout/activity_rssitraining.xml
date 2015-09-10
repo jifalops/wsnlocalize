@@ -1,4 +1,4 @@
-<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".RssiActivity"
     android:layout_width="match_parent"
@@ -7,14 +7,13 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    android:columnCount="3">
+    android:orientation="vertical">
     <ScrollView
         android:background="#333"
         android:layout_marginBottom="8dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_rowWeight="1"
-        android:layout_columnSpan="3"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:id="@+id/eventScrollView">
         <TextView
             android:id="@+id/eventLog"
@@ -28,7 +27,6 @@
         android:layout_marginBottom="16dp"
         android:layout_width="match_parent"
         android:layout_height="100dp"
-        android:layout_columnSpan="3"
         android:id="@+id/deviceScrollView"
         tools:context=".RssiActivity">
         <TextView
@@ -39,141 +37,152 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
     </ScrollView>
-    <CheckBox
-        android:id="@+id/btCheckBox"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:checked="true"
-        android:text="Bluetooth"/>
-    <CheckBox
-        android:id="@+id/btleCheckBox"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_columnWeight="1"
-        android:checked="true"
-        android:text="Bluetooth LE"/>
-    <CheckBox
-        android:id="@+id/wifiCheckBox"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:checked="true"
-        android:text="WiFi"/>
-    <Space
-        android:layout_width="wrap_content"
-        android:layout_height="8dp"
-        android:layout_columnSpan="3" />
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:text="Device IDs"/>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_columnWeight="1"
-        android:text="Distance (m)"/>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:text="Collect"/>
-    <TextView
-        android:id="@+id/deviceId"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:text="0,0,0"/>
-    <EditText
-        android:id="@+id/distanceMeters"
-        android:inputType="numberDecimal"
-        android:layout_width="64dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_columnWeight="1"
-        android:selectAllOnFocus="true"
-        android:gravity="center_horizontal"
-        android:hint="0.0"/>
-    <Switch
-        android:id="@+id/collectSwitch"
-        android:layout_width="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_height="wrap_content"/>
     <GridLayout
-        android:layout_width="wrap_content"
-        android:layout_weight="1"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_columnSpan="2"
-        android:columnCount="4">
+        android:columnCount="3">
+        <CheckBox
+            android:id="@+id/btCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:checked="true"
+            android:text="Bluetooth"/>
+        <CheckBox
+            android:id="@+id/btleCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_columnWeight="1"
+            android:checked="true"
+            android:text="Bluetooth LE"/>
+        <CheckBox
+            android:id="@+id/wifiCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:checked="true"
+            android:text="WiFi"/>
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="8dp"
+            android:layout_columnSpan="3" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:layout_columnSpan="4"
-            android:text="To Send / Save"/>
-        <Space />
+            android:text="Device IDs"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="BT"/>
+            android:layout_gravity="center_horizontal"
+            android:layout_columnWeight="1"
+            android:text="Distance (m)"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="BTLE"/>
+            android:layout_gravity="center_horizontal"
+            android:text="Collect"/>
         <TextView
+            android:id="@+id/deviceId"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="WIFI"/>
-        <TextView
-            android:layout_width="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:text="0,0,0"/>
+        <EditText
+            android:id="@+id/distanceMeters"
+            android:inputType="numberDecimal"
+            android:layout_width="64dp"
             android:layout_height="wrap_content"
-            android:text="RSSI"/>
-        <TextView
-            android:id="@+id/btRssiCount"
+            android:layout_gravity="center_horizontal"
+            android:layout_columnWeight="1"
+            android:selectAllOnFocus="true"
+            android:gravity="center_horizontal"
+            android:hint="0.0"/>
+        <Switch
+            android:id="@+id/collectSwitch"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0"/>
-        <TextView
-            android:id="@+id/btleRssiCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0"/>
-        <TextView
-            android:id="@+id/wifiRssiCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Window"/>
-        <TextView
-            android:id="@+id/btWindowCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0"/>
-        <TextView
-            android:id="@+id/btleWindowCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0"/>
-        <TextView
-            android:id="@+id/wifiWindowCount"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="0"/>
+            android:layout_gravity="center_horizontal"
+            android:layout_height="wrap_content"/>
     </GridLayout>
-    <Button
-        android:id="@+id/sendButton"
-        android:layout_gravity="center_vertical"
-        android:layout_width="wrap_content"
+    <android.widget.Space
+        android:layout_width="match_parent"
+        android:layout_height="8dp" />
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:text="Send">
-        <requestFocus />
-    </Button>
-</GridLayout>
+        android:orientation="horizontal">
+        <GridLayout
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:layout_columnSpan="2"
+            android:columnCount="4">
+            <Space />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:text="BT"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:text="BTLE"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:text="WIFI"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:text="RSSI"/>
+            <TextView
+                android:id="@+id/btRssiCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"/>
+            <TextView
+                android:id="@+id/btleRssiCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"/>
+            <TextView
+                android:id="@+id/wifiRssiCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Window"/>
+            <TextView
+                android:id="@+id/btWindowCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"/>
+            <TextView
+                android:id="@+id/btleWindowCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"/>
+            <TextView
+                android:id="@+id/wifiWindowCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"/>
+        </GridLayout>
+        <Button
+            android:id="@+id/sendButton"
+            android:layout_gravity="center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:text="Send">
+            <requestFocus />
+        </Button>
+    </LinearLayout>
+</LinearLayout>
