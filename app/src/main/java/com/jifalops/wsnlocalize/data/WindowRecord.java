@@ -2,10 +2,6 @@ package com.jifalops.wsnlocalize.data;
 
 import com.jifalops.wsnlocalize.util.Stats;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -112,14 +108,15 @@ public class WindowRecord {
                 +","+ distance +","+ estimated;
     }
 
-    /** Does not include the RSSI count, elapsed total, or estimated distance. */
+    /** Does not include the estimated distance. */
     public double[] toTrainingArray() {
         return new double[] {
-                rss.min, rss.max, rss.range,
+                rss.count, rss.min, rss.max, rss.range,
                 rss.mean, rss.median, rss.stdDev,
-                elapsed.min, elapsed.max, elapsed.range,
+                elapsed.millis, elapsed.min, elapsed.max, elapsed.range,
                 elapsed.mean, elapsed.median, elapsed.stdDev,
                 distance
         };
     }
+    public static final int TRAINING_ARRAY_SIZE = 15;
 }

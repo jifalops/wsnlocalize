@@ -39,7 +39,7 @@ public class TrainingTrigger {
 
     public static double[][] makeSamples(List<WindowRecord> records) {
         int len = records.size();
-        double[][] samples = new double[len][13];
+        double[][] samples = new double[len][WindowRecord.TRAINING_ARRAY_SIZE];
         for (int i = 0; i < len; ++i) {
             samples[i] = records.get(i).toTrainingArray();
         }

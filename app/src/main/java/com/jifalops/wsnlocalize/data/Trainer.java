@@ -34,7 +34,7 @@ public class Trainer {
         this.callbacks = callbacks;
         windower = new RssiWindower(minRssiCountForWindow, minRssiTimeMillisForWindow, windowerCB);
         trigger = new TrainingTrigger(minWindowCountForTraining, minWindowTimeMillisForTraining, trainingCB);
-        MlpWeightMetrics metrics = new MlpWeightMetrics(12, 1);
+        MlpWeightMetrics metrics = new MlpWeightMetrics(WindowRecord.TRAINING_ARRAY_SIZE - 1, 1);
         nnet = new Depso(NeuralNetwork.initPop(20, metrics),
                 NeuralNetwork.initPop(20, metrics), metrics);
         termCond = new TerminationConditions();
