@@ -25,10 +25,10 @@ class SignalStuff {
     public interface SignalCallbacks {
         void onTrainingStarting(SignalStuff s, int samples);
         void onTrainingComplete(SignalStuff s, double[] weights, double error, int samples);
-        void onEstimateReady(SignalStuff s, double estimate, double error, WindowRecord record);
+        void onWindowReady(SignalStuff s, WindowRecord record);
         void onSentSuccess(SignalStuff s, boolean wasRssi, int count);
-        void onSentFailure(SignalStuff s, boolean wasRssi, int respCode, String resp, String result);
-        void onSentFailure(SignalStuff s, boolean wasRssi, String volleyError);
+        void onSentFailure(SignalStuff s, boolean wasRssi, int count, int respCode, String resp, String result);
+        void onSentFailure(SignalStuff s, boolean wasRssi, int count, String volleyError);
     }
 
     private final String signalType;
@@ -68,6 +68,10 @@ class SignalStuff {
         }
     }
 
+    public String getSignalType() {
+        return signalType;
+    }
+
     public int getRssiCount() {
         return rssi.size();
     }
@@ -85,6 +89,7 @@ class SignalStuff {
     public void send() {
         if (rssi.size() > 0) {
             final List<RssiRecord> sending = new ArrayList<>(rssi);
+            final int toSend = sending.size();
             rssi.clear();
             App.getInstance().sendRequest(new RssiRequest(signalType, rssi,
                     new Response.Listener<AbsRequest.MyResponse>() {
@@ -92,23 +97,26 @@ class SignalStuff {
                         public void onResponse(AbsRequest.MyResponse response) {
                             if (response.responseCode == 200) {
                                 rssiRW.writeRecords(rssi, false);
-                                callbacks.onSentSuccess(SignalStuff.this, true, sending.size());
+                                callbacks.onSentSuccess(SignalStuff.this, true, toSend);
                             } else {
                                 rssi.addAll(sending);
-                                callbacks.onSentFailure(SignalStuff.this, true, response.responseCode,
-                                        response.responseMessage, response.queryResult);
+                                callbacks.onSentFailure(SignalStuff.this, true, toSend,
+                                        response.responseCode, response.responseMessage,
+                                        response.queryResult);
                             }
                         }
                     }, new Response.ErrorListener() {
                         @Override
                         public void onErrorResponse(VolleyError volleyError) {
                             rssi.addAll(sending);
-                            callbacks.onSentFailure(SignalStuff.this, true, volleyError.toString());
+                            callbacks.onSentFailure(SignalStuff.this, true, toSend,
+                                    volleyError.toString());
                         }
                     }));
         }
         if (windows.size() > 0) {
             final List<WindowRecord> sending = new ArrayList<>(windows);
+            final int toSend = sending.size();
             windows.clear();
             App.getInstance().sendRequest(new WindowRequest(signalType, windows,
                     new Response.Listener<AbsRequest.MyResponse>() {
@@ -116,18 +124,19 @@ class SignalStuff {
                         public void onResponse(AbsRequest.MyResponse response) {
                             if (response.responseCode == 200) {
                                 windowRW.writeRecords(windows, false);
-                                callbacks.onSentSuccess(SignalStuff.this, false, sending.size());
+                                callbacks.onSentSuccess(SignalStuff.this, false, toSend);
                             } else {
                                 windows.addAll(sending);
-                                callbacks.onSentFailure(SignalStuff.this, false, response.responseCode,
-                                        response.responseMessage, response.queryResult);
+                                callbacks.onSentFailure(SignalStuff.this, false, toSend,
+                                        response.responseCode, response.responseMessage,
+                                        response.queryResult);
                             }
                         }
                     }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError volleyError) {
                     windows.addAll(sending);
-                    callbacks.onSentFailure(SignalStuff.this, false, volleyError.toString());
+                    callbacks.onSentFailure(SignalStuff.this, false, toSend, volleyError.toString());
                 }
             }));
         }
@@ -189,10 +198,9 @@ class SignalStuff {
                 double[] outputs = trainer.nnet.calcOutputs(
                         weightHistory[weightHistory.length-1], scaled[0]);
                 double estimate = WindowScaler.unscale(outputs)[0];
-                double error = (estimate - record.distance) / record.distance;
                 record.estimated = (float) estimate;
-                callbacks.onEstimateReady(SignalStuff.this, estimate, error, record);
             }
+            callbacks.onWindowReady(SignalStuff.this, record);
         }
 
         @Override
