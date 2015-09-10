@@ -62,8 +62,10 @@ class SignalStuff {
     }
 
     public void add(RssiRecord record) {
-        rssi.add(record);
-        trainer.add(record);
+        if (record.distance > 0) {
+            rssi.add(record);
+            trainer.add(record);
+        }
     }
 
     public int getRssiCount() {
