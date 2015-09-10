@@ -19,7 +19,7 @@ import java.util.Map;
 
 /**
  * ServiceThreadApplication provides an Application and related Service that can be bound to by using
- * {@link #bindLocalService()} and {@link #unbindLocalService()}. See
+ * {@link #bindLocalService(Runnable)} and {@link #unbindLocalService(Runnable)}. See
  * {@link ServiceThreadApplication.LocalService} for details.
  * Descendants of this class can use a static instance variable initialized in
  * {@link Application#onCreate()} and associated accessor method making it
@@ -31,13 +31,18 @@ public class ServiceThreadApplication extends Application {
 
     private LocalService mBoundService;
     private boolean mIsBound;
+    private Runnable bindRunnable, unbindRunnable;
 
     private final ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             mBoundService = ((LocalService.LocalBinder) service).getService();
+            mIsBound = true;
+            if (bindRunnable != null) bindRunnable.run();
         }
         public void onServiceDisconnected(ComponentName className) {
             mBoundService = null;
+            mIsBound = false;
+            if (unbindRunnable != null) unbindRunnable.run();
         }
     };
 
@@ -47,15 +52,18 @@ public class ServiceThreadApplication extends Application {
         sAppInstance = this;
     }
 
-    public void bindLocalService() {
-        bindService(new Intent(ServiceThreadApplication.this, LocalService.class), mConnection, Context.BIND_AUTO_CREATE);
-        mIsBound = true;
+    public void bindLocalService(Runnable onServiceBound) {
+        if (!mIsBound) {
+            bindRunnable = onServiceBound;
+            bindService(new Intent(ServiceThreadApplication.this, LocalService.class),
+                    mConnection, Context.BIND_AUTO_CREATE);
+        }
     }
 
-    public void unbindLocalService() {
+    public void unbindLocalService(Runnable onServiceUnbound) {
         if (mIsBound) {
+            unbindRunnable = onServiceUnbound;
             unbindService(mConnection);
-            mIsBound = false;
         }
     }
 
@@ -66,7 +74,7 @@ public class ServiceThreadApplication extends Application {
 
     /**
      * LocalService is a Service that Activities can bind to while active by calling
-     * {@link #bindLocalService()} and {@link #unbindLocalService()}, or can call
+     * {@link #bindLocalService(Runnable)} and {@link #unbindLocalService(Runnable)}, or can call
      * {@link #setPersistent(boolean)} to keep the service running in the background.
      * The service also manages its own thread and exposes two methods from the thread's Handler,
      * {@link #post(Runnable)} ()} and {@link #postDelayed(Runnable, long)}.
