@@ -17,37 +17,43 @@ public class WindowScaler {
 
     // The minimum values possible in each column
     private static final double[] min = new double[] {
+            1,        // min rssi count
             RSSI_MIN, // min rssi min
             RSSI_MIN, // min rssi max
             0,        // min rssi range
             RSSI_MIN, // min rssi mean
             RSSI_MIN, // min rssi median
             0,        // min rssi stdDev
+            1,        // min elapsed total
             1,        // min elapsed min
             1,        // min elapsed max
             1,        // min elapsed range
             1,        // min elapsed mean
             1,        // min elapsed median
             1,        // min elapsed stdDev
+            0,        // min actual distance
     };
 
     // The maximum values possible in each column
     private static final double[] max = new double[] {
+            1000,                   // max rssi count
             RSSI_MAX,               // max rssi min
             RSSI_MAX,               // max rssi max
             RSSI_MAX - RSSI_MIN,    // max rssi range
             RSSI_MAX,               // max rssi mean
             RSSI_MAX,               // max rssi median
             RSSI_MAX - RSSI_MIN,    // max rssi stdDev
+            60 * 60_000,            // max elapsed total
             ELAPSED_MAX,            // max elapsed min
             ELAPSED_MAX,            // max elapsed max
             ELAPSED_MAX,            // max elapsed range
             ELAPSED_MAX,            // max elapsed mean
             ELAPSED_MAX,            // max elapsed median
             ELAPSED_MAX,            // max elapsed stdDev
+            200,                    // max actual distance
     };
 
-    private static final int numInputs = min.length;
+    private static final int numInputs = min.length - 1;
 
     public static double[][] scale(double[][] data) {
         int rows = data.length;

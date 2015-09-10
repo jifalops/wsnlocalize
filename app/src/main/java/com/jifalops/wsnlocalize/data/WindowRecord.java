@@ -37,9 +37,10 @@ public class WindowRecord {
     }
 
     public static class Elapsed {
-        public final int millis, min, max, range;
+        public final long millis;
+        public final int min, max, range;
         public final double mean, median, stdDev;
-        public Elapsed(int millis, int min, int max, int range,
+        public Elapsed(long millis, int min, int max, int range,
                    double mean, double median, double stdDev) {
             this.millis = millis;
             this.min = min;
@@ -74,13 +75,11 @@ public class WindowRecord {
         int len = records.size();
         double[] rssi = new double[len];
         double[] el = new double[len-1];
-        long last = 0;
         for (int i = 0; i < len; ++i) {
             rssi[i] = records.get(i).rssi;
             if (i != 0) {
-                el[i-1] = records.get(i).time - last;
+                el[i-1] = records.get(i).time - records.get(i-1).time;
             }
-            last = records.get(i).time;
         }
         int min = (int) Stats.min(rssi);
         int max = (int) Stats.max(rssi);
@@ -89,7 +88,7 @@ public class WindowRecord {
 
         min = (int) Stats.min(el);
         max = (int) Stats.max(el);
-        int millis = (int) (el[el.length-1] - el[0]);
+        long millis = records.get(len-1).time - records.get(0).time;
         elapsed = new Elapsed(millis, min, max, max-min,
                 Stats.mean(el), Stats.median(el), Stats.stdDev(el));
     }

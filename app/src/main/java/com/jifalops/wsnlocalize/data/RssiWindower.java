@@ -23,7 +23,7 @@ public class RssiWindower {
 
     public void add(RssiRecord record) {
         records.add(record);
-        long elapsed = records.get(records.size()-1).time - records.get(0).time;
+        long elapsed = record.time - records.get(0).time;
         if (records.size() >= minCount || elapsed >= minElapsedMillis) {
             callback.onWindowRecordReady(new WindowRecord(records), records);
             records.clear();
