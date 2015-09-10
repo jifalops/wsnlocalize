@@ -11,20 +11,17 @@ public class RssiWindower {
     public interface Callback {
         void onWindowRecordReady(WindowRecord record, List<RssiRecord> from);
     }
-    public final int minCount;
-    public final int minElapsedMillis;
+    public final Limits limits;
     private final List<RssiRecord> records = new ArrayList<>();
     private final Callback callback;
-    public RssiWindower(int minCount, int minElapsedMillis, Callback callback) {
-        this.minCount = minCount;
-        this.minElapsedMillis = minElapsedMillis;
+    public RssiWindower(Limits limits, Callback callback) {
+        this.limits = limits;
         this.callback = callback;
     }
 
     public void add(RssiRecord record) {
         records.add(record);
-        long elapsed = record.time - records.get(0).time;
-        if (records.size() >= minCount || elapsed >= minElapsedMillis) {
+        if (limits.reached(records.size(), record.time - records.get(0).time)) {
             callback.onWindowRecordReady(new WindowRecord(records), records);
             records.clear();
         }

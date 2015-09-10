@@ -2,6 +2,7 @@ package com.jifalops.wsnlocalize;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.jifalops.wsnlocalize.data.Limits;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.Trainer;
 import com.jifalops.wsnlocalize.data.WindowRecord;
@@ -43,13 +44,10 @@ class SignalStuff {
     private double[][] toTrain, weightHistory;
     boolean enabled; // used by activity
 
-    SignalStuff(String signalType, File dir,
-                int minRssiCountForWindow, int minRssiTimeMillisForWindow,
-                int minWindowCountForTraining, int minWindowTimeMillisForTraining,
+    SignalStuff(String signalType, File dir, Limits rssiLimits, Limits windowLimits,
                 SignalCallbacks callbacks) {
         this.signalType = signalType;
-        trainer = new Trainer(minRssiCountForWindow, minRssiTimeMillisForWindow,
-                minWindowCountForTraining, minWindowTimeMillisForTraining, myCallbacks);
+        trainer = new Trainer(rssiLimits, windowLimits, myCallbacks);
         rssiRW = new RssiReaderWriter(new File(dir, signalType+"-rssi.csv"), myCallbacks);
         windowRW = new WindowReaderWriter(new File(dir, signalType+"-windows.csv"), myCallbacks);
         sampleRW = new NumberReaderWriter(new File(dir, signalType+"-samples.csv"), myCallbacks);

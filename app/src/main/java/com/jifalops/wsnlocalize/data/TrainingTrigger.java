@@ -14,22 +14,20 @@ public class TrainingTrigger {
          */
         double[][] onTimeToTrain(List<WindowRecord> records, double[][] samples);
     }
-    public final int minCount;
-    public final long minElapsedMillis;
+
+    private final Limits limits;
     private final List<WindowRecord> records = new ArrayList<>();
     private final Callback callback;
     private long startTime = 0;
-    public TrainingTrigger(int minCount, int minElapsedMillis, Callback callback) {
-        this.minCount = minCount;
-        this.minElapsedMillis = minElapsedMillis;
+    public TrainingTrigger(Limits limits, Callback callback) {
+        this.limits = limits;
         this.callback = callback;
     }
 
     public void add(WindowRecord record) {
         records.add(record);
         if (startTime == 0) startTime = System.nanoTime();
-        long time = (System.nanoTime() - startTime) / 1_000_000;
-        if (records.size() >= minCount || time >= minElapsedMillis) {
+        if (limits.reached(records.size(), (System.nanoTime() - startTime) / 1_000_000)) {
             double[][] samples = makeSamples(records);
             callback.onTimeToTrain(records, samples);
             records.clear();

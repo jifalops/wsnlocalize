@@ -28,12 +28,10 @@ public class Trainer {
 
     private final TrainingCallbacks callbacks;
 
-    public Trainer(int minRssiCountForWindow, int minRssiTimeMillisForWindow,
-                   int minWindowCountForTraining, int minWindowTimeMillisForTraining,
-                    TrainingCallbacks callbacks) {
+    public Trainer(Limits rssiLimits, Limits windowLimits, TrainingCallbacks callbacks) {
         this.callbacks = callbacks;
-        windower = new RssiWindower(minRssiCountForWindow, minRssiTimeMillisForWindow, windowerCB);
-        trigger = new TrainingTrigger(minWindowCountForTraining, minWindowTimeMillisForTraining, trainingCB);
+        windower = new RssiWindower(rssiLimits, windowerCB);
+        trigger = new TrainingTrigger(windowLimits, trainingCB);
         MlpWeightMetrics metrics = new MlpWeightMetrics(WindowRecord.TRAINING_ARRAY_SIZE - 1, 1);
         nnet = new Depso(NeuralNetwork.initPop(20, metrics),
                 NeuralNetwork.initPop(20, metrics), metrics);
