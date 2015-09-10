@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *  Collects a list of {@link WindowRecord} until the count AND time limits are reached.
+ *  Collects a list of {@link WindowRecord} until the count OR time limits are reached.
  *  It then calls {@link Callback#onTimeToTrain(List, double[][])} and clears the internal list.
  */
 public class TrainingTrigger {
@@ -29,7 +29,7 @@ public class TrainingTrigger {
         records.add(record);
         if (startTime == 0) startTime = System.nanoTime();
         long time = (System.nanoTime() - startTime) / 1_000_000;
-        if (records.size() >= minCount && time >= minElapsedMillis) {
+        if (records.size() >= minCount || time >= minElapsedMillis) {
             double[][] samples = makeSamples(records);
             callback.onTimeToTrain(records, samples);
             records.clear();

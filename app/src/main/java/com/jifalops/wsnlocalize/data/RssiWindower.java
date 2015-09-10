@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *  Collects a list of {@link RssiRecord} until the count AND time limits are reached.
+ *  Collects a list of {@link RssiRecord} until the count OR time limits are reached.
  *  It then calls {@link Callback#onWindowRecordReady(WindowRecord, List)} and clears the internal list.
  */
 public class RssiWindower {
@@ -23,8 +23,8 @@ public class RssiWindower {
 
     public void add(RssiRecord record) {
         records.add(record);
-        if (records.size() >= minCount &&
-                (records.get(records.size()-1).time - records.get(0).time) >= minElapsedMillis) {
+        long elapsed = records.get(records.size()-1).time - records.get(0).time;
+        if (records.size() >= minCount || elapsed >= minElapsedMillis) {
             callback.onWindowRecordReady(new WindowRecord(records), records);
             records.clear();
         }
