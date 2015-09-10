@@ -202,6 +202,9 @@ public class RssiTrainingActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         App.getInstance().unbindLocalService(null);
+        bt.close();
+        btle.close();
+        wifi.close();
     }
 
     void autoScroll(final ScrollView sv, final TextView tv) {
@@ -259,6 +262,11 @@ public class RssiTrainingActivity extends Activity {
             case R.id.action_persist:
                 setPersistent(item.isChecked());
                 return true;
+            case R.id.action_clear:
+                bt.truncate();
+                btle.truncate();
+                wifi.truncate();
+                return true;
             case LOG_IMPORTANT:
                 logLevel = LOG_IMPORTANT;
                 return true;
@@ -313,7 +321,7 @@ public class RssiTrainingActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        //collectSwitch.setChecked(false);
+        collectSwitch.setChecked(false);
     }
 
     void addRecord(Device device, String signal, int rssi, int freq) {
@@ -325,10 +333,13 @@ public class RssiTrainingActivity extends Activity {
                 RssiRecord record = new RssiRecord(rssi, freq, System.currentTimeMillis(), distance);
                 if (signal.equals(RssiRecord.SIGNAL_BT)) {
                     bt.add(record);
+                    btRssiCountView.setText(bt.getRssiCount()+"");
                 } else if (signal.equals(RssiRecord.SIGNAL_BTLE)) {
                     btle.add(record);
+                    btleRssiCountView.setText(btle.getRssiCount() + "");
                 } else if (signal.equals(RssiRecord.SIGNAL_WIFI)) {
                     wifi.add(record);
+                    wifiRssiCountView.setText(wifi.getRssiCount() + "");
                 }
             } else {
                 addEvent("Ignoring " + rssi + " dBm (" + freq + " MHz) for device " +
@@ -478,6 +489,9 @@ public class RssiTrainingActivity extends Activity {
                         record.estimated, error * 100);
             }
             addEvent(msg, LOG_IMPORTANT);
+            if (s == bt) btWindowCountView.setText(bt.getWindowCount()+"");
+            else if (s == btle) btleWindowCountView.setText(btle.getWindowCount()+"");
+            else if (s == wifi) wifiWindowCountView.setText(wifi.getWindowCount()+"");
         }
 
         @Override

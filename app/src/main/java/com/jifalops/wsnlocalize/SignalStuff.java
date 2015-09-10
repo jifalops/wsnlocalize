@@ -79,6 +79,13 @@ class SignalStuff {
         return windows.size();
     }
 
+    public void truncate() {
+        rssiRW.truncate();
+        windowRW.truncate();
+        sampleRW.truncate();
+        weightRW.truncate();
+    }
+
     public void close() {
         rssiRW.close();
         windowRW.close();
