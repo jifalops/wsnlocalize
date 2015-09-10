@@ -36,12 +36,10 @@ public class ServiceThreadApplication extends Application {
     private final ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             mBoundService = ((LocalService.LocalBinder) service).getService();
-            mIsBound = true;
             if (bindRunnable != null) bindRunnable.run();
         }
         public void onServiceDisconnected(ComponentName className) {
             mBoundService = null;
-            mIsBound = false;
             if (unbindRunnable != null) unbindRunnable.run();
         }
     };
@@ -57,6 +55,7 @@ public class ServiceThreadApplication extends Application {
             bindRunnable = onServiceBound;
             bindService(new Intent(ServiceThreadApplication.this, LocalService.class),
                     mConnection, Context.BIND_AUTO_CREATE);
+            mIsBound = true;
         }
     }
 
@@ -64,6 +63,7 @@ public class ServiceThreadApplication extends Application {
         if (mIsBound) {
             unbindRunnable = onServiceUnbound;
             unbindService(mConnection);
+            mIsBound = false;
         }
     }
 
