@@ -1,7 +1,5 @@
 package com.jifalops.wsnlocalize;
 
-import android.widget.Toast;
-
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.jifalops.wsnlocalize.data.RssiRecord;
@@ -13,6 +11,7 @@ import com.jifalops.wsnlocalize.file.RssiReaderWriter;
 import com.jifalops.wsnlocalize.file.WindowReaderWriter;
 import com.jifalops.wsnlocalize.request.AbsRequest;
 import com.jifalops.wsnlocalize.request.RssiRequest;
+import com.jifalops.wsnlocalize.request.WindowRequest;
 import com.jifalops.wsnlocalize.util.Arrays;
 
 import java.io.File;
@@ -23,15 +22,16 @@ import java.util.List;
  *
  */
 class SignalStuff {
-
-
     public interface SignalCallbacks {
         void onTrainingStarting(SignalStuff s, int samples);
         void onTrainingComplete(SignalStuff s, double[] weights, double error, int samples);
         void onEstimateReady(SignalStuff s, double estimate, double error, WindowRecord record);
+        void onSentSuccess(SignalStuff s, boolean wasRssi, int count);
+        void onSentFailure(SignalStuff s, boolean wasRssi, int respCode, String resp, String result);
+        void onSentFailure(SignalStuff s, boolean wasRssi, String volleyError);
     }
 
-
+    private final String signalType;
     private final Trainer trainer;
     private final RssiReaderWriter rssiRW;
     private final WindowReaderWriter windowRW;
@@ -41,12 +41,13 @@ class SignalStuff {
     private final List<WindowRecord> windows = new ArrayList<>();
     private final SignalCallbacks callbacks;
     private double[][] toTrain, weightHistory;
-    boolean enabled;
+    boolean enabled; // used by activity
 
     SignalStuff(String signalType, File dir,
                 int minRssiCountForWindow, int minRssiTimeMillisForWindow,
                 int minWindowCountForTraining, int minWindowTimeMillisForTraining,
                 SignalCallbacks callbacks) {
+        this.signalType = signalType;
         trainer = new Trainer(minRssiCountForWindow, minRssiTimeMillisForWindow,
                 minWindowCountForTraining, minWindowTimeMillisForTraining, myCallbacks);
         rssiRW = new RssiReaderWriter(new File(dir, signalType+"-rssi.csv"), myCallbacks);
@@ -65,6 +66,13 @@ class SignalStuff {
         trainer.add(record);
     }
 
+    public int getRssiCount() {
+        return rssi.size();
+    }
+    public int getWindowCount() {
+        return windows.size();
+    }
+
     public void close() {
         rssiRW.close();
         windowRW.close();
@@ -72,35 +80,55 @@ class SignalStuff {
         weightRW.close();
     }
 
-    private void send() {
-//        final List<RssiRecordOld> records = new ArrayList<>(rssiRecords);
-//        rssiRecords.clear();
-//        toSendCountView.setText("0");
-//        App.getInstance().sendRequest(new RssiRequest(records,
-//                new Response.Listener<AbsRequest.MyResponse>() {
-//                    @Override
-//                    public void onResponse(AbsRequest.MyResponse response) {
-//                        if (response.responseCode == 200) {
-//                            Toast.makeText(RssiActivity.this,
-//                                    "Sent " + records.size() + " records successfully",
-//                                    Toast.LENGTH_LONG).show();
-//                        } else {
-//                            Toast.makeText(RssiActivity.this,
-//                                    response.responseCode + ": " + response.responseMessage +
-//                                            " Result: " + response.queryResult,
-//                                    Toast.LENGTH_LONG).show();
-//                            rssiRecords.addAll(records);
-//                            toSendCountView.setText(rssiRecords.size() + "");
-//                        }
-//                    }
-//                }, new Response.ErrorListener() {
-//            @Override
-//            public void onErrorResponse(VolleyError volleyError) {
-//                Toast.makeText(RssiActivity.this, volleyError.toString(), Toast.LENGTH_LONG).show();
-//                rssiRecords.addAll(records);
-//                toSendCountView.setText(rssiRecords.size()+"");
-//            }
-//        }));
+    public void send() {
+        if (rssi.size() > 0) {
+            final List<RssiRecord> sending = new ArrayList<>(rssi);
+            rssi.clear();
+            App.getInstance().sendRequest(new RssiRequest(signalType, rssi,
+                    new Response.Listener<AbsRequest.MyResponse>() {
+                        @Override
+                        public void onResponse(AbsRequest.MyResponse response) {
+                            if (response.responseCode == 200) {
+                                rssiRW.writeRecords(rssi, false);
+                                callbacks.onSentSuccess(SignalStuff.this, true, sending.size());
+                            } else {
+                                rssi.addAll(sending);
+                                callbacks.onSentFailure(SignalStuff.this, true, response.responseCode,
+                                        response.responseMessage, response.queryResult);
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError volleyError) {
+                            rssi.addAll(sending);
+                            callbacks.onSentFailure(SignalStuff.this, true, volleyError.toString());
+                        }
+                    }));
+        }
+        if (windows.size() > 0) {
+            final List<WindowRecord> sending = new ArrayList<>(windows);
+            windows.clear();
+            App.getInstance().sendRequest(new WindowRequest(signalType, windows,
+                    new Response.Listener<AbsRequest.MyResponse>() {
+                        @Override
+                        public void onResponse(AbsRequest.MyResponse response) {
+                            if (response.responseCode == 200) {
+                                windowRW.writeRecords(windows, false);
+                                callbacks.onSentSuccess(SignalStuff.this, false, sending.size());
+                            } else {
+                                windows.addAll(sending);
+                                callbacks.onSentFailure(SignalStuff.this, false, response.responseCode,
+                                        response.responseMessage, response.queryResult);
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError volleyError) {
+                    windows.addAll(sending);
+                    callbacks.onSentFailure(SignalStuff.this, false, volleyError.toString());
+                }
+            }));
+        }
     }
 
 
@@ -154,12 +182,13 @@ class SignalStuff {
             rssiRW.writeRecords(from, true);
 
             if (weightHistory != null && weightHistory.length > 0) {
-                double[][] sample = new double[][] {record.toArray()};
+                double[][] sample = new double[][] {record.toTrainingArray()};
                 double[][] scaled = WindowScaler.scale(sample);
                 double[] outputs = trainer.nnet.calcOutputs(
                         weightHistory[weightHistory.length-1], scaled[0]);
                 double estimate = WindowScaler.unscale(outputs)[0];
                 double error = (estimate - record.distance) / record.distance;
+                record.estimated = (float) estimate;
                 callbacks.onEstimateReady(SignalStuff.this, estimate, error, record);
             }
         }

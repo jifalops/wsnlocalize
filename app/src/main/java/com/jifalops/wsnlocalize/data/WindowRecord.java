@@ -71,6 +71,7 @@ public class WindowRecord {
     public final Rss rss;
     public final Elapsed elapsed;
     public final float distance;
+    public float estimated;
 
     public WindowRecord(List<RssiRecord> records) {
         distance = records.get(0).distance; // known or unknown.
@@ -99,6 +100,7 @@ public class WindowRecord {
 
     public WindowRecord(String[] csv) {
         distance = Float.valueOf(csv[14]);
+        estimated = Float.valueOf(csv[15]);
         rss = new Rss(csv);
         System.arraycopy(csv, 7, csv, 0, csv.length-7); // shift left 7
         elapsed = new Elapsed(csv);
@@ -106,10 +108,12 @@ public class WindowRecord {
 
     @Override
     public String toString() {
-        return rss.toString() +","+ elapsed.toString() +","+ distance;
+        return rss.toString() +","+ elapsed.toString()
+                +","+ distance +","+ estimated;
     }
-    
-    public double[] toArray() {
+
+    /** Does not include the RSSI count, elapsed total, or estimated distance. */
+    public double[] toTrainingArray() {
         return new double[] {
                 rss.min, rss.max, rss.range,
                 rss.mean, rss.median, rss.stdDev,

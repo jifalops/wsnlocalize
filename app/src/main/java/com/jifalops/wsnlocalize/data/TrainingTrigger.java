@@ -41,7 +41,7 @@ public class TrainingTrigger {
         int len = records.size();
         double[][] samples = new double[len][13];
         for (int i = 0; i < len; ++i) {
-            samples[i] = records.get(i).toArray();
+            samples[i] = records.get(i).toTrainingArray();
         }
         return samples;
     }

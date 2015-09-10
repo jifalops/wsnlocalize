@@ -106,6 +106,28 @@ public class TextReaderWriter {
         });
     }
 
+    public void truncate() {
+        post(new Runnable() {
+            @Override
+            public void run() {
+                BufferedWriter w = null;
+                try {
+                    w = new BufferedWriter(new FileWriter(file, false));
+                } catch (FileNotFoundException e) {
+                    // ignored
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    try {
+                        if (w != null) w.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        });
+    }
+
     public void close() {
         handler.removeCallbacksAndMessages(null);
         if (thread.getState() != Thread.State.NEW) {
