@@ -38,6 +38,7 @@ public class TextReaderWriter {
         this.file = file;
         this.callbacks = callbacks;
         thread = new HandlerThread(getClass().getName());
+        thread.start();
         handler = new Handler(thread.getLooper());
     }
 
@@ -47,7 +48,7 @@ public class TextReaderWriter {
 
     public boolean readLines() {
         if (file.exists()) {
-            post(new Runnable() {
+            handler.post(new Runnable() {
                 @Override
                 public void run() {
                     List<String> lines = new ArrayList<>();
@@ -78,7 +79,7 @@ public class TextReaderWriter {
     }
 
     public void writeLines(final List<String> lines, final boolean append) {
-        post(new Runnable() {
+        handler.post(new Runnable() {
             @Override
             public void run() {
                 int count = 0;
@@ -107,7 +108,7 @@ public class TextReaderWriter {
     }
 
     public void truncate() {
-        post(new Runnable() {
+        handler.post(new Runnable() {
             @Override
             public void run() {
                 BufferedWriter w = null;
@@ -137,12 +138,5 @@ public class TextReaderWriter {
                 thread.quit();
             }
         }
-    }
-
-    private boolean post(Runnable r) {
-        if (thread.getState() == Thread.State.NEW) {
-            thread.start();
-        }
-        return handler.post(r);
     }
 }

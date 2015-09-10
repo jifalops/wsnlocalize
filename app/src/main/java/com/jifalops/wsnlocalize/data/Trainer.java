@@ -39,19 +39,12 @@ public class Trainer {
                 NeuralNetwork.initPop(20, metrics), metrics);
         termCond = new TerminationConditions();
         thread = new HandlerThread(getClass().getName());
+        thread.start();
         handler = new Handler(thread.getLooper());
     }
 
     public void add(RssiRecord record) {
         windower.add(record);
-    }
-
-
-    private boolean post(Runnable r) {
-        if (thread.getState() == Thread.State.NEW) {
-            thread.start();
-        }
-        return handler.post(r);
     }
 
     private final RssiWindower.Callback windowerCB = new RssiWindower.Callback() {
@@ -66,7 +59,7 @@ public class Trainer {
         @Override
         public double[][] onTimeToTrain(List<WindowRecord> records, final double[][] samples) {
             final double[][] toTrain = callbacks.onTimeToTrain(records, samples);
-            post(new Runnable() {
+            handler.post(new Runnable() {
                 @Override
                 public void run() {
                     final double[] weights = nnet.trainSampleBySample(toTrain, termCond);

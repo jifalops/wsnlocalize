@@ -96,6 +96,7 @@ public class ServiceThreadApplication extends Application {
         @Override
         public void onCreate() {
             mHandlerThread = new HandlerThread(getClass().getName());
+            mHandlerThread.start();
             mServiceHandler = new Handler(mHandlerThread.getLooper());
         }
 
@@ -146,16 +147,10 @@ public class ServiceThreadApplication extends Application {
 
         /** {@link Handler#post(Runnable)} */
         public boolean post(Runnable r) {
-            if (mHandlerThread.getState() == Thread.State.NEW) {
-                mHandlerThread.start();
-            }
             return mServiceHandler.post(r);
         }
         /** {@link Handler#postDelayed(Runnable, long)} */
         public boolean postDelayed(Runnable r, long delayMillis) {
-            if (mHandlerThread.getState() == Thread.State.NEW) {
-                mHandlerThread.start();
-            }
             return mServiceHandler.postDelayed(r, delayMillis);
         }
 
