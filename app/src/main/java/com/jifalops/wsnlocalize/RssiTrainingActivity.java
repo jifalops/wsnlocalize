@@ -26,6 +26,7 @@ import android.widget.Toast;
 
 import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
+import com.jifalops.wsnlocalize.data.Limits;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.util.ServiceThreadApplication;
@@ -45,6 +46,16 @@ public class RssiTrainingActivity extends Activity {
     static final int LOG_IMPORTANT = 1;
     static final int LOG_INFORMATIVE = 2;
     static final int LOG_ALL = 3;
+
+    final Limits btWindowLimits = new Limits(5, 30_000, 10, 120_000);
+    final Limits btTrainLimits = new Limits(5, 300_000, 10, 600_000);
+
+    final Limits btleWindowLimits = new Limits(20, 10_000, 40, 30_000);
+    final Limits btleTrainLimits = new Limits(5, 120_000, 10, 300_000);
+
+    final Limits wifiWindowLimits = new Limits(8, 10_000, 16, 30_000);
+    final Limits wifiTrainLimits = new Limits(5, 120_000, 10, 300_000);
+
 
     static class Device {
         final int id;
@@ -181,9 +192,9 @@ public class RssiTrainingActivity extends Activity {
         wifiScanner = WifiScanner.getInstance(this);
 
         final File dir = getExternalFilesDir(null);
-        bt = new SignalStuff("bt", dir, 10, 60_000, 10, 600_000, signalCallbacks);
-        btle = new SignalStuff("btle", dir, 20, 20_000, 10, 300_000, signalCallbacks);
-        wifi = new SignalStuff("wifi", dir, 10, 30_000, 10, 300_000, signalCallbacks);
+        bt = new SignalStuff("bt", dir, btWindowLimits, btTrainLimits, signalCallbacks);
+        btle = new SignalStuff("btle", dir, btleWindowLimits, btleTrainLimits, signalCallbacks);
+        wifi = new SignalStuff("wifi", dir, wifiWindowLimits, wifiTrainLimits, signalCallbacks);
 
         App.getInstance().bindLocalService(new Runnable() {
             @Override
