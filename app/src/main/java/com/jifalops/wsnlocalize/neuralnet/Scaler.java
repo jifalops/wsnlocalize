@@ -17,7 +17,7 @@ public class Scaler {
     int numInputs;
 
     /** @param data used to set the min and max for each column. */
-    Scaler(double[][] data, int numInputs) {
+    public Scaler(double[][] data, int numInputs) {
         this.numInputs = numInputs;
         int rows = data.length;
         int cols = data[0].length;
@@ -50,7 +50,8 @@ public class Scaler {
                 scaledDiff = outDiff;
             }
             for (int j = 0; j < rows; j++) {
-                scaled[j][i] = scaledMin + (data[j][i] - min[i]) * scaledDiff / unscaledDiff;
+                scaled[j][i] = unscaledDiff == 0 ? scaledMin
+                        : scaledMin + (data[j][i] - min[i]) * scaledDiff / unscaledDiff;
             }
         }
         return scaled;

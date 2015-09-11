@@ -82,7 +82,7 @@ public class RssiTrainingActivity extends Activity {
     final List<Device> devices = new ArrayList<>();
     final List<Integer> deviceIds = new ArrayList<>();
     int logLevel = LOG_IMPORTANT;
-    float distance;
+    double distance;
     boolean collectEnabled;
     boolean isPersistent;
 
@@ -171,7 +171,7 @@ public class RssiTrainingActivity extends Activity {
             @Override
             public void afterTextChanged(Editable s) {
                 try {
-                    distance = Float.valueOf(s.toString());
+                    distance = Double.valueOf(s.toString());
                 } catch (NumberFormatException e) {
                     distanceView.setText(distance + "");
                 }
@@ -495,8 +495,8 @@ public class RssiTrainingActivity extends Activity {
             String msg = s.getSignalType() + " window: " + record.rss.count + " in " +
                     formatMillis(record.elapsed.millis);
             if (record.estimated != 0) {
-                float error = (record.estimated - record.distance) / record.distance;
-                msg += String.format(Locale.US, ", est: %.1fm %.0f%%",
+                double error = (record.estimated - record.distance) / record.distance;
+                msg += String.format(Locale.US, ", est: %.1fm %.1f%%",
                         record.estimated, error * 100);
             }
             addEvent(msg, LOG_IMPORTANT);

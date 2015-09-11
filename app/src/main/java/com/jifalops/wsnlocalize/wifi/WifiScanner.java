@@ -30,7 +30,7 @@ public class WifiScanner {
         manager = (WifiManager) ctx.getSystemService(Context.WIFI_SERVICE);
     }
 
-    public void startScanning() { startScanning(0); }
+    public void startScanning() { startScanning(100); }
     public void startScanning(int intervalMillis) {
         this.intervalMillis = intervalMillis;
         if (enabled) return;

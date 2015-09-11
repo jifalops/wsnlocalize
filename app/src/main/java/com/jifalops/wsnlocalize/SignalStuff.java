@@ -10,6 +10,7 @@ import com.jifalops.wsnlocalize.data.WindowScaler;
 import com.jifalops.wsnlocalize.file.NumberReaderWriter;
 import com.jifalops.wsnlocalize.file.RssiReaderWriter;
 import com.jifalops.wsnlocalize.file.WindowReaderWriter;
+import com.jifalops.wsnlocalize.neuralnet.Scaler;
 import com.jifalops.wsnlocalize.request.AbsRequest;
 import com.jifalops.wsnlocalize.request.RssiRequest;
 import com.jifalops.wsnlocalize.request.WindowRequest;
@@ -42,6 +43,7 @@ class SignalStuff {
     private final List<WindowRecord> windows = new ArrayList<>();
     private final SignalCallbacks callbacks;
     private double[][] toTrain, weightHistory;
+    private Scaler scaler;
     boolean enabled; // used by activity
 
     SignalStuff(String signalType, File dir, Limits rssiLimits, Limits windowLimits,
@@ -197,20 +199,19 @@ class SignalStuff {
             windowRW.writeRecords(list, true);
             rssiRW.writeRecords(from, true);
 
-            if (weightHistory != null && weightHistory.length > 0) {
+            if (weightHistory != null && weightHistory.length > 0 && scaler != null) {
                 double[][] sample = new double[][] {record.toTrainingArray()};
-                double[][] scaled = WindowScaler.scale(sample);
+                double[][] scaled = scaler.scale(sample);
                 double[] outputs = trainer.nnet.calcOutputs(
                         weightHistory[weightHistory.length-1], scaled[0]);
-                double estimate = WindowScaler.unscale(outputs)[0];
-                record.estimated = (float) estimate;
+                double estimate = scaler.unscale(outputs)[0];
+                record.estimated = estimate;
             }
             callbacks.onWindowReady(SignalStuff.this, record);
         }
 
         @Override
         public double[][] onTimeToTrain(List<WindowRecord> records, double[][] samples) {
-            samples = WindowScaler.scale(samples);
             sampleRW.writeNumbers(samples, true);
             if (toTrain == null) {
                 toTrain = samples;
@@ -218,9 +219,9 @@ class SignalStuff {
             else {
                 toTrain = Arrays.concat(toTrain, samples);
             }
-            toTrain = WindowScaler.randomize(toTrain);
+            scaler = new Scaler(toTrain, toTrain[0].length-1);
             callbacks.onTrainingStarting(SignalStuff.this, toTrain.length);
-            return toTrain;
+            return scaler.scaleAndRandomize(toTrain);
         }
 
         @Override

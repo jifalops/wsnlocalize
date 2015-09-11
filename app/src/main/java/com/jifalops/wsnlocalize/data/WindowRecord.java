@@ -67,8 +67,8 @@ public class WindowRecord {
 
     public final Rss rss;
     public final Elapsed elapsed;
-    public final float distance;
-    public float estimated;
+    public final double distance;
+    public double estimated;
 
     public WindowRecord(List<RssiRecord> records) {
         distance = records.get(0).distance; // known or unknown.
@@ -94,8 +94,8 @@ public class WindowRecord {
     }
 
     public WindowRecord(String[] csv) {
-        distance = Float.valueOf(csv[14]);
-        estimated = Float.valueOf(csv[15]);
+        distance = Double.valueOf(csv[14]);
+        estimated = Double.valueOf(csv[15]);
         rss = new Rss(csv);
         System.arraycopy(csv, 7, csv, 0, csv.length-7); // shift left 7
         elapsed = new Elapsed(csv);

@@ -14,10 +14,10 @@ public class RssiRecord {
     public static final String SIGNAL_WIFI = "wifi";
 
     public final int rssi, freq;
-    public final float distance;
+    public final double distance;
     public final long time;
 
-    public RssiRecord(int rssi, int freq, long time, float distance) {
+    public RssiRecord(int rssi, int freq, long time, double distance) {
         this.rssi = rssi;
         this.freq = freq;
         this.distance = distance;
@@ -27,7 +27,7 @@ public class RssiRecord {
     public RssiRecord(String[] csv) {
         rssi = Integer.valueOf(csv[0]);
         freq = Integer.valueOf(csv[1]);
-        distance = Float.valueOf(csv[2]);
+        distance = Double.valueOf(csv[2]);
         time = Long.valueOf(csv[3]);
     }
 
