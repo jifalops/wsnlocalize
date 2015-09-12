@@ -118,4 +118,13 @@ public class WindowRecord {
         };
     }
     public static final int TRAINING_ARRAY_SIZE = 15;
+
+    public static double[][] toSamples(List<WindowRecord> records) {
+        int len = records.size();
+        double[][] samples = new double[len][TRAINING_ARRAY_SIZE];
+        for (int i = 0; i < len; ++i) {
+            samples[i] = records.get(i).toTrainingArray();
+        }
+        return samples;
+    }
 }

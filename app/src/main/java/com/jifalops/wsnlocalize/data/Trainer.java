@@ -14,24 +14,27 @@ import java.util.List;
  *
  */
 public class Trainer {
-    public static abstract class TrainingCallbacks implements RssiWindower.Callback, TrainingTrigger.Callback {
-        public abstract void onTrainingComplete(double[] weights, double error, int samples);
+    public interface TrainerCallbacks {
+        void onWindowRecordReady(WindowRecord record, List<RssiRecord> from);
+        double[][] onTimeToTrain(List<WindowRecord> records, final double[][] samples);
+        void onTrainingComplete(double[] weights, double error, int samples);
     }
 
-    private final RssiWindower windower;
-    private final TrainingTrigger trigger;
-    public final NeuralNetwork nnet;
+    private final ResettingList<RssiRecord> windower;
+    private final ResettingList<WindowRecord> trigger;
+    public final NeuralNetwork nnet; // TODO make non-public
     private final TerminationConditions termCond;
 
     private final HandlerThread thread;
     private final Handler handler, uiHandler = new Handler();
 
-    private final TrainingCallbacks callbacks;
+    private final TrainerCallbacks callbacks;
 
-    public Trainer(Limits rssiLimits, Limits windowLimits, TrainingCallbacks callbacks) {
+    public Trainer(ResettingList.Limits rssiWindowLimits,
+                   ResettingList.Limits windowTrainingLimits, TrainerCallbacks callbacks) {
         this.callbacks = callbacks;
-        windower = new RssiWindower(rssiLimits, windowerCB);
-        trigger = new TrainingTrigger(windowLimits, trainingCB);
+        windower = new ResettingList<>(rssiWindowLimits, windowerCB);
+        trigger = new ResettingList<>(windowTrainingLimits, trainingCB);
         MlpWeightMetrics metrics = new MlpWeightMetrics(WindowRecord.TRAINING_ARRAY_SIZE - 1, 1);
         nnet = new Depso(NeuralNetwork.initPop(20, metrics),
                 NeuralNetwork.initPop(20, metrics), metrics);
@@ -45,18 +48,22 @@ public class Trainer {
         windower.add(record);
     }
 
-    private final RssiWindower.Callback windowerCB = new RssiWindower.Callback() {
+    private final ResettingList.LimitsCallback<RssiRecord> windowerCB =
+            new ResettingList.LimitsCallback<RssiRecord>() {
         @Override
-        public void onWindowRecordReady(WindowRecord record, List<RssiRecord> from) {
-            callbacks.onWindowRecordReady(record, from);
-            trigger.add(record);
+        public void onLimitsReached(List<RssiRecord> list, long time) {
+            WindowRecord w = new WindowRecord(list);
+            callbacks.onWindowRecordReady(w, list);
+            trigger.add(w);
         }
     };
 
-    private final TrainingTrigger.Callback trainingCB = new TrainingTrigger.Callback() {
+    private final ResettingList.LimitsCallback<WindowRecord> trainingCB =
+            new ResettingList.LimitsCallback<WindowRecord>() {
         @Override
-        public double[][] onTimeToTrain(List<WindowRecord> records, final double[][] samples) {
-            final double[][] toTrain = callbacks.onTimeToTrain(records, samples);
+        public void onLimitsReached(List<WindowRecord> list, long time) {
+            final double[][] samples = WindowRecord.toSamples(list);
+            final double[][] toTrain = callbacks.onTimeToTrain(list, samples);
             handler.post(new Runnable() {
                 @Override
                 public void run() {
@@ -70,7 +77,6 @@ public class Trainer {
                     });
                 }
             });
-            return toTrain;
         }
     };
 }

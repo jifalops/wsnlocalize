@@ -26,7 +26,7 @@ import android.widget.Toast;
 
 import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
-import com.jifalops.wsnlocalize.data.Limits;
+import com.jifalops.wsnlocalize.data.ResettingList;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.util.ServiceThreadApplication;
@@ -47,14 +47,15 @@ public class RssiTrainingActivity extends Activity {
     static final int LOG_INFORMATIVE = 2;
     static final int LOG_ALL = 3;
 
-    final Limits btWindowLimits = new Limits(5, 30_000, 10, 120_000);
-    final Limits btTrainLimits = new Limits(5, 300_000, 10, 600_000);
+    final ResettingList.Limits
+        btWindowTrigger = new ResettingList.Limits(5, 30_000, 10, 120_000),
+        btTrainTrigger = new ResettingList.Limits(5, 300_000, 10, 600_000),
 
-    final Limits btleWindowLimits = new Limits(20, 10_000, 40, 30_000);
-    final Limits btleTrainLimits = new Limits(5, 120_000, 10, 300_000);
+        btleWindowTrigger = new ResettingList.Limits(20, 10_000, 40, 30_000),
+        btleTrainTrigger = new ResettingList.Limits(5, 120_000, 10, 300_000),
 
-    final Limits wifiWindowLimits = new Limits(8, 10_000, 16, 30_000);
-    final Limits wifiTrainLimits = new Limits(5, 120_000, 10, 300_000);
+        wifiWindowTrigger = new ResettingList.Limits(8, 10_000, 16, 30_000),
+        wifiTrainTrigger = new ResettingList.Limits(5, 120_000, 10, 300_000);
 
 
     static class Device {
@@ -192,9 +193,9 @@ public class RssiTrainingActivity extends Activity {
         wifiScanner = WifiScanner.getInstance(this);
 
         final File dir = getExternalFilesDir(null);
-        bt = new SignalStuff("bt", dir, btWindowLimits, btTrainLimits, signalCallbacks);
-        btle = new SignalStuff("btle", dir, btleWindowLimits, btleTrainLimits, signalCallbacks);
-        wifi = new SignalStuff("wifi", dir, wifiWindowLimits, wifiTrainLimits, signalCallbacks);
+        bt = new SignalStuff("bt", dir, btWindowTrigger, btTrainTrigger, signalCallbacks);
+        btle = new SignalStuff("btle", dir, btleWindowTrigger, btleTrainTrigger, signalCallbacks);
+        wifi = new SignalStuff("wifi", dir, wifiWindowTrigger, wifiTrainTrigger, signalCallbacks);
 
         App.getInstance().bindLocalService(new Runnable() {
             @Override

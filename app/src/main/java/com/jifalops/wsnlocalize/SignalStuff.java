@@ -2,11 +2,10 @@ package com.jifalops.wsnlocalize;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.jifalops.wsnlocalize.data.Limits;
+import com.jifalops.wsnlocalize.data.ResettingList;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.Trainer;
 import com.jifalops.wsnlocalize.data.WindowRecord;
-import com.jifalops.wsnlocalize.data.WindowScaler;
 import com.jifalops.wsnlocalize.file.NumberReaderWriter;
 import com.jifalops.wsnlocalize.file.RssiReaderWriter;
 import com.jifalops.wsnlocalize.file.WindowReaderWriter;
@@ -46,10 +45,11 @@ class SignalStuff {
     private Scaler scaler;
     boolean enabled; // used by activity
 
-    SignalStuff(String signalType, File dir, Limits rssiLimits, Limits windowLimits,
-                SignalCallbacks callbacks) {
+    SignalStuff(String signalType, File dir, ResettingList.Limits rssiWindowLimits,
+                ResettingList.Limits windowTrainingLimits, SignalCallbacks callbacks) {
         this.signalType = signalType;
-        trainer = new Trainer(rssiLimits, windowLimits, myCallbacks);
+        MyCallbacks myCallbacks = new MyCallbacks();
+        trainer = new Trainer(rssiWindowLimits, windowTrainingLimits, myCallbacks);
         rssiRW = new RssiReaderWriter(new File(dir, signalType+"-rssi.csv"), myCallbacks);
         windowRW = new WindowReaderWriter(new File(dir, signalType+"-windows.csv"), myCallbacks);
         sampleRW = new NumberReaderWriter(new File(dir, signalType+"-samples.csv"), myCallbacks);
@@ -150,11 +150,9 @@ class SignalStuff {
     }
 
 
-    private static abstract class MyCallbacks extends Trainer.TrainingCallbacks implements
+    private class MyCallbacks implements Trainer.TrainerCallbacks,
             RssiReaderWriter.RssiCallbacks, WindowReaderWriter.WindowCallbacks,
-            NumberReaderWriter.NumberCallbacks {}
-
-    private final MyCallbacks myCallbacks = new MyCallbacks() {
+            NumberReaderWriter.NumberCallbacks {
         @Override
         public void onRssiRecordsRead(RssiReaderWriter rw, List<RssiRecord> records) {
             rssi.clear();
@@ -235,5 +233,6 @@ class SignalStuff {
             }
             callbacks.onTrainingComplete(SignalStuff.this, weights, error, samples);
         }
-    };
+    }
+
 }
