@@ -16,6 +16,7 @@ import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -29,6 +30,8 @@ import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
 import com.jifalops.wsnlocalize.data.ResettingList;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
+import com.jifalops.wsnlocalize.file.TextReaderWriter;
+import com.jifalops.wsnlocalize.signal.SignalStuff;
 import com.jifalops.wsnlocalize.util.ServiceThreadApplication;
 import com.jifalops.wsnlocalize.wifi.WifiScanner;
 
@@ -46,6 +49,7 @@ public class RssiTrainingActivity extends Activity {
     static final int LOG_IMPORTANT = 1;
     static final int LOG_INFORMATIVE = 2;
     static final int LOG_ALL = 3;
+    static final int LOG_DEFAULT = LOG_INFORMATIVE;
 
     final ResettingList.Limits
         btWindowTrigger = new ResettingList.Limits(5, 30_000, 10, 120_000),
@@ -80,9 +84,11 @@ public class RssiTrainingActivity extends Activity {
             wifiRssiCountView, wifiWindowCountView;
     Switch collectSwitch;
 
+    CheckBox btCheckBox, btleCheckBox, wifiCheckBox;
+
     final List<Device> devices = new ArrayList<>();
     final List<Integer> deviceIds = new ArrayList<>();
-    int logLevel = LOG_IMPORTANT;
+    int logLevel = LOG_DEFAULT;
     double distance;
     boolean collectEnabled;
     boolean isPersistent;
@@ -108,6 +114,9 @@ public class RssiTrainingActivity extends Activity {
         btleWindowCountView = (TextView) findViewById(R.id.btleWindowCount);
         wifiWindowCountView = (TextView) findViewById(R.id.wifiWindowCount);
         collectSwitch = (Switch) findViewById(R.id.collectSwitch);
+        btCheckBox = (CheckBox) findViewById(R.id.btCheckBox);
+        btleCheckBox = (CheckBox) findViewById(R.id.btleCheckBox);
+        wifiCheckBox = (CheckBox) findViewById(R.id.wifiCheckBox);
 
         final TextView deviceIdView = (TextView) findViewById(R.id.deviceId);
         final EditText distanceView = (EditText) findViewById(R.id.distanceMeters);
@@ -260,33 +269,59 @@ public class RssiTrainingActivity extends Activity {
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_rssitraining, menu);
         SubMenu sub = menu.addSubMenu("Log Level");
-        sub.add(1, LOG_IMPORTANT, 1, "Important").setCheckable(true).setChecked(true);
+        sub.add(1, LOG_IMPORTANT, 1, "Important").setCheckable(true);
         sub.add(1, LOG_INFORMATIVE, 2, "Informative").setCheckable(true);
         sub.add(1, LOG_ALL, 3, "All").setCheckable(true);
         sub.setGroupCheckable(1, true, true);
         return true;
     }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.findItem(R.id.action_persist).setChecked(isPersistent);
+        menu.findItem(LOG_IMPORTANT).setChecked(logLevel == LOG_IMPORTANT);
+        menu.findItem(LOG_INFORMATIVE).setChecked(logLevel == LOG_INFORMATIVE);
+        menu.findItem(LOG_ALL).setChecked(logLevel == LOG_ALL);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_settings:
                 return true;
             case R.id.action_persist:
-                setPersistent(item.isChecked());
+                if (isPersistent) {
+                    item.setChecked(false);
+                    setPersistent(false);
+                } else {
+                    item.setChecked(true);
+                    setPersistent(true);
+                }
                 return true;
             case R.id.action_clear:
-                bt.truncate();
-                btle.truncate();
-                wifi.truncate();
+                AlertDialog.Builder b = new AlertDialog.Builder(this);
+                b.setMessage("Truncate data files?");
+                b.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        bt.truncate();
+                        btle.truncate();
+                        wifi.truncate();
+                    }
+                });
                 return true;
             case LOG_IMPORTANT:
                 logLevel = LOG_IMPORTANT;
+                item.setChecked(true);
                 return true;
             case LOG_INFORMATIVE:
                 logLevel = LOG_INFORMATIVE;
+                item.setChecked(true);
                 return true;
             case LOG_ALL:
                 logLevel = LOG_ALL;
+                item.setChecked(true);
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -306,12 +341,40 @@ public class RssiTrainingActivity extends Activity {
         super.onResume();
         btRssiCountView.setText(bt.getRssiCount() + "");
         btWindowCountView.setText(bt.getWindowCount() + "");
-        btleRssiCountView.setText(btle.getRssiCount()+"");
-        btleWindowCountView.setText(btle.getWindowCount()+"");
-        wifiRssiCountView.setText(wifi.getRssiCount()+"");
-        wifiWindowCountView.setText(wifi.getWindowCount()+"");
+        btleRssiCountView.setText(btle.getRssiCount() + "");
+        btleWindowCountView.setText(btle.getWindowCount() + "");
+        wifiRssiCountView.setText(wifi.getRssiCount() + "");
+        wifiWindowCountView.setText(wifi.getWindowCount() + "");
 
-        // TODO signal checkboxes
+        logLevel = prefs.getInt("logLevel", LOG_DEFAULT);
+        bt.enabled = prefs.getBoolean("btEnabled", true);
+        btle.enabled = prefs.getBoolean("btleEnabled", true);
+        wifi.enabled = prefs.getBoolean("wifiEnabled", true);
+
+        btCheckBox.setOnCheckedChangeListener(null);
+        btCheckBox.setChecked(bt.enabled);
+        btCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                bt.enabled = isChecked;
+            }
+        });
+        btleCheckBox.setOnCheckedChangeListener(null);
+        btleCheckBox.setChecked(btle.enabled);
+        btleCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                btle.enabled = isChecked;
+            }
+        });
+        wifiCheckBox.setOnCheckedChangeListener(null);
+        wifiCheckBox.setChecked(wifi.enabled);
+        wifiCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                wifi.enabled = isChecked;
+            }
+        });
 
         collectSwitch.setOnCheckedChangeListener(null);
         collectSwitch.setChecked(collectEnabled);
@@ -333,6 +396,11 @@ public class RssiTrainingActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        prefs.edit()
+                .putInt("logLevel", logLevel)
+                .putBoolean("btEnabled", bt.enabled)
+                .putBoolean("btleEnabled", btle.enabled)
+                .putBoolean("wifiEnabled", wifi.enabled).apply();
         collectSwitch.setChecked(false);
     }
 
@@ -385,12 +453,17 @@ public class RssiTrainingActivity extends Activity {
 
     public void startCollection() {
         collectEnabled = true;
-        btBeacon.registerListener(btBeaconListener);
-        btBeacon.startBeaconing(this, REQUEST_BT_DISCOVERABLE);
-        btLeBeacon.registerListener(btLeBeaconListener);
-        btLeBeacon.startBeaconing(this, REQUEST_BT_ENABLE);
-        wifiScanner.registerListener(wifiScanListener);
-        wifiScanner.startScanning(1000);
+        if (bt.enabled) {
+
+        }
+        if (btle.enabled) {
+            btLeBeacon.registerListener(btLeBeaconListener);
+            btLeBeacon.startBeaconing(this, REQUEST_BT_ENABLE);
+        }
+        if (wifi.enabled) {
+            wifiScanner.registerListener(wifiScanListener);
+            wifiScanner.startScanning(100);
+        }
     }
 
     public void stopCollection() {
@@ -401,6 +474,14 @@ public class RssiTrainingActivity extends Activity {
         btLeBeacon.unregisterListener(btLeBeaconListener);
         wifiScanner.stopScanning();
         wifiScanner.unregisterListener(wifiScanListener);
+    }
+
+    private void setBtEnabled(boolean enabled) {
+        bt.enabled = enabled;
+        if (enabled && collectEnabled) {
+            btBeacon.registerListener(btBeaconListener);
+            btBeacon.startBeaconing(this, REQUEST_BT_DISCOVERABLE);
+        } else
     }
 
     final BtBeacon.BtBeaconListener btBeaconListener = new BtBeacon.BtBeaconListener() {
@@ -479,6 +560,21 @@ public class RssiTrainingActivity extends Activity {
     };
 
     final SignalStuff.SignalCallbacks signalCallbacks = new SignalStuff.SignalCallbacks() {
+        @Override
+        public void onDataFileRead(TextReaderWriter rw) {
+            if (rw == bt.rssiRW) btRssiCountView.setText(bt.getRssiCount() + "");
+            else if (rw == bt.windowRW) btWindowCountView.setText(bt.getWindowCount() + "");
+            else if (rw == btle.rssiRW) btleRssiCountView.setText(btle.getRssiCount()+"");
+            else if (rw == btle.windowRW) btleWindowCountView.setText(btle.getWindowCount()+"");
+            else if (rw == wifi.rssiRW) wifiRssiCountView.setText(wifi.getRssiCount()+"");
+            else if (rw == wifi.windowRW) wifiWindowCountView.setText(wifi.getWindowCount()+"");
+        }
+
+        @Override
+        public void onDataFileWrite(TextReaderWriter rw) {
+
+        }
+
         @Override
         public void onTrainingStarting(SignalStuff s, int samples) {
             addEvent("Training " + s.getSignalType() + " with " + samples + " samples.",
