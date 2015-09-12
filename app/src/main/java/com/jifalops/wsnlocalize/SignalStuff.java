@@ -8,6 +8,7 @@ import com.jifalops.wsnlocalize.data.Trainer;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.file.NumberReaderWriter;
 import com.jifalops.wsnlocalize.file.RssiReaderWriter;
+import com.jifalops.wsnlocalize.file.TextReaderWriter;
 import com.jifalops.wsnlocalize.file.WindowReaderWriter;
 import com.jifalops.wsnlocalize.neuralnet.Scaler;
 import com.jifalops.wsnlocalize.request.AbsRequest;
@@ -24,6 +25,8 @@ import java.util.List;
  */
 class SignalStuff {
     public interface SignalCallbacks {
+        void onDataFileRead(TextReaderWriter rw);
+        void onDataFileWrite(TextReaderWriter rw);
         void onTrainingStarting(SignalStuff s, int samples);
         void onTrainingComplete(SignalStuff s, double[] weights, double error, int samples);
         void onWindowReady(SignalStuff s, WindowRecord record);
@@ -34,8 +37,8 @@ class SignalStuff {
 
     private final String signalType;
     private final Trainer trainer;
-    private final RssiReaderWriter rssiRW;
-    private final WindowReaderWriter windowRW;
+     final RssiReaderWriter rssiRW;
+     final WindowReaderWriter windowRW;
     private final NumberReaderWriter sampleRW;
     private final NumberReaderWriter weightRW;
     private final List<RssiRecord> rssi = new ArrayList<>();
@@ -157,22 +160,24 @@ class SignalStuff {
         public void onRssiRecordsRead(RssiReaderWriter rw, List<RssiRecord> records) {
             rssi.clear();
             rssi.addAll(records);
+            callbacks.onDataFileRead(rw);
         }
 
         @Override
         public void onRssiRecordsWritten(RssiReaderWriter rw, int recordsWritten) {
-
+            callbacks.onDataFileWrite(rw);
         }
 
         @Override
         public void onWindowRecordsRead(WindowReaderWriter rw, List<WindowRecord> records) {
             windows.clear();
             windows.addAll(records);
+            callbacks.onDataFileRead(rw);
         }
 
         @Override
         public void onWindowRecordsWritten(WindowReaderWriter rw, int recordsWritten) {
-
+            callbacks.onDataFileWrite(rw);
         }
 
         @Override
@@ -182,11 +187,12 @@ class SignalStuff {
             } else if (rw == weightRW) {
                 weightHistory = numbers;
             }
+            callbacks.onDataFileRead(rw);
         }
 
         @Override
         public void onNumbersWritten(NumberReaderWriter rw, int recordsWritten) {
-
+            callbacks.onDataFileWrite(rw);
         }
 
         @Override
