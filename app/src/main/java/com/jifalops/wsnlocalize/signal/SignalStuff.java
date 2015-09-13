@@ -1,7 +1,8 @@
-package com.jifalops.wsnlocalize;
+package com.jifalops.wsnlocalize.signal;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.jifalops.wsnlocalize.App;
 import com.jifalops.wsnlocalize.data.ResettingList;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.Trainer;
@@ -23,7 +24,7 @@ import java.util.List;
 /**
  *
  */
-class SignalStuff {
+public class SignalStuff {
     public interface SignalCallbacks {
         void onDataFileRead(TextReaderWriter rw);
         void onDataFileWrite(TextReaderWriter rw);
@@ -46,7 +47,6 @@ class SignalStuff {
     private final SignalCallbacks callbacks;
     private double[][] toTrain, weightHistory;
     private Scaler scaler;
-    boolean enabled; // used by activity
 
     SignalStuff(String signalType, File dir, ResettingList.Limits rssiWindowLimits,
                 ResettingList.Limits windowTrainingLimits, SignalCallbacks callbacks) {
