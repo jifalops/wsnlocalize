@@ -2,7 +2,9 @@ package com.jifalops.wsnlocalize.data;
 
 import com.jifalops.wsnlocalize.util.Stats;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -67,6 +69,7 @@ public class WindowRecord {
 
     public final Rss rss;
     public final Elapsed elapsed;
+    public final int numDevices; // that produced this window.
     public final double distance;
     public double estimated;
 
@@ -75,12 +78,17 @@ public class WindowRecord {
         int len = records.size();
         double[] rssi = new double[len];
         double[] el = new double[len-1];
+        Set<String> macs = new HashSet<>();
+        RssiRecord record;
         for (int i = 0; i < len; ++i) {
-            rssi[i] = records.get(i).rssi;
+            record = records.get(i);
+            macs.add(record.mac);
+            rssi[i] = record.rssi;
             if (i != 0) {
-                el[i-1] = records.get(i).time - records.get(i-1).time;
+                el[i-1] = record.time - records.get(i-1).time;
             }
         }
+        numDevices = macs.size();
         int min = (int) Stats.min(rssi);
         int max = (int) Stats.max(rssi);
         rss = new Rss(len, min, max, max-min,
@@ -94,17 +102,19 @@ public class WindowRecord {
     }
 
     public WindowRecord(String[] csv) {
-        distance = Double.valueOf(csv[14]);
-        estimated = Double.valueOf(csv[15]);
+        estimated = Double.valueOf(csv[TRAINING_ARRAY_SIZE - 1]);
+        distance = Double.valueOf(csv[TRAINING_ARRAY_SIZE - 2]);
+        numDevices = Integer.valueOf(csv[TRAINING_ARRAY_SIZE - 3]);
+
         rss = new Rss(csv);
-        System.arraycopy(csv, 7, csv, 0, csv.length-7); // shift left 7
+        System.arraycopy(csv, 7, csv, 0, 7); // shift 7 elements left 7 places
         elapsed = new Elapsed(csv);
     }
 
     @Override
     public String toString() {
         return rss.toString() +","+ elapsed.toString()
-                +","+ distance +","+ estimated;
+                +","+ numDevices +","+ distance +","+ estimated;
     }
 
     /** Does not include the estimated distance. */
@@ -114,10 +124,11 @@ public class WindowRecord {
                 rss.mean, rss.median, rss.stdDev,
                 elapsed.millis, elapsed.min, elapsed.max, elapsed.range,
                 elapsed.mean, elapsed.median, elapsed.stdDev,
+                numDevices,
                 distance
         };
     }
-    public static final int TRAINING_ARRAY_SIZE = 15;
+    public static final int TRAINING_ARRAY_SIZE = 16;
 
     public static double[][] toSamples(List<WindowRecord> records) {
         int len = records.size();

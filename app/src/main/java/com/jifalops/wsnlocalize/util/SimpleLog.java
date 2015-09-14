@@ -2,10 +2,13 @@ package com.jifalops.wsnlocalize.util;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
- *
+ * Maintains a list of messages. Each message is automatically timestamped with
+ * {@link System#currentTimeMillis()} and can be tagged with an integer for the
+ * importance of that message.
  */
 public class SimpleLog {
     public static class LogItem implements Comparable<LogItem> {
@@ -39,8 +42,8 @@ public class SimpleLog {
         return log.get(index);
     }
 
-    public List<LogItem> getAll() {
-        return log;
+    public Iterator<LogItem> iterator() {
+        return log.iterator();
     }
 
     public List<LogItem> getByImportance(int importance, boolean includeGreaterImportance) {

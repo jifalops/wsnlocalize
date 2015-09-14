@@ -34,11 +34,16 @@ public class ResettingList<T> {
         list.add(item);
         if (limits.reached(list.size(), elapsed)) {
             if (callback != null) callback.onLimitsReached(list, elapsed);
-            list.clear();
-            start = 0;
+            reset();
             return true;
         }
         return false;
+    }
+
+    /** Revert to a fresh state, like when just created or after triggered. */
+    public void reset() {
+        list.clear();
+        start = 0;
     }
 
     /**

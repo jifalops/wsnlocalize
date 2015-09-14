@@ -79,4 +79,17 @@ public class Trainer {
             });
         }
     };
+
+    public void resetCurrentWindow() {
+        windower.reset();
+    }
+
+    public void resetAllWindows() {
+        windower.reset();
+        trigger.reset();
+    }
+
+    public void close() {
+        thread.quitSafely();
+    }
 }

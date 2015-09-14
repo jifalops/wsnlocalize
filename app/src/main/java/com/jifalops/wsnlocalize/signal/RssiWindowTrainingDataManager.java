@@ -24,32 +24,32 @@ import java.util.List;
 /**
  *
  */
-public class SignalStuff {
-    public interface SignalCallbacks {
+public class RssiWindowTrainingDataManager {
+    public interface Callbacks {
         void onDataFileRead(TextReaderWriter rw);
         void onDataFileWrite(TextReaderWriter rw);
-        void onTrainingStarting(SignalStuff s, int samples);
-        void onTrainingComplete(SignalStuff s, double[] weights, double error, int samples);
-        void onWindowReady(SignalStuff s, WindowRecord record);
-        void onSentSuccess(SignalStuff s, boolean wasRssi, int count);
-        void onSentFailure(SignalStuff s, boolean wasRssi, int count, int respCode, String resp, String result);
-        void onSentFailure(SignalStuff s, boolean wasRssi, int count, String volleyError);
+        void onTrainingStarting(RssiWindowTrainingDataManager s, int samples);
+        void onTrainingComplete(RssiWindowTrainingDataManager s, double[] weights, double error, int samples);
+        void onWindowReady(RssiWindowTrainingDataManager s, WindowRecord record);
+        void onSentSuccess(RssiWindowTrainingDataManager s, boolean wasRssi, int count);
+        void onSentFailure(RssiWindowTrainingDataManager s, boolean wasRssi, int count, int respCode, String resp, String result);
+        void onSentFailure(RssiWindowTrainingDataManager s, boolean wasRssi, int count, String volleyError);
     }
 
-    private final String signalType;
-    private final Trainer trainer;
-     final RssiReaderWriter rssiRW;
-     final WindowReaderWriter windowRW;
-    private final NumberReaderWriter sampleRW;
-    private final NumberReaderWriter weightRW;
-    private final List<RssiRecord> rssi = new ArrayList<>();
-    private final List<WindowRecord> windows = new ArrayList<>();
-    private final SignalCallbacks callbacks;
+    final String signalType;
+    final Trainer trainer;
+    final RssiReaderWriter rssiRW;
+    final WindowReaderWriter windowRW;
+    final NumberReaderWriter sampleRW;
+    final NumberReaderWriter weightRW;
+    final List<RssiRecord> rssi = new ArrayList<>();
+    final List<WindowRecord> windows = new ArrayList<>();
+    final Callbacks callbacks;
     private double[][] toTrain, weightHistory;
     private Scaler scaler;
 
-    SignalStuff(String signalType, File dir, ResettingList.Limits rssiWindowLimits,
-                ResettingList.Limits windowTrainingLimits, SignalCallbacks callbacks) {
+    RssiWindowTrainingDataManager(String signalType, File dir, ResettingList.Limits rssiWindowLimits,
+                                  ResettingList.Limits windowTrainingLimits, Callbacks callbacks) {
         this.signalType = signalType;
         MyCallbacks myCallbacks = new MyCallbacks();
         trainer = new Trainer(rssiWindowLimits, windowTrainingLimits, myCallbacks);
@@ -82,9 +82,22 @@ public class SignalStuff {
         return windows.size();
     }
 
-    public void truncate() {
+    public void resetCurrentWindow() {
+        trainer.resetCurrentWindow();
+    }
+
+    public void clearPendingSendLists() {
+        trainer.resetCurrentWindow();
+        rssi.clear();
+        windows.clear();
         rssiRW.truncate();
         windowRW.truncate();
+    }
+
+    public void clearTrainingSamples() {
+        trainer.resetAllWindows();
+        toTrain = null;
+        weightHistory = null;
         sampleRW.truncate();
         weightRW.truncate();
     }
@@ -94,6 +107,7 @@ public class SignalStuff {
         windowRW.close();
         sampleRW.close();
         weightRW.close();
+        trainer.close();
     }
 
     public void send() {
@@ -107,10 +121,10 @@ public class SignalStuff {
                         public void onResponse(AbsRequest.MyResponse response) {
                             if (response.responseCode == 200) {
                                 rssiRW.writeRecords(rssi, false);
-                                callbacks.onSentSuccess(SignalStuff.this, true, toSend);
+                                callbacks.onSentSuccess(RssiWindowTrainingDataManager.this, true, toSend);
                             } else {
                                 rssi.addAll(sending);
-                                callbacks.onSentFailure(SignalStuff.this, true, toSend,
+                                callbacks.onSentFailure(RssiWindowTrainingDataManager.this, true, toSend,
                                         response.responseCode, response.responseMessage,
                                         response.queryResult);
                             }
@@ -119,7 +133,7 @@ public class SignalStuff {
                         @Override
                         public void onErrorResponse(VolleyError volleyError) {
                             rssi.addAll(sending);
-                            callbacks.onSentFailure(SignalStuff.this, true, toSend,
+                            callbacks.onSentFailure(RssiWindowTrainingDataManager.this, true, toSend,
                                     volleyError.toString());
                         }
                     }));
@@ -134,10 +148,10 @@ public class SignalStuff {
                         public void onResponse(AbsRequest.MyResponse response) {
                             if (response.responseCode == 200) {
                                 windowRW.writeRecords(windows, false);
-                                callbacks.onSentSuccess(SignalStuff.this, false, toSend);
+                                callbacks.onSentSuccess(RssiWindowTrainingDataManager.this, false, toSend);
                             } else {
                                 windows.addAll(sending);
-                                callbacks.onSentFailure(SignalStuff.this, false, toSend,
+                                callbacks.onSentFailure(RssiWindowTrainingDataManager.this, false, toSend,
                                         response.responseCode, response.responseMessage,
                                         response.queryResult);
                             }
@@ -146,7 +160,7 @@ public class SignalStuff {
                 @Override
                 public void onErrorResponse(VolleyError volleyError) {
                     windows.addAll(sending);
-                    callbacks.onSentFailure(SignalStuff.this, false, toSend, volleyError.toString());
+                    callbacks.onSentFailure(RssiWindowTrainingDataManager.this, false, toSend, volleyError.toString());
                 }
             }));
         }
@@ -211,7 +225,7 @@ public class SignalStuff {
                 double estimate = scaler.unscale(outputs)[0];
                 record.estimated = estimate;
             }
-            callbacks.onWindowReady(SignalStuff.this, record);
+            callbacks.onWindowReady(RssiWindowTrainingDataManager.this, record);
         }
 
         @Override
@@ -224,7 +238,7 @@ public class SignalStuff {
                 toTrain = Arrays.concat(toTrain, samples);
             }
             scaler = new Scaler(toTrain, toTrain[0].length-1);
-            callbacks.onTrainingStarting(SignalStuff.this, toTrain.length);
+            callbacks.onTrainingStarting(RssiWindowTrainingDataManager.this, toTrain.length);
             return scaler.scaleAndRandomize(toTrain);
         }
 
@@ -237,7 +251,7 @@ public class SignalStuff {
             } else {
                 Arrays.concat(weightHistory, tmp);
             }
-            callbacks.onTrainingComplete(SignalStuff.this, weights, error, samples);
+            callbacks.onTrainingComplete(RssiWindowTrainingDataManager.this, weights, error, samples);
         }
     }
 

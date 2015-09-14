@@ -31,7 +31,7 @@ import com.jifalops.wsnlocalize.data.ResettingList;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.file.TextReaderWriter;
-import com.jifalops.wsnlocalize.signal.SignalStuff;
+import com.jifalops.wsnlocalize.signal.RssiWindowTrainingDataManager;
 import com.jifalops.wsnlocalize.util.ServiceThreadApplication;
 import com.jifalops.wsnlocalize.wifi.WifiScanner;
 
@@ -76,7 +76,7 @@ public class RssiTrainingActivity extends Activity {
         }
     }
 
-    SignalStuff bt, btle, wifi;
+    RssiWindowTrainingDataManager bt, btle, wifi;
 
     TextView eventLogView, deviceLogView,
             btRssiCountView, btWindowCountView,
@@ -202,9 +202,9 @@ public class RssiTrainingActivity extends Activity {
         wifiScanner = WifiScanner.getInstance(this);
 
         final File dir = getExternalFilesDir(null);
-        bt = new SignalStuff("bt", dir, btWindowTrigger, btTrainTrigger, signalCallbacks);
-        btle = new SignalStuff("btle", dir, btleWindowTrigger, btleTrainTrigger, signalCallbacks);
-        wifi = new SignalStuff("wifi", dir, wifiWindowTrigger, wifiTrainTrigger, signalCallbacks);
+        bt = new RssiWindowTrainingDataManager("bt", dir, btWindowTrigger, btTrainTrigger, callbacks);
+        btle = new RssiWindowTrainingDataManager("btle", dir, btleWindowTrigger, btleTrainTrigger, callbacks);
+        wifi = new RssiWindowTrainingDataManager("wifi", dir, wifiWindowTrigger, wifiTrainTrigger, callbacks);
 
         App.getInstance().bindLocalService(new Runnable() {
             @Override
@@ -559,7 +559,7 @@ public class RssiTrainingActivity extends Activity {
         }
     };
 
-    final SignalStuff.SignalCallbacks signalCallbacks = new SignalStuff.SignalCallbacks() {
+    final RssiWindowTrainingDataManager.Callbacks callbacks = new RssiWindowTrainingDataManager.Callbacks() {
         @Override
         public void onDataFileRead(TextReaderWriter rw) {
             if (rw == bt.rssiRW) btRssiCountView.setText(bt.getRssiCount() + "");
@@ -576,19 +576,19 @@ public class RssiTrainingActivity extends Activity {
         }
 
         @Override
-        public void onTrainingStarting(SignalStuff s, int samples) {
+        public void onTrainingStarting(RssiWindowTrainingDataManager s, int samples) {
             addEvent("Training " + s.getSignalType() + " with " + samples + " samples.",
                     LOG_INFORMATIVE);
         }
 
         @Override
-        public void onTrainingComplete(SignalStuff s, double[] weights, double error, int samples) {
+        public void onTrainingComplete(RssiWindowTrainingDataManager s, double[] weights, double error, int samples) {
             addEvent("Trained " + s.getSignalType() + " with " + samples + " samples, error = "
                     + String.format(Locale.US, "%.3f", error), LOG_IMPORTANT);
         }
 
         @Override
-        public void onWindowReady(SignalStuff s, WindowRecord record) {
+        public void onWindowReady(RssiWindowTrainingDataManager s, WindowRecord record) {
             String msg = s.getSignalType() + " window: " + record.rss.count + " in " +
                     formatMillis(record.elapsed.millis);
             if (record.estimated != 0) {
@@ -603,14 +603,14 @@ public class RssiTrainingActivity extends Activity {
         }
 
         @Override
-        public void onSentSuccess(SignalStuff s, boolean wasRssi, int count) {
+        public void onSentSuccess(RssiWindowTrainingDataManager s, boolean wasRssi, int count) {
             String type = wasRssi ? " rssi " : " window ";
             addEvent(s.getSignalType() + " sent " + count + type + "records successfully.",
                     LOG_IMPORTANT);
         }
 
         @Override
-        public void onSentFailure(SignalStuff s, boolean wasRssi, int count,
+        public void onSentFailure(RssiWindowTrainingDataManager s, boolean wasRssi, int count,
                                   int respCode, String resp, String result) {
             String type = wasRssi ? " rssi " : " window ";
             addEvent(s.getSignalType() + " failed to send " + count + type + "records. " +
@@ -619,7 +619,7 @@ public class RssiTrainingActivity extends Activity {
         }
 
         @Override
-        public void onSentFailure(SignalStuff s, boolean wasRssi, int count, String volleyError) {
+        public void onSentFailure(RssiWindowTrainingDataManager s, boolean wasRssi, int count, String volleyError) {
             String type = wasRssi ? " rssi " : " window ";
             addEvent(s.getSignalType() + " failed to send " + count + type + "records. " +
                             volleyError,

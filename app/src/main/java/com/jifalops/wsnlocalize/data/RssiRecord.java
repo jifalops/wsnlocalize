@@ -9,15 +9,13 @@ import org.json.JSONObject;
  *
  */
 public class RssiRecord {
-    public static final String SIGNAL_BT = "bt";
-    public static final String SIGNAL_BTLE = "btle";
-    public static final String SIGNAL_WIFI = "wifi";
-
+    public final String mac;
     public final int rssi, freq;
     public final double distance;
     public final long time;
 
-    public RssiRecord(int rssi, int freq, long time, double distance) {
+    public RssiRecord(String mac, int rssi, int freq, long time, double distance) {
+        this.mac = mac;
         this.rssi = rssi;
         this.freq = freq;
         this.distance = distance;
@@ -25,14 +23,15 @@ public class RssiRecord {
     }
 
     public RssiRecord(String[] csv) {
-        rssi = Integer.valueOf(csv[0]);
-        freq = Integer.valueOf(csv[1]);
-        distance = Double.valueOf(csv[2]);
-        time = Long.valueOf(csv[3]);
+        mac = csv[0];
+        rssi = Integer.valueOf(csv[1]);
+        freq = Integer.valueOf(csv[2]);
+        distance = Double.valueOf(csv[3]);
+        time = Long.valueOf(csv[4]);
     }
 
     @Override
     public String toString() {
-        return rssi +","+ freq +","+ distance +","+ time;
+        return mac +","+ rssi +","+ freq +","+ distance +","+ time;
     }
 }
