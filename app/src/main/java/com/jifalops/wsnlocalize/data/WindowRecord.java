@@ -102,9 +102,9 @@ public class WindowRecord {
     }
 
     public WindowRecord(String[] csv) {
-        estimated = Double.valueOf(csv[TRAINING_ARRAY_SIZE - 1]);
-        distance = Double.valueOf(csv[TRAINING_ARRAY_SIZE - 2]);
-        numDevices = Integer.valueOf(csv[TRAINING_ARRAY_SIZE - 3]);
+        estimated = Double.valueOf(csv[csv.length - 1]);
+        distance = Double.valueOf(csv[csv.length - 2]);
+        numDevices = Integer.valueOf(csv[csv.length - 3]);
 
         rss = new Rss(csv);
         System.arraycopy(csv, 7, csv, 0, 7); // shift 7 elements left 7 places
