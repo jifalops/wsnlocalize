@@ -10,7 +10,6 @@ import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
 import com.jifalops.wsnlocalize.data.ResettingList;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
-import com.jifalops.wsnlocalize.file.TextReaderWriter;
 import com.jifalops.wsnlocalize.util.SimpleLog;
 import com.jifalops.wsnlocalize.wifi.WifiScanner;
 
@@ -26,11 +25,11 @@ public class SignalController {
     public static final int LOG_IMPORTANT = 3;
     public static final int LOG_INFORMATIVE = 2;
     public static final int LOG_ALL = 1;
-    private static final int LOG_DEFAULT = LOG_INFORMATIVE;
 
     public static final String SIGNAL_BT = "bt";
     public static final String SIGNAL_BTLE = "btle";
     public static final String SIGNAL_WIFI = "wifi";
+    public static final String SIGNAL_WIFI5G = "wifi5g";
 
     final ResettingList.Limits
         btWindowTrigger = new ResettingList.Limits(3, 10_000, 5, 120_000),
@@ -61,18 +60,16 @@ public class SignalController {
     RssiWindowTrainingDataManager bt, btle, wifi, wifi5g;
     boolean collectEnabled, shouldUseBt, shouldUseBtle, shouldUseWifi;
 
-    final List<Device> devices = new ArrayList<>();     // All devices
-//    final List<Integer> deviceIds = new ArrayList<>();  // devices at known distance
+    final List<Device> devices = new ArrayList<>();
     double distance;
 
     final SimpleLog log = new SimpleLog();
-    int logLevel = LOG_DEFAULT;
 
     BtBeacon btBeacon;
     BtLeBeacon btleBeacon;
     WifiScanner wifiScanner;
 
-    static SignalController instance;
+    private static SignalController instance;
     public static SignalController getInstance(Context ctx) {
         if (instance == null) instance = new SignalController(ctx.getApplicationContext());
         return instance;
@@ -90,20 +87,17 @@ public class SignalController {
                 btleWindowTrigger, btleTrainTrigger, callbacks);
         wifi = new RssiWindowTrainingDataManager(SIGNAL_WIFI, dir,
                 wifiWindowTrigger, wifiTrainTrigger, callbacks);
-        wifi5g = new RssiWindowTrainingDataManager(SIGNAL_WIFI + "5g", dir,
+        wifi5g = new RssiWindowTrainingDataManager(SIGNAL_WIFI5G, dir,
                 wifiWindowTrigger, wifiTrainTrigger, callbacks);
     }
 
+    public RssiWindowTrainingDataManager getBt() { return bt; }
+    public RssiWindowTrainingDataManager getBtle() { return btle; }
+    public RssiWindowTrainingDataManager getWifi() { return wifi; }
+    public RssiWindowTrainingDataManager getWifi5g() { return wifi5g; }
+
     public SimpleLog getLog() {
         return log;
-    }
-
-    public void setLogLevel(int level) {
-        logLevel = level;
-    }
-
-    public int getLogLevel() {
-        return logLevel;
     }
 
     public void setDistance(double d) {
@@ -126,6 +120,7 @@ public class SignalController {
         btle.close();
         wifi.close();
         wifi5g.close();
+        instance = null;
     }
 
     public void clearPendingSendLists() {
@@ -146,6 +141,16 @@ public class SignalController {
         return devices;
     }
 
+    public Device getDevice(int index) {
+        return devices.get(index);
+    }
+
+    public void resetKnownDistances() {
+        for (Device d : devices) {
+            d.isDistanceKnown = false;
+        }
+    }
+
     private Device getDevice(String mac, String desc) {
         Device device = null;
         for (Device d : devices) {
@@ -157,7 +162,7 @@ public class SignalController {
         if (device == null) {
             device = new Device(devices.size()+1, mac, desc);
             devices.add(device);
-            log.add(LOG_INFORMATIVE, "Found new device, " + device.id);
+            addEvent(LOG_INFORMATIVE, "Found new device, " + device.id);
         }
         return device;
     }
@@ -229,10 +234,15 @@ public class SignalController {
     public boolean getShouldUseWifi() { return shouldUseWifi; }
     public boolean getCollectEnabled() { return collectEnabled; }
 
+    void addEvent(int level, String msg) {
+        log.add(level, msg);
+        for (SignalListener l : listeners) l.onMessageLogged(level, msg);
+    }
+
     void addRecord(Device device, String signal, int rssi, int freq) {
         if (collectEnabled) {
             if (device.isDistanceKnown && rssi < 0 && distance > 0) {
-                log.add(LOG_INFORMATIVE, "Device " + device.id + ": " +
+                addEvent(LOG_INFORMATIVE, "Device " + device.id + ": " +
                         rssi + " dBm (" + freq + " MHz) at " +
                         distance + "m (" + signal + ").");
 //                String time = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.US).format(new Date());
@@ -243,14 +253,13 @@ public class SignalController {
                 } else if (signal.equals(SIGNAL_BTLE)) {
                     btle.add(record);
                 } else if (signal.equals(SIGNAL_WIFI)) {
-                    if (freq < 4000) {
-                        wifi.add(record);
-                    } else {
-                        wifi5g.add(record);
-                    }
+                    wifi.add(record);
+                } else if (signal.equals(SIGNAL_WIFI5G)) {
+                    wifi5g.add(record);
                 }
+                for (SignalListener l : listeners) l.onRecordAdded(signal, device, record);
             } else {
-                log.add(LOG_ALL, "Ignoring " + rssi + " dBm (" + freq + " MHz) for device " +
+                addEvent(LOG_ALL, "Ignoring " + rssi + " dBm (" + freq + " MHz) for device " +
                         device.id + " (" + signal + ").");
             }
         }
@@ -266,30 +275,30 @@ public class SignalController {
 
         @Override
         public void onThisDeviceDiscoverableChanged(boolean discoverable) {
-            log.add(LOG_INFORMATIVE, "BT Discoverability changed to " + discoverable);
+            addEvent(LOG_INFORMATIVE, "BT Discoverability changed to " + discoverable);
         }
 
         @Override
         public void onDiscoveryStarting() {
-            log.add(LOG_ALL, "Scanning for BT devices...");
+            addEvent(LOG_ALL, "Scanning for BT devices...");
         }
     };
 
     final BtLeBeacon.BtLeBeaconListener btLeBeaconListener = new BtLeBeacon.BtLeBeaconListener() {
         @Override
         public void onAdvertiseNotSupported() {
-            log.add(LOG_IMPORTANT, "BTLE advertisement not supported on this device.");
+            addEvent(LOG_IMPORTANT, "BTLE advertisement not supported on this device.");
         }
 
         @Override
         public void onAdvertiseStartSuccess(AdvertiseSettings settingsInEffect) {
-            log.add(LOG_IMPORTANT, "BTLE advertising started at " +
+            addEvent(LOG_IMPORTANT, "BTLE advertising started at " +
                     settingsInEffect.getTxPowerLevel() + " dBm.");
         }
 
         @Override
         public void onAdvertiseStartFailure(int errorCode, String errorMsg) {
-            log.add(LOG_IMPORTANT, "BTLE advertisements failed to start (" + errorCode + "): " + errorMsg) ;
+            addEvent(LOG_IMPORTANT, "BTLE advertisements failed to start (" + errorCode + "): " + errorMsg) ;
         }
 
         @Override
@@ -299,7 +308,7 @@ public class SignalController {
 
         @Override
         public void onBatchScanResults(List<ScanResult> results) {
-            log.add(LOG_ALL, "Received " + results.size() + " batch scan results (BTLE).");
+            addEvent(LOG_ALL, "Received " + results.size() + " batch scan results (BTLE).");
             for (ScanResult sr : results) {
                 handleScanResult(sr);
             }
@@ -307,7 +316,7 @@ public class SignalController {
 
         @Override
         public void onScanFailed(int errorCode, String errorMsg) {
-            log.add(LOG_IMPORTANT, "BT-LE scan failed (" + errorCode + "): " + errorMsg);
+            addEvent(LOG_IMPORTANT, "BT-LE scan failed (" + errorCode + "): " + errorMsg);
         }
 
         void handleScanResult(ScanResult result) {
@@ -316,7 +325,7 @@ public class SignalController {
                 addRecord(getDevice(device.getAddress(), device.getName() + " (BTLE)"),
                         SIGNAL_BTLE, result.getRssi(), 2400);
             } else {
-                log.add(LOG_INFORMATIVE, "BTLE received " + result.getRssi() + " dBm from null device.");
+                addEvent(LOG_INFORMATIVE, "BTLE received " + result.getRssi() + " dBm from null device.");
             }
         }
     };
@@ -324,75 +333,82 @@ public class SignalController {
     final WifiScanner.ScanListener wifiScanListener = new WifiScanner.ScanListener() {
         @Override
         public void onScanResults(List<android.net.wifi.ScanResult> scanResults) {
-            log.add(LOG_ALL, "WiFi found " + scanResults.size() + " results.");
+            addEvent(LOG_ALL, "WiFi found " + scanResults.size() + " results.");
+            String signal;
             for (android.net.wifi.ScanResult r : scanResults) {
+                signal = r.frequency < 4000 ? SIGNAL_WIFI : SIGNAL_WIFI5G;
                 addRecord(getDevice(r.BSSID, r.SSID + " (WiFi " + r.frequency + "MHz)"),
-                        SIGNAL_WIFI, r.level, r.frequency);
+                        signal, r.level, r.frequency);
             }
         }
     };
 
     final RssiWindowTrainingDataManager.Callbacks callbacks = new RssiWindowTrainingDataManager.Callbacks() {
         @Override
-        public void onDataFileRead(TextReaderWriter rw) {
-//            if (rw == bt.rssiRW) btRssiCountView.setText(bt.getRssiCount() + "");
-//            else if (rw == bt.windowRW) btWindowCountView.setText(bt.getWindowCount() + "");
-//            else if (rw == btle.rssiRW) btleRssiCountView.setText(btle.getRssiCount()+"");
-//            else if (rw == btle.windowRW) btleWindowCountView.setText(btle.getWindowCount()+"");
-//            else if (rw == wifi.rssiRW) wifiRssiCountView.setText(wifi.getRssiCount()+"");
-//            else if (rw == wifi.windowRW) wifiWindowCountView.setText(wifi.getWindowCount()+"");
+        public void onRssiLoadedFromDisk(String signal, List<RssiRecord> records) {
+            for (SignalListener l : listeners) l.onRssiLoadedFromDisk(signal, records);
         }
 
         @Override
-        public void onDataFileWrite(TextReaderWriter rw) {
-
+        public void onWindowsLoadedFromDisk(String signal, List<WindowRecord> records) {
+            for (SignalListener l : listeners) l.onWindowsLoadedFromDisk(signal, records);
         }
 
         @Override
-        public void onTrainingStarting(RssiWindowTrainingDataManager s, int samples) {
-            log.add(LOG_INFORMATIVE, "Training " + s.getSignalType() + " with " + samples + " samples.");
+        public void onTrainingStarting(String signal, int samples) {
+            addEvent(LOG_INFORMATIVE, "Training " + signal + " with " + samples + " samples.");
+            for (SignalListener l : listeners) l.onTrainingStarting(signal, samples);
         }
 
         @Override
-        public void onTrainingComplete(RssiWindowTrainingDataManager s, double[] weights, double error, int samples) {
-            log.add(LOG_IMPORTANT, "Trained " + s.getSignalType() + " with " +
+        public void onGenerationFinished(String signal, int gen, double best, double mean, double stdDev) {
+            addEvent(LOG_INFORMATIVE, String.format(Locale.US,
+                    "%s gen:%d best:%.4f mean:%.4f std:%.4f", signal, gen, best, mean, stdDev));
+            for (SignalListener l : listeners) l.onGenerationFinished(signal, gen, best, mean, stdDev);
+        }
+
+        @Override
+        public void onTrainingComplete(String signal, double[] weights, double error, int samples) {
+            addEvent(LOG_IMPORTANT, "Trained " + signal + " with " +
                     samples + " samples, error = " + String.format(Locale.US, "%.3f", error));
+            for (SignalListener l : listeners) l.onTrainingComplete(signal, weights, error, samples);
         }
 
         @Override
-        public void onWindowReady(RssiWindowTrainingDataManager s, WindowRecord record) {
-            String msg = s.getSignalType() + " window: " + record.rss.count + " in " +
+        public void onWindowReady(String signal, WindowRecord record) {
+            String msg = signal + " window: " + record.rss.count + " in " +
                     formatMillis(record.elapsed.millis);
             if (record.estimated != 0) {
                 double error = (record.estimated - record.distance) / record.distance;
                 msg += String.format(Locale.US, ", est: %.1fm %.1f%%",
                         record.estimated, error * 100);
             }
-            log.add(LOG_IMPORTANT, msg);
-//            if (s == bt) btWindowCountView.setText(bt.getWindowCount()+"");
-//            else if (s == btle) btleWindowCountView.setText(btle.getWindowCount()+"");
-//            else if (s == wifi) wifiWindowCountView.setText(wifi.getWindowCount()+"");
+            addEvent(LOG_IMPORTANT, msg);
+            for (SignalListener l : listeners) l.onWindowReady(signal, record);
         }
 
         @Override
-        public void onSentSuccess(RssiWindowTrainingDataManager s, boolean wasRssi, int count) {
-            String type = wasRssi ? " rssi " : " window ";
-            log.add(LOG_IMPORTANT, s.getSignalType() + " sent " + count + type + "records successfully.");
+        public void onSentSuccess(String signal, boolean wasRssi, int count) {
+            String dataType = wasRssi ? " rssi " : " window ";
+            addEvent(LOG_IMPORTANT, signal + " sent " + count + dataType + "records successfully.");
+            for (SignalListener l : listeners) l.onSentSuccess(signal, wasRssi, count);
         }
 
         @Override
-        public void onSentFailure(RssiWindowTrainingDataManager s, boolean wasRssi, int count,
+        public void onSentFailure(String signal, boolean wasRssi, int count,
                                   int respCode, String resp, String result) {
             String type = wasRssi ? " rssi " : " window ";
-            log.add(LOG_IMPORTANT, s.getSignalType() + " failed to send " + count + type + "records. " +
+            addEvent(LOG_IMPORTANT, signal + " failed to send " + count + type + "records. " +
                     respCode + ": " + resp + ". Result: " + result);
+            for (SignalListener l : listeners) l.onSentFailure(signal, wasRssi, count, respCode, resp, result);
         }
 
         @Override
-        public void onSentFailure(RssiWindowTrainingDataManager s, boolean wasRssi, int count, String volleyError) {
+        public void onSentFailure(String signal, boolean wasRssi, int count, String volleyError) {
             String type = wasRssi ? " rssi " : " window ";
-            log.add(LOG_IMPORTANT, s.getSignalType() + " failed to send " + count + type + "records. " +
+            addEvent(LOG_IMPORTANT, signal + " failed to send " + count + type + "records. " +
                     volleyError);
+            for (SignalListener l : listeners) l.onSentFailure(signal, wasRssi, count, volleyError);
         }
     };
 
@@ -400,9 +416,18 @@ public class SignalController {
         return String.format(Locale.US, "%.1fs", ((double)millis)/1000);
     }
 
-
     public interface SignalListener {
-
+        void onMessageLogged(int level, String msg);
+        void onRssiLoadedFromDisk(String signal, List<RssiRecord> records);
+        void onWindowsLoadedFromDisk(String signal, List<WindowRecord> records);
+        void onRecordAdded(String signal, Device device, RssiRecord r);
+        void onTrainingStarting(String signal, int samples);
+        void onGenerationFinished(String signal, int gen, double best, double mean, double stdDev);
+        void onTrainingComplete(String signal, double[] weights, double error, int samples);
+        void onWindowReady(String signal, WindowRecord record);
+        void onSentSuccess(String signal, boolean wasRssi, int count);
+        void onSentFailure(String signal, boolean wasRssi, int count, int respCode, String resp, String result);
+        void onSentFailure(String signal, boolean wasRssi, int count, String volleyError);
     }
     private final List<SignalListener> listeners = new ArrayList<>(1);
     public boolean registerListener(SignalListener l) {

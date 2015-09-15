@@ -8,8 +8,12 @@
         android:orderInCategory="10"
         android:checkable="true"
         app:showAsAction="never" />
-    <item android:id="@+id/action_clear"
-        android:title="Clear Data Files"
+    <item android:id="@+id/action_clearSend"
+        android:title="Clear data to send..."
         android:orderInCategory="20"
+        app:showAsAction="never" />
+    <item android:id="@+id/action_clearTraining"
+        android:title="Clear training data..."
+        android:orderInCategory="30"
         app:showAsAction="never" />
 </menu>

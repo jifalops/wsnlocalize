@@ -16,8 +16,8 @@ public class ParticleSwarm extends NeuralNetwork {
     protected double[][] pbest;
     protected double[] pbestError;
 
-    ParticleSwarm(double[][] particles, double[][] velocities, MlpWeightMetrics metrics) {
-        super(particles, metrics);
+    ParticleSwarm(double[][] particles, double[][] velocities, MlpWeightMetrics metrics, Callbacks cb) {
+        super(particles, metrics, cb);
         v = velocities;
         pbest = new double[particles.length][particles[0].length];
         pbestError = new double[particles.length];

@@ -17,8 +17,8 @@ public class Depso extends ParticleSwarm {
 
     private double[][] samples;
 
-    public Depso(double[][] population, double[][] velocities, MlpWeightMetrics weightMetrics) {
-        super(population, velocities, weightMetrics);
+    public Depso(double[][] population, double[][] velocities, MlpWeightMetrics weightMetrics, Callbacks cb) {
+        super(population, velocities, weightMetrics, cb);
     }
 
     @Override

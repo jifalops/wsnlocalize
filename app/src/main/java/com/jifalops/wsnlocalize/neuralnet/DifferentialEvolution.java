@@ -12,8 +12,8 @@ public class DifferentialEvolution extends NeuralNetwork {
 
     static Random random = new Random();
 
-    public DifferentialEvolution(double[][] population, MlpWeightMetrics weightMetrics) {
-        super(population, weightMetrics);
+    public DifferentialEvolution(double[][] population, MlpWeightMetrics weightMetrics, Callbacks cb) {
+        super(population, weightMetrics, cb);
     }
 
     @Override

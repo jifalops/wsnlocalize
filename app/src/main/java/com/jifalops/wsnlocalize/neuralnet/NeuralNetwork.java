@@ -10,11 +10,18 @@ public abstract class NeuralNetwork {
     protected final double[] errors;
     protected final MlpWeightMetrics weightMetrics;
     protected TrainingStatus status;
+    protected final Callbacks callbacks;
 
-    public NeuralNetwork(double[][] population, MlpWeightMetrics weightMetrics) {
+    public interface Callbacks {
+        /** called on non-UI thread. */
+        void onGenerationFinished(int gen, double best, double mean, double stdDev);
+    }
+
+    public NeuralNetwork(double[][] population, MlpWeightMetrics weightMetrics, Callbacks cb) {
         this.population = population;
         this.weightMetrics = weightMetrics;
         this.errors = new double[population.length];
+        callbacks = cb;
     }
 
     public double[] getGlobalBest() {
@@ -39,6 +46,8 @@ public abstract class NeuralNetwork {
             trainSampleBySample(samples);
             stdDev = Stats.stdDev(errors);
             generation++;
+            callbacks.onGenerationFinished(generation, status.getBestError(),
+                    Stats.mean(errors), stdDev);
         } while (!status.isComplete(generation, stdDev));
         return status.getBest();
     }

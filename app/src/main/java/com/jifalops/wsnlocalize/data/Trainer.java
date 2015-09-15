@@ -6,6 +6,7 @@ import android.os.HandlerThread;
 import com.jifalops.wsnlocalize.neuralnet.Depso;
 import com.jifalops.wsnlocalize.neuralnet.MlpWeightMetrics;
 import com.jifalops.wsnlocalize.neuralnet.NeuralNetwork;
+import com.jifalops.wsnlocalize.neuralnet.Scaler;
 import com.jifalops.wsnlocalize.neuralnet.TerminationConditions;
 
 import java.util.List;
@@ -17,6 +18,7 @@ public class Trainer {
     public interface TrainerCallbacks {
         void onWindowRecordReady(WindowRecord record, List<RssiRecord> from);
         double[][] onTimeToTrain(List<WindowRecord> records, final double[][] samples);
+        void onGenerationFinished(int gen, double best, double mean, double stdDev);
         void onTrainingComplete(double[] weights, double error, int samples);
     }
 
@@ -24,6 +26,7 @@ public class Trainer {
     private final ResettingList<WindowRecord> trigger;
     public final NeuralNetwork nnet; // TODO make non-public
     private final TerminationConditions termCond;
+    private Scaler scaler;
 
     private final HandlerThread thread;
     private final Handler handler, uiHandler = new Handler();
@@ -31,13 +34,18 @@ public class Trainer {
     private final TrainerCallbacks callbacks;
 
     public Trainer(ResettingList.Limits rssiWindowLimits,
-                   ResettingList.Limits windowTrainingLimits, TrainerCallbacks callbacks) {
+                   ResettingList.Limits windowTrainingLimits, final TrainerCallbacks callbacks) {
         this.callbacks = callbacks;
         windower = new ResettingList<>(rssiWindowLimits, windowerCB);
         trigger = new ResettingList<>(windowTrainingLimits, trainingCB);
         MlpWeightMetrics metrics = new MlpWeightMetrics(WindowRecord.TRAINING_ARRAY_SIZE - 1, 1);
         nnet = new Depso(NeuralNetwork.initPop(20, metrics),
-                NeuralNetwork.initPop(20, metrics), metrics);
+                NeuralNetwork.initPop(20, metrics), metrics, new NeuralNetwork.Callbacks() {
+            @Override
+            public void onGenerationFinished(int gen, double best, double mean, double stdDev) {
+                callbacks.onGenerationFinished(gen, best, mean, stdDev);
+            }
+        });
         termCond = new TerminationConditions();
         thread = new HandlerThread(getClass().getName());
         thread.start();
@@ -67,12 +75,14 @@ public class Trainer {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    final double[] weights = nnet.trainSampleBySample(toTrain, termCond);
+                    scaler = new Scaler(toTrain, toTrain[0].length-1);
+                    final double[][] scaled = scaler.scaleAndRandomize(toTrain);
+                    final double[] weights = nnet.trainSampleBySample(scaled, termCond);
                     final double error = nnet.getGlobalBestError();
                     uiHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callbacks.onTrainingComplete(weights, error, toTrain.length);
+                            callbacks.onTrainingComplete(weights, error, scaled.length);
                         }
                     });
                 }

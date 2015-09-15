@@ -117,7 +117,7 @@
             android:layout_weight="1"
             android:layout_height="wrap_content"
             android:layout_columnSpan="2"
-            android:columnCount="4">
+            android:columnCount="5">
             <Space />
             <TextView
                 android:layout_width="wrap_content"
@@ -134,6 +134,11 @@
                 android:layout_height="wrap_content"
                 android:layout_columnWeight="1"
                 android:text="WIFI"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_columnWeight="1"
+                android:text="WIFI5G"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -155,9 +160,14 @@
                 android:layout_height="wrap_content"
                 android:text="0"/>
             <TextView
+                android:id="@+id/wifi5gRssiCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Window"/>
+                android:text="0"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Wind."/>
             <TextView
                 android:id="@+id/btWindowCount"
                 android:layout_width="wrap_content"
@@ -170,6 +180,11 @@
                 android:text="0"/>
             <TextView
                 android:id="@+id/wifiWindowCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"/>
+            <TextView
+                android:id="@+id/wifi5gWindowCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="0"/>

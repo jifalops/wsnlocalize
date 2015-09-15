@@ -26,14 +26,15 @@ import java.util.List;
  */
 public class RssiWindowTrainingDataManager {
     public interface Callbacks {
-        void onDataFileRead(TextReaderWriter rw);
-        void onDataFileWrite(TextReaderWriter rw);
-        void onTrainingStarting(RssiWindowTrainingDataManager s, int samples);
-        void onTrainingComplete(RssiWindowTrainingDataManager s, double[] weights, double error, int samples);
-        void onWindowReady(RssiWindowTrainingDataManager s, WindowRecord record);
-        void onSentSuccess(RssiWindowTrainingDataManager s, boolean wasRssi, int count);
-        void onSentFailure(RssiWindowTrainingDataManager s, boolean wasRssi, int count, int respCode, String resp, String result);
-        void onSentFailure(RssiWindowTrainingDataManager s, boolean wasRssi, int count, String volleyError);
+        void onRssiLoadedFromDisk(String signal, List<RssiRecord> records);
+        void onWindowsLoadedFromDisk(String signal, List<WindowRecord> records);
+        void onTrainingStarting(String signal, int samples);
+        void onGenerationFinished(String signal, int gen, double best, double mean, double stdDev);
+        void onTrainingComplete(String signal, double[] weights, double error, int samples);
+        void onWindowReady(String signal, WindowRecord record);
+        void onSentSuccess(String signal, boolean wasRssi, int count);
+        void onSentFailure(String signal, boolean wasRssi, int count, int respCode, String resp, String result);
+        void onSentFailure(String signal, boolean wasRssi, int count, String volleyError);
     }
 
     final String signalType;
@@ -69,10 +70,6 @@ public class RssiWindowTrainingDataManager {
             rssi.add(record);
             trainer.add(record);
         }
-    }
-
-    public String getSignalType() {
-        return signalType;
     }
 
     public int getRssiCount() {
@@ -121,10 +118,10 @@ public class RssiWindowTrainingDataManager {
                         public void onResponse(AbsRequest.MyResponse response) {
                             if (response.responseCode == 200) {
                                 rssiRW.writeRecords(rssi, false);
-                                callbacks.onSentSuccess(RssiWindowTrainingDataManager.this, true, toSend);
+                                callbacks.onSentSuccess(signalType, true, toSend);
                             } else {
                                 rssi.addAll(sending);
-                                callbacks.onSentFailure(RssiWindowTrainingDataManager.this, true, toSend,
+                                callbacks.onSentFailure(signalType, true, toSend,
                                         response.responseCode, response.responseMessage,
                                         response.queryResult);
                             }
@@ -133,7 +130,7 @@ public class RssiWindowTrainingDataManager {
                         @Override
                         public void onErrorResponse(VolleyError volleyError) {
                             rssi.addAll(sending);
-                            callbacks.onSentFailure(RssiWindowTrainingDataManager.this, true, toSend,
+                            callbacks.onSentFailure(signalType, true, toSend,
                                     volleyError.toString());
                         }
                     }));
@@ -148,10 +145,10 @@ public class RssiWindowTrainingDataManager {
                         public void onResponse(AbsRequest.MyResponse response) {
                             if (response.responseCode == 200) {
                                 windowRW.writeRecords(windows, false);
-                                callbacks.onSentSuccess(RssiWindowTrainingDataManager.this, false, toSend);
+                                callbacks.onSentSuccess(signalType, false, toSend);
                             } else {
                                 windows.addAll(sending);
-                                callbacks.onSentFailure(RssiWindowTrainingDataManager.this, false, toSend,
+                                callbacks.onSentFailure(signalType, false, toSend,
                                         response.responseCode, response.responseMessage,
                                         response.queryResult);
                             }
@@ -160,7 +157,7 @@ public class RssiWindowTrainingDataManager {
                 @Override
                 public void onErrorResponse(VolleyError volleyError) {
                     windows.addAll(sending);
-                    callbacks.onSentFailure(RssiWindowTrainingDataManager.this, false, toSend, volleyError.toString());
+                    callbacks.onSentFailure(signalType, false, toSend, volleyError.toString());
                 }
             }));
         }
@@ -174,24 +171,24 @@ public class RssiWindowTrainingDataManager {
         public void onRssiRecordsRead(RssiReaderWriter rw, List<RssiRecord> records) {
             rssi.clear();
             rssi.addAll(records);
-            callbacks.onDataFileRead(rw);
+            callbacks.onRssiLoadedFromDisk(signalType, records);
         }
 
         @Override
         public void onRssiRecordsWritten(RssiReaderWriter rw, int recordsWritten) {
-            callbacks.onDataFileWrite(rw);
+//            callbacks.onDataFileWrite(rw);
         }
 
         @Override
         public void onWindowRecordsRead(WindowReaderWriter rw, List<WindowRecord> records) {
             windows.clear();
             windows.addAll(records);
-            callbacks.onDataFileRead(rw);
+            callbacks.onWindowsLoadedFromDisk(signalType, records);
         }
 
         @Override
         public void onWindowRecordsWritten(WindowReaderWriter rw, int recordsWritten) {
-            callbacks.onDataFileWrite(rw);
+//            callbacks.onDataFileWrite(rw);
         }
 
         @Override
@@ -201,12 +198,12 @@ public class RssiWindowTrainingDataManager {
             } else if (rw == weightRW) {
                 weightHistory = numbers;
             }
-            callbacks.onDataFileRead(rw);
+//            callbacks.onDataFileRead(rw);
         }
 
         @Override
         public void onNumbersWritten(NumberReaderWriter rw, int recordsWritten) {
-            callbacks.onDataFileWrite(rw);
+//            callbacks.onDataFileWrite(rw);
         }
 
         @Override
@@ -225,7 +222,7 @@ public class RssiWindowTrainingDataManager {
                 double estimate = scaler.unscale(outputs)[0];
                 record.estimated = estimate;
             }
-            callbacks.onWindowReady(RssiWindowTrainingDataManager.this, record);
+            callbacks.onWindowReady(signalType, record);
         }
 
         @Override
@@ -237,9 +234,13 @@ public class RssiWindowTrainingDataManager {
             else {
                 toTrain = Arrays.concat(toTrain, samples);
             }
-            scaler = new Scaler(toTrain, toTrain[0].length-1);
-            callbacks.onTrainingStarting(RssiWindowTrainingDataManager.this, toTrain.length);
-            return scaler.scaleAndRandomize(toTrain);
+            callbacks.onTrainingStarting(signalType, toTrain.length);
+            return toTrain;
+        }
+
+        @Override
+        public void onGenerationFinished(int gen, double best, double mean, double stdDev) {
+            callbacks.onGenerationFinished(signalType, gen, best, mean, stdDev);
         }
 
         @Override
@@ -251,7 +252,7 @@ public class RssiWindowTrainingDataManager {
             } else {
                 Arrays.concat(weightHistory, tmp);
             }
-            callbacks.onTrainingComplete(RssiWindowTrainingDataManager.this, weights, error, samples);
+            callbacks.onTrainingComplete(signalType, weights, error, samples);
         }
     }
 
