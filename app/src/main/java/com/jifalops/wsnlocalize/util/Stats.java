@@ -101,7 +101,7 @@ public class Stats {
     }
 
     public static double max(double[] array) {
-        double max = Double.MIN_VALUE;
+        double max = -Double.MAX_VALUE;
         for (double n : array) {
             if (n > max) {
                 max = n;

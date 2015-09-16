@@ -25,7 +25,7 @@ public class Scaler {
         max = new double[cols];
         for (int col = 0; col < cols; ++col) {
             min[col] = Double.MAX_VALUE;
-            max[col] = Double.MIN_VALUE;
+            max[col] = -Double.MAX_VALUE;
             for (int row = 0; row < rows; ++row) {
                 if (data[row][col] < min[col]) min[col] = data[row][col];
                 if (data[row][col] > max[col]) max[col] = data[row][col];
