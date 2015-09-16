@@ -9,7 +9,6 @@ import com.jifalops.wsnlocalize.data.Trainer;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.file.NumberReaderWriter;
 import com.jifalops.wsnlocalize.file.RssiReaderWriter;
-import com.jifalops.wsnlocalize.file.TextReaderWriter;
 import com.jifalops.wsnlocalize.file.WindowReaderWriter;
 import com.jifalops.wsnlocalize.neuralnet.Scaler;
 import com.jifalops.wsnlocalize.request.AbsRequest;
@@ -209,9 +208,6 @@ public class RssiWindowTrainingDataManager {
         @Override
         public void onWindowRecordReady(WindowRecord record, List<RssiRecord> from) {
             windows.add(record);
-            List<WindowRecord> list = new ArrayList<>();
-            list.add(record);
-            windowRW.writeRecords(list, true);
             rssiRW.writeRecords(from, true);
 
             if (weightHistory != null && weightHistory.length > 0 && scaler != null) {
@@ -220,8 +216,25 @@ public class RssiWindowTrainingDataManager {
                 double[] outputs = trainer.calcOutputs(
                         weightHistory[weightHistory.length-1], scaled[0]);
                 double estimate = scaler.unscale(outputs)[0];
+
+                if (estimate < SignalController.ESTIMATE_MIN) {
+                    estimate = SignalController.ESTIMATE_MIN;
+                } else if ((signalType.equals(SignalController.SIGNAL_BT) ||
+                        signalType.equals(SignalController.SIGNAL_BTLE)) &&
+                        estimate > SignalController.ESTIMATE_BT_MAX) {
+                    estimate = SignalController.ESTIMATE_BT_MAX;
+                } else if ((signalType.equals(SignalController.SIGNAL_WIFI) ||
+                        signalType.equals(SignalController.SIGNAL_WIFI5G)) &&
+                        estimate > SignalController.ESTIMATE_WIFI_MAX) {
+                    estimate = SignalController.ESTIMATE_WIFI_MAX;
+                }
                 record.estimated = estimate;
             }
+
+            List<WindowRecord> list = new ArrayList<>();
+            list.add(record);
+            windowRW.writeRecords(list, true);
+
             callbacks.onWindowReady(signalType, record);
         }
 

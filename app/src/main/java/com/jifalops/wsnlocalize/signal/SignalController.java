@@ -31,6 +31,10 @@ public class SignalController {
     public static final String SIGNAL_WIFI = "wifi";
     public static final String SIGNAL_WIFI5G = "wifi5g";
 
+    public static final double ESTIMATE_MIN = 0.1;
+    public static final double ESTIMATE_BT_MAX = 15;
+    public static final double ESTIMATE_WIFI_MAX = 110;
+
     final ResettingList.Limits
         btWindowTrigger = new ResettingList.Limits(3, 10_000, 5, 120_000),
         btTrainTrigger = new ResettingList.Limits(2, 30_000, 10, 120_000),
