@@ -1,5 +1,7 @@
 package com.jifalops.wsnlocalize.util;
 
+import java.util.List;
+
 /**
  *
  */
@@ -22,6 +24,15 @@ public class Arrays {
         System.arraycopy(a, 0, c, 0, aLen);
         System.arraycopy(b, 0, c, aLen, bLen);
         return c;
+    }
+
+    public static double[] toPrimitive(List<Double> list) {
+        int len = list.size();
+        double[] a = new double[len];
+        for (int i = 0; i < len; ++i) {
+            a[i] = list.get(i);
+        }
+        return a;
     }
 
     public static void shiftLeft(double[] a, int shifts) {
