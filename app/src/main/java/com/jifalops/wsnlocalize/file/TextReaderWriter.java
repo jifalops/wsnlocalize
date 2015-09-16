@@ -91,6 +91,7 @@ public class TextReaderWriter {
                         w.newLine();
                         ++count;
                     }
+                    w.flush();
                 } catch (FileNotFoundException e) {
                     // ignored
                 } catch (IOException e) {
