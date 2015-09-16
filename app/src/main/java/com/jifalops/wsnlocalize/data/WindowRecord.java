@@ -1,10 +1,12 @@
 package com.jifalops.wsnlocalize.data;
 
+import com.jifalops.wsnlocalize.util.Arrays;
 import com.jifalops.wsnlocalize.util.Stats;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 /**
  *
@@ -74,21 +76,29 @@ public class WindowRecord {
     public double estimated = 0;
 
     public WindowRecord(List<RssiRecord> records) {
-        distance = records.get(0).distance; // known or unknown.
+        distance = records.get(0).distance; // ok if known or unknown.
         int len = records.size();
         double[] rssi = new double[len];
-        double[] el = new double[len-1];
-        Set<String> macs = new HashSet<>();
+        Map<String, List<Double>> deviceTimes = new HashMap<>();
         RssiRecord record;
         for (int i = 0; i < len; ++i) {
             record = records.get(i);
-            macs.add(record.mac);
             rssi[i] = record.rssi;
-            if (i != 0) {
-                el[i-1] = record.time - records.get(i-1).time;
+            if (deviceTimes.get(record.mac) == null) {
+                deviceTimes.put(record.mac, new ArrayList<Double>());
+            }
+            deviceTimes.get(record.mac).add((double) record.time);
+        }
+        numDevices = deviceTimes.size();
+
+        List<Double> allElapsed = new ArrayList<>();
+        for (List<Double> list : deviceTimes.values()) {
+            for (int i = 1; i < list.size(); ++i) {
+                allElapsed.add(list.get(i) - list.get(i-1));
             }
         }
-        numDevices = macs.size();
+        double[] el = Arrays.toPrimitive(allElapsed);
+
         int min = (int) Stats.min(rssi);
         int max = (int) Stats.max(rssi);
         rss = new Rss(len, min, max, max-min,
