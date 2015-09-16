@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
@@ -55,7 +56,9 @@ public class RssiTrainingActivity extends Activity {
             btRssiCountView, btWindowCountView,
             btleRssiCountView, btleWindowCountView,
             wifiRssiCountView, wifiWindowCountView,
-            wifi5gRssiCountView, wifi5gWindowCountView;
+            wifi5gRssiCountView, wifi5gWindowCountView,
+            deviceIdView;
+    EditText distanceView;
     Switch collectSwitch;
     CheckBox btCheckBox, btleCheckBox, wifiCheckBox;
 
@@ -86,8 +89,8 @@ public class RssiTrainingActivity extends Activity {
         btleCheckBox = (CheckBox) findViewById(R.id.btleCheckBox);
         wifiCheckBox = (CheckBox) findViewById(R.id.wifiCheckBox);
 
-        final TextView deviceIdView = (TextView) findViewById(R.id.deviceId);
-        final EditText distanceView = (EditText) findViewById(R.id.distanceMeters);
+        deviceIdView = (TextView) findViewById(R.id.deviceId);
+        distanceView = (EditText) findViewById(R.id.distanceMeters);
         Button sendButton = (Button) findViewById(R.id.sendButton);
 
         autoScroll((ScrollView) findViewById(R.id.eventScrollView), eventLogView);
@@ -174,6 +177,9 @@ public class RssiTrainingActivity extends Activity {
             @Override
             public void run() {
                 service = App.getInstance().getService();
+                if (service != null && service.isPersistent()) {
+                    setupControls();
+                }
             }
         });
     }
@@ -229,28 +235,25 @@ public class RssiTrainingActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_rssitraining, menu);
-        SubMenu sub = menu.addSubMenu("Log Level");
-        sub.add(1, SignalController.LOG_IMPORTANT, 1, "Important").setCheckable(true);
-        sub.add(1, SignalController.LOG_INFORMATIVE, 2, "Informative").setCheckable(true);
-        sub.add(1, SignalController.LOG_ALL, 3, "All").setCheckable(true);
-        sub.setGroupCheckable(1, true, true);
         return true;
     }
 
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
+//        SubMenu sub = menu.getItem(0);
         menu.findItem(R.id.action_persist).setChecked(service != null && service.isPersistent());
-        menu.findItem(SignalController.LOG_IMPORTANT).setChecked(
+        menu.findItem(R.id.logImportant).setChecked(
                 logLevel == SignalController.LOG_IMPORTANT);
-        menu.findItem(SignalController.LOG_INFORMATIVE).setChecked(
+        menu.findItem(R.id.logInformative).setChecked(
                 logLevel == SignalController.LOG_INFORMATIVE);
-        menu.findItem(SignalController.LOG_ALL).setChecked(
+        menu.findItem(R.id.logAll).setChecked(
                 logLevel == SignalController.LOG_ALL);
         return super.onPrepareOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        SubMenu sub = item.getSubMenu();
         switch (item.getItemId()) {
             case R.id.action_settings:
                 return true;
@@ -270,6 +273,7 @@ public class RssiTrainingActivity extends Activity {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
                         controller.clearPendingSendLists();
+                        updateSendCounts();
                     }
                 }).show();
                 return true;
@@ -283,13 +287,14 @@ public class RssiTrainingActivity extends Activity {
                     }
                 }).show();
                 return true;
-            case SignalController.LOG_IMPORTANT:
-                // fall through
-            case SignalController.LOG_INFORMATIVE:
-                // fall through
-            case SignalController.LOG_ALL:
-                logLevel = item.getItemId();
-                item.setChecked(true);
+            case R.id.logImportant:
+                logLevel = SignalController.LOG_IMPORTANT;
+                return true;
+            case R.id.logInformative:
+                logLevel = SignalController.LOG_INFORMATIVE;
+                return true;
+            case R.id.logAll:
+                logLevel = SignalController.LOG_ALL;
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -298,7 +303,7 @@ public class RssiTrainingActivity extends Activity {
     void setPersistent(boolean persist) {
         if (service == null) return;
         Object obj = persist ? controller : null;
-        service.setPersistent(persist);
+        service.setPersistent(persist, getClass());
         service.setCachedObject(getLocalClassName() + CONTROLLER, obj);
     }
 
@@ -314,8 +319,8 @@ public class RssiTrainingActivity extends Activity {
     }
 
     void loadDevicesAndEvents() {
-        deviceLogView.setText("");
-        eventLogView.setText("");
+        deviceLogView.setText("Devices:\n");
+        eventLogView.setText("Events:\n");
         for (SignalController.Device d : controller.getDevices()) {
             deviceLogView.append(d.toString() + "\n");
         }
@@ -325,14 +330,7 @@ public class RssiTrainingActivity extends Activity {
         }
     }
 
-    @Override
-    protected void onResume() {
-        super.onResume();
-        controller.registerListener(signalListener);
-        logLevel = prefs.getInt("logLevel", SignalController.LOG_INFORMATIVE);
-        updateSendCounts();
-        loadDevicesAndEvents();
-
+    void setupControls() {
         controller.setShouldUseBt(prefs.getBoolean("btEnabled", true));
         controller.setShouldUseBtle(prefs.getBoolean("btleEnabled", true));
         controller.setShouldUseWifi(prefs.getBoolean("wifiEnabled", true));
@@ -370,6 +368,23 @@ public class RssiTrainingActivity extends Activity {
                 controller.setCollectEnabled(isChecked);
             }
         });
+
+        distanceView.setText(controller.getDistance() + "");
+        List<Integer> ids = new ArrayList<>();
+        for (SignalController.Device d : controller.getDevices()) {
+            if (d.isDistanceKnown) ids.add(d.id);
+        }
+        if (ids.size() > 0) deviceIdView.setText(TextUtils.join(",", ids));
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        controller.registerListener(signalListener);
+        logLevel = prefs.getInt("logLevel", SignalController.LOG_INFORMATIVE);
+        updateSendCounts();
+        loadDevicesAndEvents();
+        setupControls();
     }
 
     @Override
@@ -385,10 +400,20 @@ public class RssiTrainingActivity extends Activity {
 
     private final SignalController.SignalListener signalListener = new SignalController.SignalListener() {
         @Override
-        public void onMessageLogged(int level, String msg) {
+        public void onMessageLogged(int level, final String msg) {
             if (level >= logLevel) {
-                eventLogView.append(msg + "\n");
+                eventLogView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        eventLogView.append(msg + "\n");
+                    }
+                });
             }
+        }
+
+        @Override
+        public void onDeviceFound(SignalController.Device device) {
+            deviceLogView.append(device.toString() + "\n");
         }
 
         @Override
@@ -417,7 +442,7 @@ public class RssiTrainingActivity extends Activity {
         }
 
         @Override
-        public void onTrainingComplete(String signal, double[] weights, double error, int samples) {
+        public void onTrainingComplete(String signal, double[] weights, double error, int samples, int generations) {
 
         }
 

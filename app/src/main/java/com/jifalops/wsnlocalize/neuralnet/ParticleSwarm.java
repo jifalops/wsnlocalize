@@ -19,10 +19,10 @@ public class ParticleSwarm extends NeuralNetwork {
     ParticleSwarm(double[][] particles, double[][] velocities, MlpWeightMetrics metrics, Callbacks cb) {
         super(particles, metrics, cb);
         v = velocities;
-        pbest = new double[particles.length][particles[0].length];
+        pbest = particles.clone();
         pbestError = new double[particles.length];
         for (int i = 0; i < pbestError.length; ++i) {
-            pbestError[i] = Double.MAX_VALUE;
+            pbestError[i] = 1_000_000;
         }
     }
 
@@ -67,7 +67,7 @@ public class ParticleSwarm extends NeuralNetwork {
                 pbest[i] = population[i];
                 pbestError[i] = errors[i];
 
-                status.updateIfBest(population[i], errors[i]);
+                status.updateIfBest(population[i], i, errors[i]);
             }
         }
     }

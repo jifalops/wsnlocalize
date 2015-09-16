@@ -30,7 +30,7 @@ public class RssiWindowTrainingDataManager {
         void onWindowsLoadedFromDisk(String signal, List<WindowRecord> records);
         void onTrainingStarting(String signal, int samples);
         void onGenerationFinished(String signal, int gen, double best, double mean, double stdDev);
-        void onTrainingComplete(String signal, double[] weights, double error, int samples);
+        void onTrainingComplete(String signal, double[] weights, double error, int samples, int generations);
         void onWindowReady(String signal, WindowRecord record);
         void onSentSuccess(String signal, boolean wasRssi, int count);
         void onSentFailure(String signal, boolean wasRssi, int count, int respCode, String resp, String result);
@@ -47,7 +47,7 @@ public class RssiWindowTrainingDataManager {
     final List<WindowRecord> windows = new ArrayList<>();
     final Callbacks callbacks;
     private double[][] toTrain, weightHistory;
-    private Scaler scaler;
+    Scaler scaler;
 
     RssiWindowTrainingDataManager(String signalType, File dir, ResettingList.Limits rssiWindowLimits,
                                   ResettingList.Limits windowTrainingLimits, Callbacks callbacks) {
@@ -217,7 +217,7 @@ public class RssiWindowTrainingDataManager {
             if (weightHistory != null && weightHistory.length > 0 && scaler != null) {
                 double[][] sample = new double[][] {record.toTrainingArray()};
                 double[][] scaled = scaler.scale(sample);
-                double[] outputs = trainer.nnet.calcOutputs(
+                double[] outputs = trainer.calcOutputs(
                         weightHistory[weightHistory.length-1], scaled[0]);
                 double estimate = scaler.unscale(outputs)[0];
                 record.estimated = estimate;
@@ -244,15 +244,16 @@ public class RssiWindowTrainingDataManager {
         }
 
         @Override
-        public void onTrainingComplete(double[] weights, double error, int samples) {
+        public void onTrainingComplete(double[] weights, double error, int samples, int generations, Scaler scaler) {
             double[][] tmp = new double[][] { weights };
+            RssiWindowTrainingDataManager.this.scaler = scaler;
             weightRW.writeNumbers(tmp, true);
             if (weightHistory == null) {
                 weightHistory = tmp;
             } else {
                 Arrays.concat(weightHistory, tmp);
             }
-            callbacks.onTrainingComplete(signalType, weights, error, samples);
+            callbacks.onTrainingComplete(signalType, weights, error, samples, generations);
         }
     }
 

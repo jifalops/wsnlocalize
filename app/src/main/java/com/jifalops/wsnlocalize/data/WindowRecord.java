@@ -71,7 +71,7 @@ public class WindowRecord {
     public final Elapsed elapsed;
     public final int numDevices; // that produced this window.
     public final double distance;
-    public double estimated;
+    public double estimated = 0;
 
     public WindowRecord(List<RssiRecord> records) {
         distance = records.get(0).distance; // known or unknown.

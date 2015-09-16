@@ -8,5 +8,5 @@ public class TerminationConditions {
     double minError = 1e-3;
     double minStdDev = minError / 10;
     double minImprovement = minError / 10;
-    int minImprovementGenerations = 5;
+    int minImprovementGenerations = 10;
 }

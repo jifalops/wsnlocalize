@@ -33,13 +33,13 @@ public class SignalController {
 
     final ResettingList.Limits
         btWindowTrigger = new ResettingList.Limits(3, 10_000, 5, 120_000),
-        btTrainTrigger = new ResettingList.Limits(0,0,0,0),
+        btTrainTrigger = new ResettingList.Limits(2, 30_000, 10, 120_000),
 
         btleWindowTrigger = new ResettingList.Limits(15, 5_000, 20, 30_000),
-        btleTrainTrigger = new ResettingList.Limits(0,0,0,0),
+        btleTrainTrigger = new ResettingList.Limits(3, 30_000, 10, 120_000),
 
-        wifiWindowTrigger = new ResettingList.Limits(5, 5_000, 10, 30_000),
-        wifiTrainTrigger = new ResettingList.Limits(0,0,0,0);
+        wifiWindowTrigger = new ResettingList.Limits(5, 5_000, 20, 20_000),
+        wifiTrainTrigger = new ResettingList.Limits(3, 30_000, 10, 1200_000);
 
 
     public static class Device {
@@ -163,6 +163,7 @@ public class SignalController {
             device = new Device(devices.size()+1, mac, desc);
             devices.add(device);
             addEvent(LOG_INFORMATIVE, "Found new device, " + device.id);
+            for (SignalListener l : listeners) l.onDeviceFound(device);
         }
         return device;
     }
@@ -356,22 +357,23 @@ public class SignalController {
 
         @Override
         public void onTrainingStarting(String signal, int samples) {
-            addEvent(LOG_INFORMATIVE, "Training " + signal + " with " + samples + " samples.");
+            addEvent(LOG_IMPORTANT, "Training " + signal + " with " + samples + " samples.");
             for (SignalListener l : listeners) l.onTrainingStarting(signal, samples);
         }
 
         @Override
         public void onGenerationFinished(String signal, int gen, double best, double mean, double stdDev) {
-            addEvent(LOG_INFORMATIVE, String.format(Locale.US,
+            addEvent(LOG_ALL, String.format(Locale.US,
                     "%s gen:%d best:%.4f mean:%.4f std:%.4f", signal, gen, best, mean, stdDev));
             for (SignalListener l : listeners) l.onGenerationFinished(signal, gen, best, mean, stdDev);
         }
 
         @Override
-        public void onTrainingComplete(String signal, double[] weights, double error, int samples) {
+        public void onTrainingComplete(String signal, double[] weights, double error, int samples, int generations) {
             addEvent(LOG_IMPORTANT, "Trained " + signal + " with " +
-                    samples + " samples, error = " + String.format(Locale.US, "%.3f", error));
-            for (SignalListener l : listeners) l.onTrainingComplete(signal, weights, error, samples);
+                    samples + " samples, error = " + String.format(Locale.US, "%1.4f", error)
+                    + " generations: " + generations);
+            for (SignalListener l : listeners) l.onTrainingComplete(signal, weights, error, samples, generations);
         }
 
         @Override
@@ -418,12 +420,13 @@ public class SignalController {
 
     public interface SignalListener {
         void onMessageLogged(int level, String msg);
+        void onDeviceFound(Device device);
         void onRssiLoadedFromDisk(String signal, List<RssiRecord> records);
         void onWindowsLoadedFromDisk(String signal, List<WindowRecord> records);
         void onRecordAdded(String signal, Device device, RssiRecord r);
         void onTrainingStarting(String signal, int samples);
         void onGenerationFinished(String signal, int gen, double best, double mean, double stdDev);
-        void onTrainingComplete(String signal, double[] weights, double error, int samples);
+        void onTrainingComplete(String signal, double[] weights, double error, int samples, int generations);
         void onWindowReady(String signal, WindowRecord record);
         void onSentSuccess(String signal, boolean wasRssi, int count);
         void onSentFailure(String signal, boolean wasRssi, int count, int respCode, String resp, String result);

@@ -10,6 +10,7 @@ import com.jifalops.wsnlocalize.neuralnet.Scaler;
 import com.jifalops.wsnlocalize.neuralnet.TerminationConditions;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  *
@@ -19,33 +20,26 @@ public class Trainer {
         void onWindowRecordReady(WindowRecord record, List<RssiRecord> from);
         double[][] onTimeToTrain(List<WindowRecord> records, final double[][] samples);
         void onGenerationFinished(int gen, double best, double mean, double stdDev);
-        void onTrainingComplete(double[] weights, double error, int samples);
+        void onTrainingComplete(double[] weights, double error, int samples, int generations, Scaler scaler);
     }
 
     private final ResettingList<RssiRecord> windower;
     private final ResettingList<WindowRecord> trigger;
-    public final NeuralNetwork nnet; // TODO make non-public
+    private   NeuralNetwork nnet; // TODO make non-public
     private final TerminationConditions termCond;
-    private Scaler scaler;
 
     private final HandlerThread thread;
     private final Handler handler, uiHandler = new Handler();
 
     private final TrainerCallbacks callbacks;
+    final MlpWeightMetrics metrics;
 
     public Trainer(ResettingList.Limits rssiWindowLimits,
                    ResettingList.Limits windowTrainingLimits, final TrainerCallbacks callbacks) {
         this.callbacks = callbacks;
         windower = new ResettingList<>(rssiWindowLimits, windowerCB);
         trigger = new ResettingList<>(windowTrainingLimits, trainingCB);
-        MlpWeightMetrics metrics = new MlpWeightMetrics(WindowRecord.TRAINING_ARRAY_SIZE - 1, 1);
-        nnet = new Depso(NeuralNetwork.initPop(20, metrics),
-                NeuralNetwork.initPop(20, metrics), metrics, new NeuralNetwork.Callbacks() {
-            @Override
-            public void onGenerationFinished(int gen, double best, double mean, double stdDev) {
-                callbacks.onGenerationFinished(gen, best, mean, stdDev);
-            }
-        });
+        metrics = new MlpWeightMetrics(WindowRecord.TRAINING_ARRAY_SIZE - 1, 1);
         termCond = new TerminationConditions();
         thread = new HandlerThread(getClass().getName());
         thread.start();
@@ -66,6 +60,11 @@ public class Trainer {
         }
     };
 
+    public double[] calcOutputs(double[] weights, double[] inputsOrSample) {
+        if (nnet == null) return new double[] {0};
+        else return nnet.calcOutputs(weights, inputsOrSample);
+    }
+
     private final ResettingList.LimitsCallback<WindowRecord> trainingCB =
             new ResettingList.LimitsCallback<WindowRecord>() {
         @Override
@@ -75,14 +74,26 @@ public class Trainer {
             handler.post(new Runnable() {
                 @Override
                 public void run() {
-                    scaler = new Scaler(toTrain, toTrain[0].length-1);
+                    final AtomicInteger generations = new AtomicInteger();
+                    final Scaler scaler = new Scaler(toTrain, toTrain[0].length-1);
+
+                    nnet = new Depso(NeuralNetwork.initPop(20, metrics),
+                            NeuralNetwork.initPop(20, metrics), metrics, new NeuralNetwork.Callbacks() {
+                        @Override
+                        public void onGenerationFinished(int gen, double best, double mean, double stdDev) {
+                            generations.set(gen);
+                            callbacks.onGenerationFinished(gen, best, mean, stdDev);
+                        }
+                    });
+
                     final double[][] scaled = scaler.scaleAndRandomize(toTrain);
                     final double[] weights = nnet.trainSampleBySample(scaled, termCond);
                     final double error = nnet.getGlobalBestError();
                     uiHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callbacks.onTrainingComplete(weights, error, scaled.length);
+                            callbacks.onTrainingComplete(weights, error, scaled.length,
+                                    generations.get(), scaler);
                         }
                     });
                 }

@@ -50,7 +50,8 @@ public class Scaler {
                 scaledDiff = outDiff;
             }
             for (int j = 0; j < rows; j++) {
-                scaled[j][i] = unscaledDiff == 0 ? scaledMin
+                scaled[j][i] = unscaledDiff == 0
+                        ? scaledMin
                         : scaledMin + (data[j][i] - min[i]) * scaledDiff / unscaledDiff;
             }
         }

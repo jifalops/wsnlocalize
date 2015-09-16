@@ -1,6 +1,10 @@
 package com.jifalops.wsnlocalize.util;
 
+import android.app.Activity;
 import android.app.Application;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ComponentName;
 import android.content.Context;
@@ -11,8 +15,12 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.IBinder;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.util.Log;
+
+import com.jifalops.wsnlocalize.MainActivity;
+import com.jifalops.wsnlocalize.R;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +34,7 @@ import java.util.Map;
  * accessible anywhere in the app itself.
  */
 public class ServiceThreadApplication extends Application {
-    /** This is only used by {@link LocalService#setPersistent(boolean)}. */
+    /** This is only used by {@link LocalService#setPersistent(boolean, Class)}. */
     private static ServiceThreadApplication sAppInstance;
 
     private LocalService mBoundService;
@@ -75,7 +83,7 @@ public class ServiceThreadApplication extends Application {
     /**
      * LocalService is a Service that Activities can bind to while active by calling
      * {@link #bindLocalService(Runnable)} and {@link #unbindLocalService(Runnable)}, or can call
-     * {@link #setPersistent(boolean)} to keep the service running in the background.
+     * {@link #setPersistent(boolean, Class)} to keep the service running in the background.
      * The service also manages its own thread and exposes two methods from the thread's Handler,
      * {@link #post(Runnable)} ()} and {@link #postDelayed(Runnable, long)}.
      */
@@ -86,6 +94,12 @@ public class ServiceThreadApplication extends Application {
         private boolean mIsPersistent;
         // Activities can use when running in the background.
         private Map<String, Object> cache = new HashMap<>();
+
+        private NotificationManager mNM;
+
+        // Unique Identification Number for the Notification.
+        // We use it on Notification start, and to cancel it.
+        private int NOTIFICATION = R.string.app_persisting;
 
         private class LocalBinder extends Binder {
             LocalService getService() {
@@ -98,6 +112,7 @@ public class ServiceThreadApplication extends Application {
             mHandlerThread = new HandlerThread(getClass().getName());
             mHandlerThread.start();
             mServiceHandler = new Handler(mHandlerThread.getLooper());
+            mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         }
 
         @Override
@@ -119,12 +134,36 @@ public class ServiceThreadApplication extends Application {
         public int onStartCommand(Intent intent, int flags, int startId) {
             Log.i("LocalService", "Received start id " + startId + ": " + intent);
             mIsPersistent = true;
+            Intent target = intent.getParcelableExtra("notificationTarget");
+            showNotification(target);
             return START_STICKY;
+        }
+
+        private void showNotification(Intent target) {
+            CharSequence text = getString(R.string.app_persisting, getText(R.string.app_name));
+
+            if (target == null) {
+                // Start the main activity for the app when the notification is clicked
+                target = getPackageManager().getLaunchIntentForPackage(getPackageName());
+            }
+
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 0, target, 0);
+
+            // Set the info for the views that show in the notification panel.
+            Notification notification = new Notification.Builder(this)
+                    .setSmallIcon(R.mipmap.ic_launcher)  // the status icon
+                    .setTicker(text)  // the status text
+                    .setWhen(System.currentTimeMillis())  // the time stamp
+                    .setContentText(text)  // the contents of the entry
+                    .setContentIntent(contentIntent)  // The intent to send when the entry is clicked
+                    .build();
+            mNM.notify(NOTIFICATION, notification);
         }
 
         @Override
         public boolean stopService(Intent name) {
             mIsPersistent = false;
+            mNM.cancel(NOTIFICATION);
             return super.stopService(name);
         }
 
@@ -134,10 +173,13 @@ public class ServiceThreadApplication extends Application {
 
         /**
          * Set whether this service should continue to run in the background.
+         * The target activity should have either android:launchMode="singleInstance" or
+         * android:launchMode="singleTask" set to avoid multiple instances.
          * Calls {@link #startService(Intent)} internally.
          */
-        public void setPersistent(boolean persist) {
+        public void setPersistent(boolean persist, Class<? extends Activity> notificationTarget) {
             Intent i = new Intent(sAppInstance, LocalService.class);
+            i.putExtra("notificationTarget", new Intent(this, notificationTarget));
             if (persist) {
                 startService(i);
             } else {

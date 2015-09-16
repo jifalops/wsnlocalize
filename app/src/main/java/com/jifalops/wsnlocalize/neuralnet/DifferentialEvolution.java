@@ -24,23 +24,23 @@ public class DifferentialEvolution extends NeuralNetwork {
     @Override
     protected void trainSampleBySample(double[][] samples) {
         for (int i = 0; i < population.length; i++) {
-            double[] crossed = crossover(population[i], mutate(population, i, F), CR);
+            double[] crossed = crossover(population[i], mutate(population, i, status.getBest(), F), CR);
             double err = calcError(crossed, samples);
             errors[i] = calcError(population[i], samples);
             if (err < errors[i]) {
                 population[i] = crossed;
                 errors[i] = err;
             }
-            status.updateIfBest(population[i], errors[i]);
+            status.updateIfBest(population[i], i, errors[i]);
         }
     }
 
     /** TODO check this against literature. */
-    static double[] mutate(double[][] population, int index, double F) {
+    static double[] mutate(double[][] population, int index, double[] gbest, double F) {
         double[] mutated = new double[population[0].length];
         double[][] rands = getRandomIndividuals(population, 4, index);
         for (int i = 0, len = mutated.length; i < len; ++i) {
-            mutated[i] = population[index][i] + F *
+            mutated[i] = gbest[i] + F *
                     (rands[0][i] - rands[1][i] + rands[2][i] - rands[3][i]);
         }
         return mutated;

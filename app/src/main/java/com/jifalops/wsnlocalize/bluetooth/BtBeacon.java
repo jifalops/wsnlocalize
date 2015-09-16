@@ -107,6 +107,7 @@ public class BtBeacon {
         if (a != null) {
             a.startActivityForResult(intent, reqCode);
         } else {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             ctx.startActivity(intent);
         }
     }

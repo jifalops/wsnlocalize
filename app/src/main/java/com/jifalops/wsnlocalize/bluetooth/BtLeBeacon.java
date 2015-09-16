@@ -67,6 +67,7 @@ public class BtLeBeacon {
         if (btAdapter == null || !btAdapter.isEnabled()) {
             Intent i = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             if (a == null) {
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 ctx.startActivity(i);
             } else {
                 a.startActivityForResult(i, reqCode);

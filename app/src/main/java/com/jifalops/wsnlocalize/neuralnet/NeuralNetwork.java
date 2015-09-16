@@ -21,6 +21,9 @@ public abstract class NeuralNetwork {
         this.population = population;
         this.weightMetrics = weightMetrics;
         this.errors = new double[population.length];
+        for (int i = 0; i < errors.length; ++i) {
+            errors[i] = 1_000_000;
+        }
         callbacks = cb;
     }
 
@@ -39,6 +42,7 @@ public abstract class NeuralNetwork {
 
     public double[] trainSampleBySample(double[][] samples, TerminationConditions conditions) {
         status = new TrainingStatus(weightMetrics, conditions);
+        status.updateIfBest(population[0], 0, 1_000_000 - 1);
         double stdDev;
         int generation = 0;
         do {

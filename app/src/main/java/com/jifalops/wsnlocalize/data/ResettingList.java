@@ -30,7 +30,7 @@ public class ResettingList<T> {
     /** @return true if the trigger limits were reached. */
     public boolean add(T item) {
         if (start == 0) start = System.nanoTime();
-        long elapsed = System.nanoTime() - start;
+        long elapsed = (System.nanoTime() - start) / 1_000_000; // millis
         list.add(item);
         if (limits.reached(list.size(), elapsed)) {
             if (callback != null) callback.onLimitsReached(list, elapsed);
