@@ -32,11 +32,6 @@ public abstract class NeuralNetwork {
     }
     public double getGlobalBestError() { return status.getBestError(); }
 
-    public double test(double[][] data) {
-        if (status == null) return 0;
-        return calcError(status.getBest(), data);
-    }
-
     protected abstract void onGenerationStarting(int index);
     protected abstract void trainSampleBySample(double[][] samples);
 
@@ -62,37 +57,37 @@ public abstract class NeuralNetwork {
      * The entire sample can be used (inputs + outputs) as long as the inputs
      * occupy the lower indexes (only the inputs will be used).
      */
-    public double[] calcOutputs(double[] weights, double[] inputsOrSample) {
-        double[] outputs = new double[weightMetrics.numOutputs];
-        double[] gamma = new double[weightMetrics.numHidden];
-        double[] z = new double[weightMetrics.numHidden];
+    public static double[] calcOutputs(double[] weights, double[] inputsOrSample, MlpWeightMetrics metrics) {
+        double[] outputs = new double[metrics.numOutputs];
+        double[] gamma = new double[metrics.numHidden];
+        double[] z = new double[metrics.numHidden];
 
         int start;
         // Weights for connections between input and hidden neurons.
-        for (int i = 0; i < weightMetrics.numInputs; i++) {
-            start = i * weightMetrics.numHidden;
-            for (int j = 0; j < weightMetrics.numHidden; j++) {
+        for (int i = 0; i < metrics.numInputs; i++) {
+            start = i * metrics.numHidden;
+            for (int j = 0; j < metrics.numHidden; j++) {
                 gamma[j] += weights[start + j] * inputsOrSample[i];
             }
         }
 
-        for (int j = 0; j < weightMetrics.numHidden; j++) {
+        for (int j = 0; j < metrics.numHidden; j++) {
             // Weights for the biases of hidden neurons.
-            gamma[j] += weights[weightMetrics.hiddenBiasesStart + j];
+            gamma[j] += weights[metrics.hiddenBiasesStart + j];
 
             // Sigmoid activation
             z[j] = 1 / (1 + Math.exp(-gamma[j]));
 
             // Weights for connections between hidden and output neurons.
-            start = weightMetrics.hiddenToOutputStart + j * weightMetrics.numOutputs;
-            for (int k = 0; k < weightMetrics.numOutputs; k++) {
+            start = metrics.hiddenToOutputStart + j * metrics.numOutputs;
+            for (int k = 0; k < metrics.numOutputs; k++) {
                 outputs[k] += weights[start + k] * z[j];
             }
         }
 
         // Weights for the biases of output neurons.
-        for (int k = 0; k < weightMetrics.numOutputs; k++) {
-            outputs[k] += weights[weightMetrics.outputBiasesStart + k];
+        for (int k = 0; k < metrics.numOutputs; k++) {
+            outputs[k] += weights[metrics.outputBiasesStart + k];
         }
 
         return outputs;
@@ -101,13 +96,13 @@ public abstract class NeuralNetwork {
     /**
      * Calculate the RMS error for an individual using all samples in the data set.
      */
-    protected double calcError(double[] weights, double[][] samples) {
+    protected static double calcError(double[] weights, double[][] samples, MlpWeightMetrics metrics) {
         double error = 0;
         double[] outputs;
         for (int i = 0; i < samples.length; i++) {
-            outputs = calcOutputs(weights, samples[i]);
-            for (int j = 0; j < weightMetrics.numOutputs; j++) {
-                error += Math.pow(outputs[j] - samples[i][weightMetrics.numInputs + j], 2) / 2;
+            outputs = calcOutputs(weights, samples[i], metrics);
+            for (int j = 0; j < metrics.numOutputs; j++) {
+                error += Math.pow(outputs[j] - samples[i][metrics.numInputs + j], 2) / 2;
             }
         }
         return error / samples.length;

@@ -25,8 +25,8 @@ public class DifferentialEvolution extends NeuralNetwork {
     protected void trainSampleBySample(double[][] samples) {
         for (int i = 0; i < population.length; i++) {
             double[] crossed = crossover(population[i], mutate(population, i, status.getBest(), F), CR);
-            double err = calcError(crossed, samples);
-            errors[i] = calcError(population[i], samples);
+            double err = calcError(crossed, samples, weightMetrics);
+            errors[i] = calcError(population[i], samples, weightMetrics);
             if (err < errors[i]) {
                 population[i] = crossed;
                 errors[i] = err;

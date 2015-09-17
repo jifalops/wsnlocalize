@@ -75,8 +75,8 @@ public class Depso extends ParticleSwarm {
 
         double[] crossed = DifferentialEvolution.crossover(population[index],
                 DifferentialEvolution.mutate(population, index, status.getBest(), F), CR);
-        double err = calcError(crossed, samples);
-        errors[index] = calcError(population[index], samples);
+        double err = calcError(crossed, samples, weightMetrics);
+        errors[index] = calcError(population[index], samples, weightMetrics);
         if (err < errors[index]) {
             population[index] = crossed;
             errors[index] = err;

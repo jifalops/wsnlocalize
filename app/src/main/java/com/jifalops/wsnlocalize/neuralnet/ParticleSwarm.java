@@ -62,7 +62,7 @@ public class ParticleSwarm extends NeuralNetwork {
     protected void trainSampleBySample(double[][] samples) {
         updateParticles();
         for (int i = 0; i < population.length; i++) {
-            errors[i] = calcError(population[i], samples);
+            errors[i] = calcError(population[i], samples, weightMetrics);
             if (errors[i] < pbestError[i]) {
                 pbest[i] = population[i];
                 pbestError[i] = errors[i];

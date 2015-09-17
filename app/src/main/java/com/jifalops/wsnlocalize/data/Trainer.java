@@ -62,7 +62,7 @@ public class Trainer {
 
     public double[] calcOutputs(double[] weights, double[] inputsOrSample) {
         if (nnet == null) return new double[] {0};
-        else return nnet.calcOutputs(weights, inputsOrSample);
+        else return nnet.calcOutputs(weights, inputsOrSample, metrics);
     }
 
     private final ResettingList.LimitsCallback<WindowRecord> trainingCB =
