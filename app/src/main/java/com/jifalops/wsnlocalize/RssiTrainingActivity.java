@@ -2,9 +2,6 @@ package com.jifalops.wsnlocalize;
 
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.le.AdvertiseSettings;
-import android.bluetooth.le.ScanResult;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,7 +9,6 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
@@ -27,22 +23,15 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
-import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
-import com.jifalops.wsnlocalize.data.ResettingList;
+import com.jifalops.wsnlocalize.data.Estimator;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
-import com.jifalops.wsnlocalize.file.TextReaderWriter;
-import com.jifalops.wsnlocalize.signal.RssiWindowTrainingDataManager;
 import com.jifalops.wsnlocalize.signal.SignalController;
 import com.jifalops.wsnlocalize.util.ServiceThreadApplication;
 import com.jifalops.wsnlocalize.util.SimpleLog;
-import com.jifalops.wsnlocalize.wifi.WifiScanner;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
  *
@@ -427,6 +416,11 @@ public class RssiTrainingActivity extends Activity {
         }
 
         @Override
+        public void onEstimatorsLoadedFromDisk(String signal, List<Estimator> estimators) {
+            //TODO
+        }
+
+        @Override
         public void onRecordAdded(String signal, SignalController.Device device, RssiRecord r) {
             updateCountView(signal, true);
         }
@@ -442,7 +436,7 @@ public class RssiTrainingActivity extends Activity {
         }
 
         @Override
-        public void onTrainingComplete(String signal, double[] weights, double error, int samples, int generations) {
+        public void onTrainingComplete(String signal, Estimator estimator, double error, int samples, int generations) {
 
         }
 
@@ -452,36 +446,36 @@ public class RssiTrainingActivity extends Activity {
         }
 
         @Override
-        public void onSentSuccess(String signal, boolean wasRssi, int count) {
+        public void onSentSuccess(String signal, String dataType, int count) {
 
         }
 
         @Override
-        public void onSentFailure(String signal, boolean wasRssi, int count, int respCode, String resp, String result) {
+        public void onSentFailure(String signal, String dataType, int count, int respCode, String resp, String result) {
 
         }
 
         @Override
-        public void onSentFailure(String signal, boolean wasRssi, int count, String volleyError) {
+        public void onSentFailure(String signal, String dataType, int count, String volleyError) {
 
         }
     };
 
     void updateCountView(String signal, boolean rssi) {
         switch (signal) {
-            case SignalController.SIGNAL_BT:
+            case Settings.SIGNAL_BT:
                 if (rssi) btRssiCountView.setText(controller.getBt().getRssiCount()+"");
                 else btWindowCountView.setText(controller.getBt().getWindowCount()+"");
                 break;
-            case SignalController.SIGNAL_BTLE:
+            case Settings.SIGNAL_BTLE:
                 if (rssi) btleRssiCountView.setText(controller.getBtle().getRssiCount()+"");
                 else btleWindowCountView.setText(controller.getBtle().getWindowCount()+"");
                 break;
-            case SignalController.SIGNAL_WIFI:
+            case Settings.SIGNAL_WIFI:
                 if (rssi) wifiRssiCountView.setText(controller.getWifi().getRssiCount()+"");
                 else wifiWindowCountView.setText(controller.getWifi().getWindowCount()+"");
                 break;
-            case SignalController.SIGNAL_WIFI5G:
+            case Settings.SIGNAL_WIFI5G:
                 if (rssi) wifi5gRssiCountView.setText(controller.getWifi5g().getRssiCount()+"");
                 else wifi5gWindowCountView.setText(controller.getWifi5g().getWindowCount()+"");
                 break;

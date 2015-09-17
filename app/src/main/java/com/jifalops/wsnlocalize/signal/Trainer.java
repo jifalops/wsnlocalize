@@ -1,13 +1,16 @@
-package com.jifalops.wsnlocalize.data;
+package com.jifalops.wsnlocalize.signal;
 
 import android.os.Handler;
 import android.os.HandlerThread;
 
+import com.jifalops.wsnlocalize.data.RssiRecord;
+import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.neuralnet.Depso;
 import com.jifalops.wsnlocalize.neuralnet.MlpWeightMetrics;
 import com.jifalops.wsnlocalize.neuralnet.NeuralNetwork;
 import com.jifalops.wsnlocalize.neuralnet.Scaler;
 import com.jifalops.wsnlocalize.neuralnet.TerminationConditions;
+import com.jifalops.wsnlocalize.util.ResettingList;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -25,7 +28,7 @@ public class Trainer {
 
     private final ResettingList<RssiRecord> windower;
     private final ResettingList<WindowRecord> trigger;
-    private   NeuralNetwork nnet; // TODO make non-public
+    private   NeuralNetwork nnet;
     private final TerminationConditions termCond;
 
     private final HandlerThread thread;
@@ -60,15 +63,10 @@ public class Trainer {
         }
     };
 
-    public double[] calcOutputs(double[] weights, double[] inputsOrSample) {
-        if (nnet == null) return new double[] {0};
-        else return nnet.calcOutputs(weights, inputsOrSample, metrics);
-    }
-
     private final ResettingList.LimitsCallback<WindowRecord> trainingCB =
             new ResettingList.LimitsCallback<WindowRecord>() {
         @Override
-        public void onLimitsReached(List<WindowRecord> list, long time) {
+        public void onLimitsReached(final List<WindowRecord> list, long time) {
             final double[][] samples = WindowRecord.toSamples(list);
             final double[][] toTrain = callbacks.onTimeToTrain(list, samples);
             handler.post(new Runnable() {

@@ -1,4 +1,4 @@
-package com.jifalops.wsnlocalize.data;
+package com.jifalops.wsnlocalize.util;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;

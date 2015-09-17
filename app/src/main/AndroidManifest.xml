@@ -50,7 +50,13 @@
             android:label="RSSI Training"
             android:configChanges="orientation"
             android:screenOrientation="portrait"
-            android:launchMode="singleInstance"/>
+            android:launchMode="singleInstance" />
+        <activity
+            android:name=".DistanceEstimationActivity"
+            android:label="Distance Estimates"
+            android:configChanges="orientation"
+            android:screenOrientation="portrait"
+            android:launchMode="singleInstance" />
     </application>
 
 </manifest>

@@ -5,9 +5,10 @@ import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
 
+import com.jifalops.wsnlocalize.Settings;
 import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
-import com.jifalops.wsnlocalize.data.ResettingList;
+import com.jifalops.wsnlocalize.data.Estimator;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.util.SimpleLog;
@@ -25,26 +26,6 @@ public class SignalController {
     public static final int LOG_IMPORTANT = 3;
     public static final int LOG_INFORMATIVE = 2;
     public static final int LOG_ALL = 1;
-
-    public static final String SIGNAL_BT = "bt";
-    public static final String SIGNAL_BTLE = "btle";
-    public static final String SIGNAL_WIFI = "wifi";
-    public static final String SIGNAL_WIFI5G = "wifi5g";
-
-    public static final double ESTIMATE_MIN = 0.1;
-    public static final double ESTIMATE_BT_MAX = 15;
-    public static final double ESTIMATE_WIFI_MAX = 110;
-
-    final ResettingList.Limits
-        btWindowTrigger = new ResettingList.Limits(3, 10_000, 5, 120_000),
-        btTrainTrigger = new ResettingList.Limits(2, 30_000, 10, 120_000),
-
-        btleWindowTrigger = new ResettingList.Limits(15, 5_000, 20, 30_000),
-        btleTrainTrigger = new ResettingList.Limits(3, 30_000, 10, 120_000),
-
-        wifiWindowTrigger = new ResettingList.Limits(5, 5_000, 20, 20_000),
-        wifiTrainTrigger = new ResettingList.Limits(3, 30_000, 10, 1200_000);
-
 
     public static class Device {
         public final int id;
@@ -83,16 +64,16 @@ public class SignalController {
         btleBeacon = BtLeBeacon.getInstance(ctx);
         wifiScanner = WifiScanner.getInstance(ctx);
 
-        File dir = ctx.getExternalFilesDir(null);
+        File dir = Settings.getDataDir(ctx);
 
-        bt = new RssiWindowTrainingDataManager(SIGNAL_BT, dir,
-                btWindowTrigger, btTrainTrigger, callbacks);
-        btle = new RssiWindowTrainingDataManager(SIGNAL_BTLE, dir,
-                btleWindowTrigger, btleTrainTrigger, callbacks);
-        wifi = new RssiWindowTrainingDataManager(SIGNAL_WIFI, dir,
-                wifiWindowTrigger, wifiTrainTrigger, callbacks);
-        wifi5g = new RssiWindowTrainingDataManager(SIGNAL_WIFI5G, dir,
-                wifiWindowTrigger, wifiTrainTrigger, callbacks);
+        bt = new RssiWindowTrainingDataManager(Settings.SIGNAL_BT, dir,
+                Settings.btWindowTrigger, Settings.btTrainTrigger, callbacks);
+        btle = new RssiWindowTrainingDataManager(Settings.SIGNAL_BTLE, dir,
+                Settings.btleWindowTrigger, Settings.btleTrainTrigger, callbacks);
+        wifi = new RssiWindowTrainingDataManager(Settings.SIGNAL_WIFI, dir,
+                Settings.wifiWindowTrigger, Settings.wifiTrainTrigger, callbacks);
+        wifi5g = new RssiWindowTrainingDataManager(Settings.SIGNAL_WIFI5G, dir,
+                Settings.wifiWindowTrigger, Settings.wifiTrainTrigger, callbacks);
     }
 
     public RssiWindowTrainingDataManager getBt() { return bt; }
@@ -253,13 +234,13 @@ public class SignalController {
 //                String time = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.US).format(new Date());
                 RssiRecord record = new RssiRecord(device.mac, rssi, freq,
                         System.currentTimeMillis(), distance);
-                if (signal.equals(SIGNAL_BT)) {
+                if (signal.equals(Settings.SIGNAL_BT)) {
                     bt.add(record);
-                } else if (signal.equals(SIGNAL_BTLE)) {
+                } else if (signal.equals(Settings.SIGNAL_BTLE)) {
                     btle.add(record);
-                } else if (signal.equals(SIGNAL_WIFI)) {
+                } else if (signal.equals(Settings.SIGNAL_WIFI)) {
                     wifi.add(record);
-                } else if (signal.equals(SIGNAL_WIFI5G)) {
+                } else if (signal.equals(Settings.SIGNAL_WIFI5G)) {
                     wifi5g.add(record);
                 }
                 for (SignalListener l : listeners) l.onRecordAdded(signal, device, record);
@@ -275,7 +256,7 @@ public class SignalController {
         @Override
         public void onDeviceFound(BluetoothDevice device, short rssi) {
             addRecord(getDevice(device.getAddress(), device.getName() + " (BT)"),
-                    SIGNAL_BT, rssi, 2400);
+                    Settings.SIGNAL_BT, rssi, 2400);
         }
 
         @Override
@@ -328,7 +309,7 @@ public class SignalController {
             BluetoothDevice device = result.getDevice();
             if (device != null) {
                 addRecord(getDevice(device.getAddress(), device.getName() + " (BTLE)"),
-                        SIGNAL_BTLE, result.getRssi(), 2400);
+                        Settings.SIGNAL_BTLE, result.getRssi(), 2400);
             } else {
                 addEvent(LOG_INFORMATIVE, "BTLE received " + result.getRssi() + " dBm from null device.");
             }
@@ -341,7 +322,7 @@ public class SignalController {
             addEvent(LOG_ALL, "WiFi found " + scanResults.size() + " results.");
             String signal;
             for (android.net.wifi.ScanResult r : scanResults) {
-                signal = r.frequency < 4000 ? SIGNAL_WIFI : SIGNAL_WIFI5G;
+                signal = r.frequency < 4000 ? Settings.SIGNAL_WIFI : Settings.SIGNAL_WIFI5G;
                 addRecord(getDevice(r.BSSID, r.SSID + " (WiFi " + r.frequency + "MHz)"),
                         signal, r.level, r.frequency);
             }
@@ -360,6 +341,11 @@ public class SignalController {
         }
 
         @Override
+        public void onEstimatorsLoadedFromDisk(String signal, List<Estimator> estimators) {
+            for (SignalListener l : listeners) l.onEstimatorsLoadedFromDisk(signal, estimators);
+        }
+
+        @Override
         public void onTrainingStarting(String signal, int samples) {
             addEvent(LOG_IMPORTANT, "Training " + signal + " with " + samples + " samples.");
             for (SignalListener l : listeners) l.onTrainingStarting(signal, samples);
@@ -373,11 +359,11 @@ public class SignalController {
         }
 
         @Override
-        public void onTrainingComplete(String signal, double[] weights, double error, int samples, int generations) {
+        public void onTrainingComplete(String signal, Estimator estimator, double error, int samples, int generations) {
             addEvent(LOG_IMPORTANT, "Trained " + signal + " with " +
                     samples + " samples, error = " + String.format(Locale.US, "%1.4f", error)
-                    + " generations: " + generations);
-            for (SignalListener l : listeners) l.onTrainingComplete(signal, weights, error, samples, generations);
+                    + " gen: " + generations);
+            for (SignalListener l : listeners) l.onTrainingComplete(signal, estimator, error, samples, generations);
         }
 
         @Override
@@ -394,27 +380,24 @@ public class SignalController {
         }
 
         @Override
-        public void onSentSuccess(String signal, boolean wasRssi, int count) {
-            String dataType = wasRssi ? " rssi " : " window ";
-            addEvent(LOG_IMPORTANT, signal + " sent " + count + dataType + "records successfully.");
-            for (SignalListener l : listeners) l.onSentSuccess(signal, wasRssi, count);
+        public void onSentSuccess(String signal, String dataType, int count) {
+            addEvent(LOG_IMPORTANT, signal + " sent " + count + " " + dataType + " records successfully.");
+            for (SignalListener l : listeners) l.onSentSuccess(signal, dataType, count);
         }
 
         @Override
-        public void onSentFailure(String signal, boolean wasRssi, int count,
+        public void onSentFailure(String signal, String dataType, int count,
                                   int respCode, String resp, String result) {
-            String type = wasRssi ? " rssi " : " window ";
-            addEvent(LOG_IMPORTANT, signal + " failed to send " + count + type + "records. " +
+            addEvent(LOG_IMPORTANT, signal + " failed to send " + count + " " + dataType + " records. " +
                     respCode + ": " + resp + ". Result: " + result);
-            for (SignalListener l : listeners) l.onSentFailure(signal, wasRssi, count, respCode, resp, result);
+            for (SignalListener l : listeners) l.onSentFailure(signal, dataType, count, respCode, resp, result);
         }
 
         @Override
-        public void onSentFailure(String signal, boolean wasRssi, int count, String volleyError) {
-            String type = wasRssi ? " rssi " : " window ";
-            addEvent(LOG_IMPORTANT, signal + " failed to send " + count + type + "records. " +
+        public void onSentFailure(String signal, String dataType, int count, String volleyError) {
+            addEvent(LOG_IMPORTANT, signal + " failed to send " + count + " " + dataType + " records. " +
                     volleyError);
-            for (SignalListener l : listeners) l.onSentFailure(signal, wasRssi, count, volleyError);
+            for (SignalListener l : listeners) l.onSentFailure(signal, dataType, count, volleyError);
         }
     };
 
@@ -427,14 +410,15 @@ public class SignalController {
         void onDeviceFound(Device device);
         void onRssiLoadedFromDisk(String signal, List<RssiRecord> records);
         void onWindowsLoadedFromDisk(String signal, List<WindowRecord> records);
+        void onEstimatorsLoadedFromDisk(String signal, List<Estimator> estimators);
         void onRecordAdded(String signal, Device device, RssiRecord r);
         void onTrainingStarting(String signal, int samples);
         void onGenerationFinished(String signal, int gen, double best, double mean, double stdDev);
-        void onTrainingComplete(String signal, double[] weights, double error, int samples, int generations);
+        void onTrainingComplete(String signal, Estimator estimator, double error, int samples, int generations);
         void onWindowReady(String signal, WindowRecord record);
-        void onSentSuccess(String signal, boolean wasRssi, int count);
-        void onSentFailure(String signal, boolean wasRssi, int count, int respCode, String resp, String result);
-        void onSentFailure(String signal, boolean wasRssi, int count, String volleyError);
+        void onSentSuccess(String signal, String dataType, int count);
+        void onSentFailure(String signal, String dataType, int count, int respCode, String resp, String result);
+        void onSentFailure(String signal, String dataType, int count, String volleyError);
     }
     private final List<SignalListener> listeners = new ArrayList<>(1);
     public boolean registerListener(SignalListener l) {

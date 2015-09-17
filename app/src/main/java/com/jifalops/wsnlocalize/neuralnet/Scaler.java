@@ -1,5 +1,9 @@
 package com.jifalops.wsnlocalize.neuralnet;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -9,12 +13,11 @@ import java.util.List;
  */
 public class Scaler {
     // When scaled
-    int inputMin = -1, inputMax = 1, outputMin = 0, outputMax = 1;
+    final int numInputs, inputMin = -1, inputMax = 1, outputMin = 0, outputMax = 1;
 
     // Before scaling
     final double[] min, max;
 
-    int numInputs;
 
     /** @param data used to set the min and max for each column. */
     public Scaler(double[][] data, int numInputs) {
@@ -31,6 +34,47 @@ public class Scaler {
                 if (data[row][col] > max[col]) max[col] = data[row][col];
             }
         }
+    }
+
+    public Scaler(String jsonObject) throws JSONException {
+        JSONObject json = new JSONObject(jsonObject);
+        numInputs = json.getInt("numInputs");
+        JSONArray minj = json.getJSONArray("min");
+        JSONArray maxj = json.getJSONArray("max");
+        int len = minj.length();
+        min = new double[len];
+        max = new double[len];
+        for (int i = 0; i < len; ++i) {
+            min[i] = minj.getDouble(i);
+            max[i] = maxj.getDouble(i);
+        }
+    }
+
+    @Override
+    public String toString() {
+        JSONObject json = new JSONObject();
+        try {
+            json.put("numInputs", numInputs);
+            JSONArray minj = new JSONArray();
+            JSONArray maxj = new JSONArray();
+            for (int i = 0; i < min.length; ++i) {
+                minj.put(i, min[i]);
+                maxj.put(i, max[i]);
+            }
+            json.put("min", minj);
+            json.put("max", maxj);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return json.toString();
+    }
+
+    public int getNumInputs() {
+        return numInputs;
+    }
+
+    public int getNumColumns() {
+        return min.length;
     }
 
     public double[][] scale(double[][] data) {
@@ -70,7 +114,7 @@ public class Scaler {
         return unscaled;
     }
 
-    public double[][] randomize(double[][] data) {
+    public static double[][] randomize(double[][] data) {
         List<double[]> rand = Arrays.asList(data);
         Collections.shuffle(rand);
         return rand.toArray(new double[data.length][data[0].length]);

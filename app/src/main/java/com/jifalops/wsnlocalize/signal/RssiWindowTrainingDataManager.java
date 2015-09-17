@@ -3,18 +3,21 @@ package com.jifalops.wsnlocalize.signal;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.jifalops.wsnlocalize.App;
-import com.jifalops.wsnlocalize.data.ResettingList;
+import com.jifalops.wsnlocalize.Settings;
+import com.jifalops.wsnlocalize.data.Estimator;
 import com.jifalops.wsnlocalize.data.RssiRecord;
-import com.jifalops.wsnlocalize.data.Trainer;
 import com.jifalops.wsnlocalize.data.WindowRecord;
+import com.jifalops.wsnlocalize.file.EstimatorReaderWriter;
 import com.jifalops.wsnlocalize.file.NumberReaderWriter;
 import com.jifalops.wsnlocalize.file.RssiReaderWriter;
 import com.jifalops.wsnlocalize.file.WindowReaderWriter;
 import com.jifalops.wsnlocalize.neuralnet.Scaler;
 import com.jifalops.wsnlocalize.request.AbsRequest;
+import com.jifalops.wsnlocalize.request.EstimatorRequest;
 import com.jifalops.wsnlocalize.request.RssiRequest;
 import com.jifalops.wsnlocalize.request.WindowRequest;
 import com.jifalops.wsnlocalize.util.Arrays;
+import com.jifalops.wsnlocalize.util.ResettingList;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -25,43 +28,58 @@ import java.util.List;
  */
 public class RssiWindowTrainingDataManager {
     public interface Callbacks {
-        void onRssiLoadedFromDisk(String signal, List<RssiRecord> records);
-        void onWindowsLoadedFromDisk(String signal, List<WindowRecord> records);
+        void onRssiLoadedFromDisk(String signal, List<RssiRecord> rssiList);
+        void onWindowsLoadedFromDisk(String signal, List<WindowRecord> windows);
+        void onEstimatorsLoadedFromDisk(String signal, List<Estimator> estimators);
         void onTrainingStarting(String signal, int samples);
         void onGenerationFinished(String signal, int gen, double best, double mean, double stdDev);
-        void onTrainingComplete(String signal, double[] weights, double error, int samples, int generations);
+        void onTrainingComplete(String signal, Estimator estimator, double error, int samples, int generations);
         void onWindowReady(String signal, WindowRecord record);
-        void onSentSuccess(String signal, boolean wasRssi, int count);
-        void onSentFailure(String signal, boolean wasRssi, int count, int respCode, String resp, String result);
-        void onSentFailure(String signal, boolean wasRssi, int count, String volleyError);
+        void onSentSuccess(String signal, String dataType, int count);
+        void onSentFailure(String signal, String dataType, int count, int respCode, String resp, String result);
+        void onSentFailure(String signal, String dataType, int count, String volleyError);
     }
 
     final String signalType;
     final Trainer trainer;
+
     final RssiReaderWriter rssiRW;
     final WindowReaderWriter windowRW;
     final NumberReaderWriter sampleRW;
-    final NumberReaderWriter weightRW;
+    final EstimatorReaderWriter estimatorRW;
+
     final List<RssiRecord> rssi = new ArrayList<>();
     final List<WindowRecord> windows = new ArrayList<>();
+    final List<Estimator> estimators = new ArrayList<>();
+
+    Estimator estimator;
+    final double maxEstimate;
+
     final Callbacks callbacks;
-    private double[][] toTrain, weightHistory;
-    Scaler scaler;
+    private double[][] toTrain;
+
 
     RssiWindowTrainingDataManager(String signalType, File dir, ResettingList.Limits rssiWindowLimits,
                                   ResettingList.Limits windowTrainingLimits, Callbacks callbacks) {
         this.signalType = signalType;
         MyCallbacks myCallbacks = new MyCallbacks();
         trainer = new Trainer(rssiWindowLimits, windowTrainingLimits, myCallbacks);
-        rssiRW = new RssiReaderWriter(new File(dir, signalType+"-rssi.csv"), myCallbacks);
-        windowRW = new WindowReaderWriter(new File(dir, signalType+"-windows.csv"), myCallbacks);
-        sampleRW = new NumberReaderWriter(new File(dir, signalType+"-samples.csv"), myCallbacks);
-        weightRW = new NumberReaderWriter(new File(dir, signalType+"-weights.csv"), myCallbacks);
+        rssiRW = new RssiReaderWriter(new File(dir,
+                Settings.getFileName(signalType, Settings.DATA_RSSI)), myCallbacks);
+        windowRW = new WindowReaderWriter(new File(dir,
+                Settings.getFileName(signalType, Settings.DATA_WINDOW)), myCallbacks);
+        sampleRW = new NumberReaderWriter(new File(dir,
+                Settings.getFileName(signalType, Settings.DATA_SAMPLES)), myCallbacks);
+        estimatorRW = new EstimatorReaderWriter(new File(dir,
+                Settings.getFileName(signalType, Settings.DATA_ESTIMATOR)), myCallbacks);
         this.callbacks = callbacks;
         rssiRW.readRecords();
         windowRW.readRecords();
         sampleRW.readNumbers();
-        weightRW.readNumbers();
+        estimatorRW.readLines();
+        maxEstimate = (signalType == Settings.SIGNAL_BT || signalType == Settings.SIGNAL_BTLE)
+                ? Estimator.BT_MAX
+                : Estimator.WIFI_MAX;
     }
 
     public void add(RssiRecord record) {
@@ -93,16 +111,18 @@ public class RssiWindowTrainingDataManager {
     public void clearTrainingSamples() {
         trainer.resetAllWindows();
         toTrain = null;
-        weightHistory = null;
+        estimators.clear();
+        estimator = null;
+        estimatorRW.truncate();
         sampleRW.truncate();
-        weightRW.truncate();
+        estimatorRW.truncate();
     }
 
     public void close() {
         rssiRW.close();
         windowRW.close();
         sampleRW.close();
-        weightRW.close();
+        estimatorRW.close();
         trainer.close();
     }
 
@@ -117,10 +137,10 @@ public class RssiWindowTrainingDataManager {
                         public void onResponse(AbsRequest.MyResponse response) {
                             if (response.responseCode == 200) {
                                 rssiRW.writeRecords(rssi, false);
-                                callbacks.onSentSuccess(signalType, true, toSend);
+                                callbacks.onSentSuccess(signalType, Settings.DATA_RSSI, toSend);
                             } else {
                                 rssi.addAll(sending);
-                                callbacks.onSentFailure(signalType, true, toSend,
+                                callbacks.onSentFailure(signalType, Settings.DATA_RSSI, toSend,
                                         response.responseCode, response.responseMessage,
                                         response.queryResult);
                             }
@@ -129,7 +149,7 @@ public class RssiWindowTrainingDataManager {
                         @Override
                         public void onErrorResponse(VolleyError volleyError) {
                             rssi.addAll(sending);
-                            callbacks.onSentFailure(signalType, true, toSend,
+                            callbacks.onSentFailure(signalType, Settings.DATA_RSSI, toSend,
                                     volleyError.toString());
                         }
                     }));
@@ -144,10 +164,10 @@ public class RssiWindowTrainingDataManager {
                         public void onResponse(AbsRequest.MyResponse response) {
                             if (response.responseCode == 200) {
                                 windowRW.writeRecords(windows, false);
-                                callbacks.onSentSuccess(signalType, false, toSend);
+                                callbacks.onSentSuccess(signalType, Settings.DATA_WINDOW, toSend);
                             } else {
                                 windows.addAll(sending);
-                                callbacks.onSentFailure(signalType, false, toSend,
+                                callbacks.onSentFailure(signalType, Settings.DATA_WINDOW, toSend,
                                         response.responseCode, response.responseMessage,
                                         response.queryResult);
                             }
@@ -156,7 +176,33 @@ public class RssiWindowTrainingDataManager {
                 @Override
                 public void onErrorResponse(VolleyError volleyError) {
                     windows.addAll(sending);
-                    callbacks.onSentFailure(signalType, false, toSend, volleyError.toString());
+                    callbacks.onSentFailure(signalType, Settings.DATA_WINDOW, toSend, volleyError.toString());
+                }
+            }));
+        }
+        if (estimators.size() > 0) {
+            final List<Estimator> sending = new ArrayList<>(estimators);
+            final int toSend = sending.size();
+            estimators.clear();
+            App.getInstance().sendRequest(new EstimatorRequest(signalType, estimators,
+                    new Response.Listener<AbsRequest.MyResponse>() {
+                        @Override
+                        public void onResponse(AbsRequest.MyResponse response) {
+                            if (response.responseCode == 200) {
+                                estimatorRW.writeRecords(estimators, false);
+                                callbacks.onSentSuccess(signalType, Settings.DATA_ESTIMATOR, toSend);
+                            } else {
+                                estimators.addAll(sending);
+                                callbacks.onSentFailure(signalType, Settings.DATA_ESTIMATOR, toSend,
+                                        response.responseCode, response.responseMessage,
+                                        response.queryResult);
+                            }
+                        }
+                    }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError volleyError) {
+                    estimators.addAll(sending);
+                    callbacks.onSentFailure(signalType, Settings.DATA_ESTIMATOR, toSend, volleyError.toString());
                 }
             }));
         }
@@ -165,7 +211,7 @@ public class RssiWindowTrainingDataManager {
 
     private class MyCallbacks implements Trainer.TrainerCallbacks,
             RssiReaderWriter.RssiCallbacks, WindowReaderWriter.WindowCallbacks,
-            NumberReaderWriter.NumberCallbacks {
+            NumberReaderWriter.NumberCallbacks, EstimatorReaderWriter.EstimatorCallbacks {
         @Override
         public void onRssiRecordsRead(RssiReaderWriter rw, List<RssiRecord> records) {
             rssi.clear();
@@ -192,12 +238,7 @@ public class RssiWindowTrainingDataManager {
 
         @Override
         public void onNumbersRead(NumberReaderWriter rw, double[][] numbers) {
-            if (rw == sampleRW) {
-                toTrain = numbers;
-            } else if (rw == weightRW) {
-                weightHistory = numbers;
-            }
-//            callbacks.onDataFileRead(rw);
+            toTrain = numbers;
         }
 
         @Override
@@ -207,30 +248,13 @@ public class RssiWindowTrainingDataManager {
 
         @Override
         public void onWindowRecordReady(WindowRecord record, List<RssiRecord> from) {
-            windows.add(record);
             rssiRW.writeRecords(from, true);
 
-            if (weightHistory != null && weightHistory.length > 0 && scaler != null) {
-                double[][] sample = new double[][] {record.toTrainingArray()};
-                double[][] scaled = scaler.scale(sample);
-                double[] outputs = trainer.calcOutputs(
-                        weightHistory[weightHistory.length-1], scaled[0]);
-                double estimate = scaler.unscale(outputs)[0];
-
-                if (estimate < SignalController.ESTIMATE_MIN) {
-                    estimate = SignalController.ESTIMATE_MIN;
-                } else if ((signalType.equals(SignalController.SIGNAL_BT) ||
-                        signalType.equals(SignalController.SIGNAL_BTLE)) &&
-                        estimate > SignalController.ESTIMATE_BT_MAX) {
-                    estimate = SignalController.ESTIMATE_BT_MAX;
-                } else if ((signalType.equals(SignalController.SIGNAL_WIFI) ||
-                        signalType.equals(SignalController.SIGNAL_WIFI5G)) &&
-                        estimate > SignalController.ESTIMATE_WIFI_MAX) {
-                    estimate = SignalController.ESTIMATE_WIFI_MAX;
-                }
-                record.estimated = estimate;
+            if (estimator != null) {
+                estimator.estimate(record);
             }
 
+            windows.add(record);
             List<WindowRecord> list = new ArrayList<>();
             list.add(record);
             windowRW.writeRecords(list, true);
@@ -258,15 +282,29 @@ public class RssiWindowTrainingDataManager {
 
         @Override
         public void onTrainingComplete(double[] weights, double error, int samples, int generations, Scaler scaler) {
-            double[][] tmp = new double[][] { weights };
-            RssiWindowTrainingDataManager.this.scaler = scaler;
-            weightRW.writeNumbers(tmp, true);
-            if (weightHistory == null) {
-                weightHistory = tmp;
-            } else {
-                Arrays.concat(weightHistory, tmp);
+            estimator = new Estimator(weights, scaler, maxEstimate);
+            estimators.add(estimator);
+
+            List<Estimator> tmp = new ArrayList<>();
+            tmp.add(estimator);
+            estimatorRW.writeRecords(tmp, true);
+
+            callbacks.onTrainingComplete(signalType, estimator, error, samples, generations);
+        }
+
+        @Override
+        public void onEstimatorRecordsRead(EstimatorReaderWriter rw, List<Estimator> records) {
+            estimators.clear();
+            estimators.addAll(records);
+            if (records.size() > 0) {
+                estimator = estimators.get(estimators.size() - 1);
             }
-            callbacks.onTrainingComplete(signalType, weights, error, samples, generations);
+            callbacks.onEstimatorsLoadedFromDisk(signalType, records);
+        }
+
+        @Override
+        public void onEstimatorRecordsWritten(EstimatorReaderWriter rw, int recordsWritten) {
+
         }
     }
 
