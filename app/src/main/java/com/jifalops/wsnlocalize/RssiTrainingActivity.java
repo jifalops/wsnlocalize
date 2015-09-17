@@ -42,10 +42,10 @@ public class RssiTrainingActivity extends Activity {
     static final String CONTROLLER = RssiTrainingActivity.class.getName() + ".controller";
 
     TextView eventLogView, deviceLogView,
-            btRssiCountView, btWindowCountView,
-            btleRssiCountView, btleWindowCountView,
-            wifiRssiCountView, wifiWindowCountView,
-            wifi5gRssiCountView, wifi5gWindowCountView,
+            btRssiCountView, btWindowCountView, btEstimatorCountView,
+            btleRssiCountView, btleWindowCountView, btleEstimatorCountView,
+            wifiRssiCountView, wifiWindowCountView, wifiEstimatorCountView,
+            wifi5gRssiCountView, wifi5gWindowCountView, wifi5gEstimatorCountView,
             deviceIdView;
     EditText distanceView;
     Switch collectSwitch;
@@ -73,6 +73,10 @@ public class RssiTrainingActivity extends Activity {
         btleWindowCountView = (TextView) findViewById(R.id.btleWindowCount);
         wifiWindowCountView = (TextView) findViewById(R.id.wifiWindowCount);
         wifi5gWindowCountView = (TextView) findViewById(R.id.wifi5gWindowCount);
+        btEstimatorCountView = (TextView) findViewById(R.id.btEstimatorCount);
+        btleEstimatorCountView = (TextView) findViewById(R.id.btleEstimatorCount);
+        wifiEstimatorCountView = (TextView) findViewById(R.id.wifiEstimatorCount);
+        wifi5gEstimatorCountView = (TextView) findViewById(R.id.wifi5gEstimatorCount);
         collectSwitch = (Switch) findViewById(R.id.collectSwitch);
         btCheckBox = (CheckBox) findViewById(R.id.btCheckBox);
         btleCheckBox = (CheckBox) findViewById(R.id.btleCheckBox);
@@ -299,12 +303,16 @@ public class RssiTrainingActivity extends Activity {
     void updateSendCounts() {
         btRssiCountView.setText(controller.getBt().getRssiCount() + "");
         btWindowCountView.setText(controller.getBt().getWindowCount() + "");
+        btEstimatorCountView.setText(controller.getBt().getEstimatorCount() + "");
         btleRssiCountView.setText(controller.getBtle().getRssiCount() + "");
         btleWindowCountView.setText(controller.getBtle().getWindowCount() + "");
+        btleEstimatorCountView.setText(controller.getBtle().getEstimatorCount() + "");
         wifiRssiCountView.setText(controller.getWifi().getRssiCount() + "");
         wifiWindowCountView.setText(controller.getWifi().getWindowCount() + "");
+        wifiEstimatorCountView.setText(controller.getWifi().getEstimatorCount() + "");
         wifi5gRssiCountView.setText(controller.getWifi5g().getRssiCount() + "");
         wifi5gWindowCountView.setText(controller.getWifi5g().getWindowCount() + "");
+        wifi5gEstimatorCountView.setText(controller.getWifi5g().getEstimatorCount() + "");
     }
 
     void loadDevicesAndEvents() {
@@ -407,22 +415,22 @@ public class RssiTrainingActivity extends Activity {
 
         @Override
         public void onRssiLoadedFromDisk(String signal, List<RssiRecord> records) {
-            updateCountView(signal, true);
+            updateCountView(signal, Settings.DATA_RSSI);
         }
 
         @Override
         public void onWindowsLoadedFromDisk(String signal, List<WindowRecord> records) {
-            updateCountView(signal, false);
+            updateCountView(signal, Settings.DATA_WINDOW);
         }
 
         @Override
         public void onEstimatorsLoadedFromDisk(String signal, List<Estimator> estimators) {
-            //TODO
+            updateCountView(signal, Settings.DATA_ESTIMATOR);
         }
 
         @Override
         public void onRecordAdded(String signal, SignalController.Device device, RssiRecord r) {
-            updateCountView(signal, true);
+            updateCountView(signal, Settings.DATA_RSSI);
         }
 
         @Override
@@ -437,12 +445,12 @@ public class RssiTrainingActivity extends Activity {
 
         @Override
         public void onTrainingComplete(String signal, Estimator estimator, double error, int samples, int generations) {
-
+            updateCountView(signal, Settings.DATA_ESTIMATOR);
         }
 
         @Override
         public void onWindowReady(String signal, WindowRecord record) {
-            updateCountView(signal, false);
+            updateCountView(signal, Settings.DATA_WINDOW);
         }
 
         @Override
@@ -461,23 +469,59 @@ public class RssiTrainingActivity extends Activity {
         }
     };
 
-    void updateCountView(String signal, boolean rssi) {
+    void updateCountView(String signal, String data) {
         switch (signal) {
             case Settings.SIGNAL_BT:
-                if (rssi) btRssiCountView.setText(controller.getBt().getRssiCount()+"");
-                else btWindowCountView.setText(controller.getBt().getWindowCount()+"");
+                switch (data) {
+                    case Settings.DATA_RSSI:
+                        btRssiCountView.setText(controller.getBt().getRssiCount() + "");
+                        break;
+                    case Settings.DATA_WINDOW:
+                        btWindowCountView.setText(controller.getBt().getWindowCount() + "");
+                        break;
+                    case Settings.DATA_ESTIMATOR:
+                        btEstimatorCountView.setText(controller.getBt().getEstimatorCount()+"");
+                        break;
+                }
                 break;
             case Settings.SIGNAL_BTLE:
-                if (rssi) btleRssiCountView.setText(controller.getBtle().getRssiCount()+"");
-                else btleWindowCountView.setText(controller.getBtle().getWindowCount()+"");
+                switch (data) {
+                    case Settings.DATA_RSSI:
+                        btleRssiCountView.setText(controller.getBtle().getRssiCount() + "");
+                        break;
+                    case Settings.DATA_WINDOW:
+                        btleWindowCountView.setText(controller.getBtle().getWindowCount() + "");
+                        break;
+                    case Settings.DATA_ESTIMATOR:
+                        btleEstimatorCountView.setText(controller.getBtle().getEstimatorCount()+"");
+                        break;
+                }
                 break;
             case Settings.SIGNAL_WIFI:
-                if (rssi) wifiRssiCountView.setText(controller.getWifi().getRssiCount()+"");
-                else wifiWindowCountView.setText(controller.getWifi().getWindowCount()+"");
+                switch (data) {
+                    case Settings.DATA_RSSI:
+                        wifiRssiCountView.setText(controller.getWifi().getRssiCount() + "");
+                        break;
+                    case Settings.DATA_WINDOW:
+                        wifiWindowCountView.setText(controller.getWifi().getWindowCount() + "");
+                        break;
+                    case Settings.DATA_ESTIMATOR:
+                        wifiEstimatorCountView.setText(controller.getWifi().getEstimatorCount()+"");
+                        break;
+                }
                 break;
             case Settings.SIGNAL_WIFI5G:
-                if (rssi) wifi5gRssiCountView.setText(controller.getWifi5g().getRssiCount()+"");
-                else wifi5gWindowCountView.setText(controller.getWifi5g().getWindowCount()+"");
+                switch (data) {
+                    case Settings.DATA_RSSI:
+                        wifi5gRssiCountView.setText(controller.getWifi5g().getRssiCount() + "");
+                        break;
+                    case Settings.DATA_WINDOW:
+                        wifi5gWindowCountView.setText(controller.getWifi5g().getWindowCount() + "");
+                        break;
+                    case Settings.DATA_ESTIMATOR:
+                        wifi5gEstimatorCountView.setText(controller.getWifi5g().getEstimatorCount()+"");
+                        break;
+                }
                 break;
         }
     }

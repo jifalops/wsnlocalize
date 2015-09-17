@@ -96,6 +96,10 @@ public class RssiWindowTrainingDataManager {
         return windows.size();
     }
 
+    public int getEstimatorCount() {
+        return estimators.size();
+    }
+
     public void resetCurrentWindow() {
         trainer.resetCurrentWindow();
     }

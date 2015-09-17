@@ -225,7 +225,7 @@ public class DistanceEstimationActivity extends Activity {
 
     void checkIfFailed() {
         if (btUnavailable && btleUnavailable && wifiUnavailable) {
-            Toast.makeText(this, "No weights available for estimates, training needed.", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "No estimators available; need to train first.", Toast.LENGTH_LONG).show();
             finish();
         }
     }

@@ -122,71 +122,114 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceSmall"
                 android:layout_columnWeight="1"
                 android:text="BT"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceSmall"
                 android:layout_columnWeight="1"
                 android:text="BTLE"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceSmall"
                 android:layout_columnWeight="1"
                 android:text="WIFI"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceSmall"
                 android:layout_columnWeight="1"
                 android:text="WIFI5G"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceSmall"
                 android:layout_columnWeight="1"
                 android:text="RSSI"/>
             <TextView
                 android:id="@+id/btRssiCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceSmall"
                 android:text="0"/>
             <TextView
                 android:id="@+id/btleRssiCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceSmall"
                 android:text="0"/>
             <TextView
                 android:id="@+id/wifiRssiCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceSmall"
                 android:text="0"/>
             <TextView
                 android:id="@+id/wifi5gRssiCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceSmall"
                 android:text="0"/>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceSmall"
                 android:text="Wind."/>
             <TextView
                 android:id="@+id/btWindowCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceSmall"
                 android:text="0"/>
             <TextView
                 android:id="@+id/btleWindowCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceSmall"
                 android:text="0"/>
             <TextView
                 android:id="@+id/wifiWindowCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceSmall"
                 android:text="0"/>
             <TextView
                 android:id="@+id/wifi5gWindowCount"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceSmall"
+                android:text="0"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceSmall"
+                android:text="Estim."/>
+            <TextView
+                android:id="@+id/btEstimatorCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceSmall"
+                android:text="0"/>
+            <TextView
+                android:id="@+id/btleEstimatorCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceSmall"
+                android:text="0"/>
+            <TextView
+                android:id="@+id/wifiEstimatorCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceSmall"
+                android:text="0"/>
+            <TextView
+                android:id="@+id/wifi5gEstimatorCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:textAppearanceSmall"
                 android:text="0"/>
         </GridLayout>
         <Button
