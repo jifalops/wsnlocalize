@@ -139,6 +139,8 @@ public class WindowRecord {
         };
     }
     public static final int TRAINING_ARRAY_SIZE = 16;
+    public static final int ACTUAL_DISTANCE_INDEX = 15;
+
 
     public static double[][] toSamples(List<WindowRecord> records) {
         int len = records.size();

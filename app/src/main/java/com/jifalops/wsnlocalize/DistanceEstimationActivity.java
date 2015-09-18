@@ -72,8 +72,7 @@ public class DistanceEstimationActivity extends Activity {
             holder.name.setText(device.name);
             holder.desc.setText(device.signal + ", " + device.mac);
             holder.estimate.setText(String.format(Locale.US, "%.1fm", device.estimate));
-            String sign = device.estimate < device.previous ? "-" : "+";
-            holder.change.setText(sign + String.format(Locale.US, "%.1fm", device.estimate - device.previous));
+            holder.change.setText(String.format(Locale.US, "%+.1fm", device.estimate - device.previous));
             convertView.setTag(holder);
             return convertView;
         }

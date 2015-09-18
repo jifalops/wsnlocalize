@@ -89,6 +89,10 @@ public class RssiWindowTrainingDataManager {
         }
     }
 
+    public double[][] getSamples() {
+        return toTrain;
+    }
+
     public int getRssiCount() {
         return rssi.size();
     }

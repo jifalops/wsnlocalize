@@ -46,7 +46,7 @@
             android:name=".nsd.NsdDemoActivity"
             android:label="NSD Demo"/>
         <activity
-            android:name=".RssiTrainingActivity"
+            android:name=".SampleCollectionActivity"
             android:label="RSSI Training"
             android:configChanges="orientation"
             android:screenOrientation="portrait"

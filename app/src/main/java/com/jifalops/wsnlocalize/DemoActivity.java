@@ -25,6 +25,8 @@ public class DemoActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_demo);
         layout = (LinearLayout) findViewById(R.id.linearLayout);
+        addToLayout("Wifi: " + App.getInstance().getWifiMac(),
+                    "BT:   " + App.getInstance().getBtMac(), null);
         addToLayout("Bluetooth",  "Beacon & Scanner", BtBeaconDemoActivity.class);
         addToLayout("Bluetooth Low Energy", "Beacon & Scanner", BtLeBeaconDemoActivity.class);
         addToLayout("WiFi", "Scanner only", WifiScannerDemoActivity.class);

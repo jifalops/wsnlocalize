@@ -21,11 +21,12 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         layout = (LinearLayout) findViewById(R.id.linearLayout);
-        addToLayout("Wifi: " + App.getInstance().getWifiMac(),
-                    "BT:   " + App.getInstance().getBtMac(), null);
-        addToLayout("Demos", "Examples of app components", DemoActivity.class);
-        addToLayout("RSSI Training", "Train neural network in real time", RssiTrainingActivity.class);
-        addToLayout("RSSI Distance", "Estimate distances without training", DistanceEstimationActivity.class);
+        addToLayout("Sample Collection", "Collect samples and do neural network training",
+                SampleCollectionActivity.class);
+        addToLayout("Distance Estimation", "Estimate distances from the most recent training results",
+                DistanceEstimationActivity.class);
+        addToLayout("Demos", "Examples of app components",
+                DemoActivity.class);
     }
 
     private void addToLayout(String text, final Class<?> clazz) {

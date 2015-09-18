@@ -42,4 +42,17 @@ public class Arrays {
     public static void shiftRight(double[] a, int shifts) {
         System.arraycopy(a, 0, a, shifts, a.length-shifts);
     }
+
+    /** trade rows and columns; a 90 degree shift */
+    public static double[][] transpose(double[][] m) {
+        int rows = m.length;
+        int cols = m[0].length;
+        double[][] transposed = new double[cols][rows];
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                transposed[j][i] = m[i][j];
+            }
+        }
+        return transposed;
+    }
 }
