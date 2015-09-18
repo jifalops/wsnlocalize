@@ -21,7 +21,11 @@ public class RssiReaderWriter extends TextReaderWriter {
             if (lines.size() == 0) return;
             final List<RssiRecord> records = new ArrayList<>();
             for (String line : lines) {
-                records.add(new RssiRecord(line.split(",")));
+                try {
+                    records.add(new RssiRecord(line.split(",")));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
             creationThreadHandler.post(new Runnable() {
                 @Override

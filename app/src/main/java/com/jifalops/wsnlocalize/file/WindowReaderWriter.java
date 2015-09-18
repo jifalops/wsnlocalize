@@ -1,6 +1,5 @@
 package com.jifalops.wsnlocalize.file;
 
-import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 
 import java.io.File;
@@ -22,7 +21,12 @@ public class WindowReaderWriter extends TextReaderWriter {
             if (lines.size() == 0) return;
             final List<WindowRecord> records = new ArrayList<>();
             for (String line : lines) {
-                records.add(new WindowRecord(line.split(",")));
+
+                try {
+                    records.add(new WindowRecord(line.split(",")));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
             creationThreadHandler.post(new Runnable() {
                 @Override

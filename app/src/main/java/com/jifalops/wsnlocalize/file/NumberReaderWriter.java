@@ -1,9 +1,5 @@
 package com.jifalops.wsnlocalize.file;
 
-import android.text.TextUtils;
-
-import com.jifalops.wsnlocalize.data.RssiRecord;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +23,11 @@ public class NumberReaderWriter extends TextReaderWriter {
             for (int i = 0; i < rows; ++i) {
                 String[] p = lines.get(i).split(",");
                 for (int j = 0; j < cols; ++j) {
-                    numbers[i][j] = Double.valueOf(p[j]);
+                    try {
+                        numbers[i][j] = Double.valueOf(p[j]);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             }
             creationThreadHandler.post(new Runnable() {

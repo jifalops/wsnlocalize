@@ -2,8 +2,6 @@ package com.jifalops.wsnlocalize.file;
 
 import com.jifalops.wsnlocalize.data.Estimator;
 
-import org.json.JSONException;
-
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +23,7 @@ public class EstimatorReaderWriter extends TextReaderWriter {
             for (String line : lines) {
                 try {
                     records.add(new Estimator(line));
-                } catch (JSONException e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
