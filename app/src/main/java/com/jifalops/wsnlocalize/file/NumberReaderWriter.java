@@ -33,21 +33,11 @@ public class NumberReaderWriter extends TextReaderWriter {
                 }
             }
             final double[][] finalNumbers = numbers;
-            creationThreadHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    callbacks.onNumbersRead(NumberReaderWriter.this, finalNumbers);
-                }
-            });
+            callbacks.onNumbersRead(NumberReaderWriter.this, finalNumbers);
         }
         @Override
         public void onWriteCompleted(TextReaderWriter rw, final int linesWritten) {
-            creationThreadHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    callbacks.onNumbersWritten(NumberReaderWriter.this, linesWritten);
-                }
-            });
+            callbacks.onNumbersWritten(NumberReaderWriter.this, linesWritten);
         }
     };
 

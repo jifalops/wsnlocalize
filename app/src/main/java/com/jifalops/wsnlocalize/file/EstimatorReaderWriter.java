@@ -18,7 +18,6 @@ public class EstimatorReaderWriter extends TextReaderWriter {
     final IoCallbacks ioCallbacks = new IoCallbacks() {
         @Override
         public void onReadCompleted(TextReaderWriter rw, List<String> lines) {
-//            if (lines.size() == 0) return;
             final List<Estimator> records = new ArrayList<>();
             for (String line : lines) {
                 try {
@@ -27,21 +26,11 @@ public class EstimatorReaderWriter extends TextReaderWriter {
                     e.printStackTrace();
                 }
             }
-            creationThreadHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    callbacks.onEstimatorRecordsRead(EstimatorReaderWriter.this, records);
-                }
-            });
+            callbacks.onEstimatorRecordsRead(EstimatorReaderWriter.this, records);
         }
         @Override
         public void onWriteCompleted(TextReaderWriter rw, final int linesWritten) {
-            creationThreadHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    callbacks.onEstimatorRecordsWritten(EstimatorReaderWriter.this, linesWritten);
-                }
-            });
+            callbacks.onEstimatorRecordsWritten(EstimatorReaderWriter.this, linesWritten);
         }
     };
 

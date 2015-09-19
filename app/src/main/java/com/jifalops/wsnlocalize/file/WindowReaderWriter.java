@@ -18,7 +18,6 @@ public class WindowReaderWriter extends TextReaderWriter {
     final IoCallbacks ioCallbacks = new IoCallbacks() {
         @Override
         public void onReadCompleted(TextReaderWriter rw, List<String> lines) {
-//            if (lines.size() == 0) return;
             final List<WindowRecord> records = new ArrayList<>();
             for (String line : lines) {
 
@@ -28,22 +27,11 @@ public class WindowReaderWriter extends TextReaderWriter {
                     e.printStackTrace();
                 }
             }
-            creationThreadHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    callbacks.onWindowRecordsRead(WindowReaderWriter.this, records);
-                }
-            });
-
+            callbacks.onWindowRecordsRead(WindowReaderWriter.this, records);
         }
         @Override
         public void onWriteCompleted(TextReaderWriter rw, final int linesWritten) {
-            creationThreadHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    callbacks.onWindowRecordsWritten(WindowReaderWriter.this, linesWritten);
-                }
-            });
+            callbacks.onWindowRecordsWritten(WindowReaderWriter.this, linesWritten);
         }
     };
 

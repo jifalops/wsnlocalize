@@ -1,8 +1,6 @@
 package com.jifalops.wsnlocalize.file;
 
-import android.os.Build;
-import android.os.Handler;
-import android.os.HandlerThread;
+import android.os.AsyncTask;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -26,9 +24,6 @@ public class TextReaderWriter {
     }
 
     final File file;
-    final HandlerThread thread;
-    final Handler handler;
-    protected final Handler creationThreadHandler = new Handler();
     IoCallbacks callbacks;
 
     protected TextReaderWriter(File file) {
@@ -37,9 +32,6 @@ public class TextReaderWriter {
     public TextReaderWriter(File file, IoCallbacks callbacks) {
         this.file = file;
         this.callbacks = callbacks;
-        thread = new HandlerThread(getClass().getName());
-        thread.start();
-        handler = new Handler(thread.getLooper());
     }
 
     protected void setIoCallbacks(IoCallbacks callbacks) {
@@ -48,9 +40,9 @@ public class TextReaderWriter {
 
     public boolean readLines() {
         if (file.exists()) {
-            handler.post(new Runnable() {
+            new AsyncTask<Void, Void, List<String>>() {
                 @Override
-                public void run() {
+                protected List<String> doInBackground(Void... params) {
                     List<String> lines = new ArrayList<>();
                     BufferedReader r = null;
                     try {
@@ -70,18 +62,23 @@ public class TextReaderWriter {
                             e.printStackTrace();
                         }
                     }
+                    return lines;
+                }
+
+                @Override
+                protected void onPostExecute(List<String> lines) {
                     callbacks.onReadCompleted(TextReaderWriter.this, lines);
                 }
-            });
+            }.execute();
             return true;
         }
         return false;
     }
 
     public void writeLines(final List<String> lines, final boolean append) {
-        handler.post(new Runnable() {
+        new AsyncTask<Void, Void, Integer>() {
             @Override
-            public void run() {
+            protected Integer doInBackground(Void... params) {
                 int count = 0;
                 BufferedWriter w = null;
                 try {
@@ -103,15 +100,20 @@ public class TextReaderWriter {
                         e.printStackTrace();
                     }
                 }
+                return count;
+            }
+
+            @Override
+            protected void onPostExecute(Integer count) {
                 callbacks.onWriteCompleted(TextReaderWriter.this, count);
             }
-        });
+        }.execute();
     }
 
     public void truncate() {
-        handler.post(new Runnable() {
+        new AsyncTask<Void, Void, Void>() {
             @Override
-            public void run() {
+            protected Void doInBackground(Void... params) {
                 BufferedWriter w = null;
                 try {
                     w = new BufferedWriter(new FileWriter(file, false));
@@ -126,18 +128,8 @@ public class TextReaderWriter {
                         e.printStackTrace();
                     }
                 }
+                return null;
             }
-        });
-    }
-
-    public void close() {
-        handler.removeCallbacksAndMessages(null);
-        if (thread.getState() != Thread.State.NEW) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                thread.quitSafely();
-            } else {
-                thread.quit();
-            }
-        }
+        }.execute();
     }
 }

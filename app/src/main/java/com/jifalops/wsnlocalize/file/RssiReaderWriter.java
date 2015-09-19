@@ -18,7 +18,6 @@ public class RssiReaderWriter extends TextReaderWriter {
     final IoCallbacks ioCallbacks = new IoCallbacks() {
         @Override
         public void onReadCompleted(TextReaderWriter rw, List<String> lines) {
-//            if (lines.size() == 0) return;
             final List<RssiRecord> records = new ArrayList<>();
             for (String line : lines) {
                 try {
@@ -27,21 +26,11 @@ public class RssiReaderWriter extends TextReaderWriter {
                     e.printStackTrace();
                 }
             }
-            creationThreadHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    callbacks.onRssiRecordsRead(RssiReaderWriter.this, records);
-                }
-            });
+            callbacks.onRssiRecordsRead(RssiReaderWriter.this, records);
         }
         @Override
         public void onWriteCompleted(TextReaderWriter rw, final int linesWritten) {
-            creationThreadHandler.post(new Runnable() {
-                @Override
-                public void run() {
-                    callbacks.onRssiRecordsWritten(RssiReaderWriter.this, linesWritten);
-                }
-            });
+            callbacks.onRssiRecordsWritten(RssiReaderWriter.this, linesWritten);
         }
     };
 
