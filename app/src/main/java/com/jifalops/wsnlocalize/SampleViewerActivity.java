@@ -34,11 +34,18 @@ public class SampleViewerActivity extends Activity {
     double[][] bt = null, btle = null, wifi = null, wifi5g = null;
     boolean btLoaded, btleLoaded, wifiLoaded, wifi5gLoaded;
 
+    GridLayout summary;
+    ListView distSummariesView, samplesView;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_samplesview);
+
+        summary = (GridLayout) findViewById(R.id.overallSummary);
+        distSummariesView = (ListView) findViewById(R.id.distanceSummary);
+        samplesView = (ListView) findViewById(R.id.samples);
 
         new NumberReaderWriter(new File(Settings.getDataDir(SampleViewerActivity.this),
                 Settings.getFileName(Settings.SIGNAL_BT, Settings.DATA_SAMPLES)),
@@ -180,9 +187,6 @@ public class SampleViewerActivity extends Activity {
 
         final double[][] finalSamples = samples;
 
-        GridLayout summary = (GridLayout) findViewById(R.id.overallSummary);
-        ListView distSummariesView = (ListView) findViewById(R.id.distanceSummary);
-        ListView samplesView = (ListView) findViewById(R.id.samples);
 
         fillSampleView(summary, new SamplesSummary(samples));
 
@@ -210,6 +214,21 @@ public class SampleViewerActivity extends Activity {
                 return convertView;
             }
         });
+    }
+
+    public void onOverallSummaryClicked(View view) {
+        summary.setVisibility(summary.getVisibility() == View.VISIBLE
+                ? View.GONE : View.VISIBLE);
+    }
+
+    public void onDistanceSummariesClicked(View view) {
+        distSummariesView.setVisibility(distSummariesView.getVisibility() == View.VISIBLE
+                ? View.GONE : View.VISIBLE);
+    }
+
+    public void onSamplesClicked(View view) {
+        samplesView.setVisibility(samplesView.getVisibility() == View.VISIBLE
+                ? View.GONE : View.VISIBLE);
     }
 
     static class Holder {
@@ -329,7 +348,6 @@ public class SampleViewerActivity extends Activity {
     List<SamplesSummary> makeDistanceSummaries(double[][] samples) {
         TreeMap<Double, List<double[]>> distances = new TreeMap<>();
         List<SamplesSummary> summaries;
-        int rows = samples.length;
         List<double[]> list;
         double dist;
         for (double[] sample : samples) {
