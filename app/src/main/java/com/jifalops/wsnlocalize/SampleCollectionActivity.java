@@ -11,16 +11,12 @@ import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.SubMenu;
 import android.view.View;
-import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ScrollView;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -30,16 +26,11 @@ import com.jifalops.wsnlocalize.data.Estimator;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.signal.SignalController;
-import com.jifalops.wsnlocalize.util.Arrays;
 import com.jifalops.wsnlocalize.util.ServiceThreadApplication;
 import com.jifalops.wsnlocalize.util.SimpleLog;
-import com.jifalops.wsnlocalize.util.Stats;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 
 /**
  *
@@ -254,7 +245,6 @@ public class SampleCollectionActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        SubMenu sub = item.getSubMenu();
         switch (item.getItemId()) {
             case R.id.action_settings:
                 return true;
@@ -266,18 +256,6 @@ public class SampleCollectionActivity extends Activity {
                     item.setChecked(true);
                     setPersistent(true);
                 }
-                return true;
-            case R.id.sampleAll:
-                // fall through
-            case R.id.sampleWifi:
-                // fall through
-            case R.id.sampleWifi5g:
-                // fall through
-            case R.id.sampleBt:
-                // fall through
-            case R.id.sampleBtle:
-                // fall through
-                showSamples(item.getItemId());
                 return true;
             case R.id.action_clearSend:
                 AlertDialog.Builder b = new AlertDialog.Builder(this);
@@ -311,152 +289,6 @@ public class SampleCollectionActivity extends Activity {
                 return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    void showSamples(int id) {
-        double[][] samples = null, wifi, wifi5g, bt, btle;
-        wifi = controller.getWifi().getSamples();
-        wifi5g = controller.getWifi5g().getSamples();
-        bt = controller.getBt().getSamples();
-        btle = controller.getBtle().getSamples();
-        switch (id) {
-            case R.id.sampleWifi:
-                samples = wifi;
-                break;
-            case R.id.sampleWifi5g:
-                samples = wifi5g;
-                break;
-            case R.id.sampleBt:
-                samples = bt;
-                break;
-            case R.id.sampleBtle:
-                samples = btle;
-                break;
-            default:
-                if (wifi != null) samples = wifi;
-                if (wifi5g != null) {
-                    samples = samples == null ? wifi5g : Arrays.concat(samples, wifi5g);
-                }
-                if (bt != null) {
-                    samples = samples == null ? bt : Arrays.concat(samples, bt);
-                }
-                if (btle != null) {
-                    samples = samples == null ? btle : Arrays.concat(samples, btle);
-                }
-
-        }
-
-        if (samples == null) {
-            Toast.makeText(this, "No samples to show", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        final double[][] finalSamples = samples;
-
-        View layout = getLayoutInflater().inflate(R.layout.samples_view, null);
-        TextView summary = (TextView) layout.findViewById(R.id.overallSummary);
-        ListView distSummariesView = (ListView) layout.findViewById(R.id.distanceSummary);
-        ListView samplesView = (ListView) layout.findViewById(R.id.samples);
-
-        summary.setText(new SamplesSummary(samples).toString());
-
-        final List<SamplesSummary> distanceSummaries = makeDistanceSummaries(samples);
-        distSummariesView.setAdapter(new ArrayAdapter<SamplesSummary>(this,
-                R.layout.listitem_sample, distanceSummaries) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                if (convertView == null) {
-                    convertView = getLayoutInflater().inflate(R.layout.listitem_sample, parent, false);
-                }
-                ((TextView) convertView).setText(distanceSummaries.get(position).toString());
-                return convertView;
-            }
-        });
-
-
-        samplesView.setAdapter(new ArrayAdapter<double[]>(this, R.layout.listitem_sample, finalSamples) {
-            @Override
-            public View getView(int position, View convertView, ViewGroup parent) {
-                if (convertView == null) {
-                    convertView = getLayoutInflater().inflate(R.layout.listitem_sample, parent, false);
-                }
-                ((TextView) convertView).setText(makeSampleString(finalSamples[position]));
-                return convertView;
-            }
-        });
-
-
-        new AlertDialog.Builder(this).setView(layout).show();
-    }
-
-    String makeSampleString(double[] s) {
-        return String.format(Locale.US,
-                "%.1fm. med:%.1f avg:%.1f std:%.1f\n" +
-                        "#rss:%d #dev:%d tavg:%.1f.\n" +
-                        "tmed:%.1f tstd:%.1f ttot:%.1f rmin:%d rmax:%d rrng:%d tmin:%d tmax:%d trng:%d",
-                s[15], s[5], s[4], s[6],
-                (int) s[0], (int) s[14], s[11] / 1000,
-                s[12] / 1000, s[13] / 1000, s[7] / 1000, (int) s[1], (int) s[2], (int) s[3],
-                (int) s[8], (int) s[9], (int) s[10]);
-    }
-
-    static class SamplesSummary {
-        final double dist, avgrssicount, avgdevices,
-                rmean, rmedian, rstddev, millis, tmean, tmedian, tstddev;
-        final int count, rmin, rmax, rrange, tmin, tmax, trange;
-        SamplesSummary(double[][] samples) {
-            count = samples.length;
-            double[][] cols = Arrays.transpose(samples);
-            avgrssicount = Stats.mean(cols[0]);
-            rmin = (int) Stats.min(cols[1]);
-            rmax = (int) Stats.max(cols[2]);
-            rrange = rmax - rmin; // skip cols[3]
-            rmean = Stats.mean(cols[4]);
-            rmedian = Stats.mean(cols[5]);
-            rstddev = Stats.mean(cols[6]);
-            millis = Stats.mean(cols[7]);
-            tmin = (int) Stats.min(cols[8]);
-            tmax = (int) Stats.max(cols[9]);
-            trange = tmax - tmin; // skip cols[10]
-            tmean = Stats.mean(cols[11]);
-            tmedian = Stats.mean(cols[12]);
-            tstddev = Stats.mean(cols[13]);
-            avgdevices = Stats.mean(cols[14]);
-            dist = Stats.mean(cols[15]);
-        }
-
-        @Override
-        public String toString() {
-            return String.format(Locale.US,
-                "%.1fm (%d). med:%.1f avg:%.1f std:%.1f\n" +
-                "#rss:%.1f #dev:%.1f tavg:%.1f\n" +
-                "tmed:%.1f tstd:%.1f ttot:%.1f rmin:%d rmax:%d rrng:%d tmin:%d tmax:%d trng:%d",
-                dist, count, rmedian, rmean, rstddev,
-                avgrssicount, avgdevices, tmean/1000,
-                tmedian/1000, tstddev/1000, millis/1000, rmin, rmax, rrange, tmin, tmax, trange);
-        }
-    }
-
-    List<SamplesSummary> makeDistanceSummaries(double[][] samples) {
-        Map<Double, List<double[]>> distances = new HashMap<>();
-        List<SamplesSummary> summaries;
-        int rows = samples.length;
-        List<double[]> list;
-        double dist;
-        for (double[] sample : samples) {
-            dist = sample[WindowRecord.ACTUAL_DISTANCE_INDEX];
-            list = distances.get(dist);
-            if (list == null) {
-                list = new ArrayList<>();
-                distances.put(dist, list);
-            }
-            list.add(sample);
-        }
-        summaries = new ArrayList<>(distances.size());
-        for (List<double[]> s : distances.values()) {
-            summaries.add(new SamplesSummary(s.toArray(new double[s.size()][])));
-        }
-        return summaries;
     }
 
     void setPersistent(boolean persist) {
