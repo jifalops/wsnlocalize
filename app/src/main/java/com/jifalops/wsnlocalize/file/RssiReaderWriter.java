@@ -18,7 +18,7 @@ public class RssiReaderWriter extends TextReaderWriter {
     final IoCallbacks ioCallbacks = new IoCallbacks() {
         @Override
         public void onReadCompleted(TextReaderWriter rw, List<String> lines) {
-            if (lines.size() == 0) return;
+//            if (lines.size() == 0) return;
             final List<RssiRecord> records = new ArrayList<>();
             for (String line : lines) {
                 try {

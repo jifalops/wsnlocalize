@@ -17,7 +17,7 @@ public class NumberReaderWriter extends TextReaderWriter {
         @Override
         public void onReadCompleted(TextReaderWriter rw, List<String> lines) {
             int rows = lines.size();
-            if (rows == 0) { return; }
+//            if (rows == 0) { return; }
             int cols = lines.get(0).split(",").length;
             final double[][] numbers = new double[rows][cols];
             for (int i = 0; i < rows; ++i) {
