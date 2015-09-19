@@ -48,7 +48,7 @@ public class SampleCollectionActivity extends Activity {
             deviceIdView;
     EditText distanceView;
     Switch collectSwitch;
-    CheckBox btCheckBox, btleCheckBox, wifiCheckBox;
+    CheckBox btCheckBox, btleCheckBox, wifiCheckBox, wifi5gCheckBox;
 
     SharedPreferences prefs;
     int logLevel;
@@ -61,7 +61,7 @@ public class SampleCollectionActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_rssitraining);
+        setContentView(R.layout.activity_samplecollection);
         eventLogView = (TextView) findViewById(R.id.eventLog);
         deviceLogView = (TextView) findViewById(R.id.deviceLog);
         btRssiCountView = (TextView) findViewById(R.id.btRssiCount);
@@ -80,6 +80,7 @@ public class SampleCollectionActivity extends Activity {
         btCheckBox = (CheckBox) findViewById(R.id.btCheckBox);
         btleCheckBox = (CheckBox) findViewById(R.id.btleCheckBox);
         wifiCheckBox = (CheckBox) findViewById(R.id.wifiCheckBox);
+        wifi5gCheckBox = (CheckBox) findViewById(R.id.wifi5gCheckBox);
 
         deviceIdView = (TextView) findViewById(R.id.deviceId);
         distanceView = (EditText) findViewById(R.id.distanceMeters);
@@ -329,6 +330,7 @@ public class SampleCollectionActivity extends Activity {
         controller.setShouldUseBt(prefs.getBoolean("btEnabled", true));
         controller.setShouldUseBtle(prefs.getBoolean("btleEnabled", true));
         controller.setShouldUseWifi(prefs.getBoolean("wifiEnabled", true));
+        controller.setShouldUseWifi5g(prefs.getBoolean("wifi5gEnabled", true));
 
         btCheckBox.setOnCheckedChangeListener(null);
         btCheckBox.setChecked(controller.getShouldUseBt());
@@ -352,6 +354,14 @@ public class SampleCollectionActivity extends Activity {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 controller.setShouldUseWifi(isChecked);
+            }
+        });
+        wifi5gCheckBox.setOnCheckedChangeListener(null);
+        wifi5gCheckBox.setChecked(controller.getShouldUseWifi5g());
+        wifi5gCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                controller.setShouldUseWifi5g(isChecked);
             }
         });
 
@@ -389,7 +399,8 @@ public class SampleCollectionActivity extends Activity {
                 .putInt("logLevel", logLevel)
                 .putBoolean("btEnabled", controller.getShouldUseBt())
                 .putBoolean("btleEnabled", controller.getShouldUseBtle())
-                .putBoolean("wifiEnabled", controller.getShouldUseWifi()).apply();
+                .putBoolean("wifiEnabled", controller.getShouldUseWifi())
+                .putBoolean("wifi5gEnabled", controller.getShouldUseWifi5g()).apply();
         controller.unregisterListener(signalListener);
     }
 

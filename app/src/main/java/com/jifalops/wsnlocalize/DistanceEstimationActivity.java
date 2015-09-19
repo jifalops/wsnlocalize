@@ -93,7 +93,8 @@ public class DistanceEstimationActivity extends Activity {
 
     Estimator btEstimator, btleEstimator, wifiEstimator, wifi5gEstimator;
 
-    boolean btUnavailable, btleUnavailable, wifiUnavailable;
+    boolean btUnavailable, btleUnavailable, wifiUnavailable, wifi5gUnavailable;
+    CheckBox btCheckbox, btleCheckbox, wifiCheckbox, wifi5gCheckbox;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,7 +109,8 @@ public class DistanceEstimationActivity extends Activity {
         wifi = WifiScanner.getInstance(this);
 
 
-        final CheckBox btCheckbox = (CheckBox) findViewById(R.id.btCheckBox);
+
+        btCheckbox = (CheckBox) findViewById(R.id.btCheckBox);
         btCheckbox.setOnCheckedChangeListener(
                 new CompoundButton.OnCheckedChangeListener() {
                     @Override
@@ -119,7 +121,7 @@ public class DistanceEstimationActivity extends Activity {
                             bt.stopBeaconing(DistanceEstimationActivity.this, REQUEST_BT_DISCOVERABLE);
                     }
                 });
-        final CheckBox btleCheckbox = (CheckBox) findViewById(R.id.btleCheckBox);
+        btleCheckbox = (CheckBox) findViewById(R.id.btleCheckBox);
         btleCheckbox.setOnCheckedChangeListener(
                 new CompoundButton.OnCheckedChangeListener() {
                     @Override
@@ -129,13 +131,26 @@ public class DistanceEstimationActivity extends Activity {
                         else btle.stopBeaconing();
                     }
                 });
-        final CheckBox wifiCheckbox = (CheckBox) findViewById(R.id.wifiCheckBox);
+        wifiCheckbox = (CheckBox) findViewById(R.id.wifiCheckBox);
         wifiCheckbox.setOnCheckedChangeListener(
                 new CompoundButton.OnCheckedChangeListener() {
                     @Override
                     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                        if (isChecked) wifi.startScanning(100);
-                        else wifi.stopScanning();
+                        if (!wifi5gCheckbox.isChecked()) {
+                            if (isChecked) wifi.startScanning(100);
+                            else wifi.stopScanning();
+                        }
+                    }
+                });
+        wifi5gCheckbox = (CheckBox) findViewById(R.id.wifiCheckBox);
+        wifi5gCheckbox.setOnCheckedChangeListener(
+                new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                        if (!wifiCheckbox.isChecked()) {
+                            if (isChecked) wifi.startScanning(100);
+                            else wifi.stopScanning();
+                        }
                     }
                 });
 
@@ -204,6 +219,10 @@ public class DistanceEstimationActivity extends Activity {
             public void onEstimatorRecordsRead(EstimatorReaderWriter rw, List<Estimator> records) {
                 if (records.size() > 0) {
                     wifi5gEstimator = records.get(records.size() - 1);
+                    wifi5gCheckbox.setEnabled(true);
+                } else {
+                    wifi5gUnavailable = true;
+                    checkIfFailed();
                 }
             }
 
@@ -380,8 +399,11 @@ public class DistanceEstimationActivity extends Activity {
         public void onScanResults(List<android.net.wifi.ScanResult> scanResults) {
             String signal;
             for (android.net.wifi.ScanResult r : scanResults) {
-                signal = r.frequency < 4000 ? Settings.SIGNAL_WIFI : Settings.SIGNAL_WIFI5G;
-                reportSignal(r.BSSID, r.SSID, signal, r.level, r.frequency);
+                if (r.frequency < 4000 && wifiCheckbox.isChecked()) {
+                    reportSignal(r.BSSID, r.SSID, Settings.SIGNAL_WIFI, r.level, r.frequency);
+                } else if (r.frequency > 4000 && wifi5gCheckbox.isChecked()) {
+                    reportSignal(r.BSSID, r.SSID, Settings.SIGNAL_WIFI5G, r.level, r.frequency);
+                }
             }
         }
     };

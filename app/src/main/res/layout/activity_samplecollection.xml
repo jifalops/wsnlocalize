@@ -37,17 +37,21 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
     </ScrollView>
-    <GridLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:columnCount="3">
+        android:orientation="horizontal">
         <CheckBox
             android:id="@+id/btCheckBox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:checked="true"
-            android:text="Bluetooth"/>
+            android:text="BT"/>
+        <Space
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content" />
         <CheckBox
             android:id="@+id/btleCheckBox"
             android:layout_width="wrap_content"
@@ -55,7 +59,11 @@
             android:layout_gravity="center_horizontal"
             android:layout_columnWeight="1"
             android:checked="true"
-            android:text="Bluetooth LE"/>
+            android:text="BT-LE"/>
+        <Space
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content" />
         <CheckBox
             android:id="@+id/wifiCheckBox"
             android:layout_width="wrap_content"
@@ -64,9 +72,22 @@
             android:checked="true"
             android:text="WiFi"/>
         <Space
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content" />
+        <CheckBox
+            android:id="@+id/wifi5gCheckBox"
             android:layout_width="wrap_content"
-            android:layout_height="8dp"
-            android:layout_columnSpan="3" />
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:checked="true"
+            android:text="WiFi 5G"/>
+    </LinearLayout>
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="8dp"
+        android:columnCount="3">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

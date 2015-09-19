@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:enabled="false"
-            android:text="Bluetooth"/>
+            android:text="BT"/>
         <Space
             android:layout_weight="1"
             android:layout_width="0dp"
@@ -37,7 +37,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:enabled="false"
-            android:text="Bluetooth LE"/>
+            android:text="BT-LE"/>
         <Space
             android:layout_weight="1"
             android:layout_width="0dp"
@@ -49,5 +49,16 @@
             android:enabled="false"
             android:layout_gravity="center_horizontal"
             android:text="WiFi"/>
+        <Space
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"/>
+        <CheckBox
+            android:id="@+id/wifi5gCheckBox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:layout_gravity="center_horizontal"
+            android:text="WiFi 5G"/>
     </LinearLayout>
 </LinearLayout>

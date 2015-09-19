@@ -43,7 +43,7 @@ public class SignalController {
     }
 
     RssiWindowTrainingDataManager bt, btle, wifi, wifi5g;
-    boolean collectEnabled, shouldUseBt, shouldUseBtle, shouldUseWifi;
+    boolean collectEnabled, shouldUseBt, shouldUseBtle, shouldUseWifi, shouldUseWifi5g;
 
     final List<Device> devices = new ArrayList<>();
     double distance;
@@ -197,8 +197,15 @@ public class SignalController {
     public void setShouldUseWifi(boolean use) {
         if (shouldUseWifi == use) return;
         shouldUseWifi = use;
-        if (use && collectEnabled) enableWifi();
-        else if (!use && collectEnabled) disableWifi();
+        if (use && collectEnabled && !shouldUseWifi5g) enableWifi();
+        else if (!use && collectEnabled && !shouldUseWifi5g) disableWifi();
+    }
+
+    public void setShouldUseWifi5g(boolean use) {
+        if (shouldUseWifi5g == use) return;
+        shouldUseWifi5g = use;
+        if (use && collectEnabled && !shouldUseWifi) enableWifi();
+        else if (!use && collectEnabled && !shouldUseWifi) disableWifi();
     }
 
     public void setCollectEnabled(boolean enabled) {
@@ -207,17 +214,18 @@ public class SignalController {
         if (enabled) {
             if (shouldUseBt) enableBt();
             if (shouldUseBtle) enableBtle();
-            if (shouldUseWifi) enableWifi();
+            if (shouldUseWifi || shouldUseWifi5g) enableWifi();
         } else {
             if (shouldUseBt) disableBt();
             if (shouldUseBtle) disableBtle();
-            if (shouldUseWifi) disableWifi();
+            if (shouldUseWifi || shouldUseWifi5g) disableWifi();
         }
     }
 
     public boolean getShouldUseBt() { return shouldUseBt; }
     public boolean getShouldUseBtle() { return shouldUseBtle; }
     public boolean getShouldUseWifi() { return shouldUseWifi; }
+    public boolean getShouldUseWifi5g() { return shouldUseWifi5g; }
     public boolean getCollectEnabled() { return collectEnabled; }
 
     void addEvent(int level, String msg) {
@@ -322,9 +330,14 @@ public class SignalController {
             addEvent(LOG_ALL, "WiFi found " + scanResults.size() + " results.");
             String signal;
             for (android.net.wifi.ScanResult r : scanResults) {
-                signal = r.frequency < 4000 ? Settings.SIGNAL_WIFI : Settings.SIGNAL_WIFI5G;
-                addRecord(getDevice(r.BSSID, r.SSID + " (WiFi " + r.frequency + "MHz)"),
-                        signal, r.level, r.frequency);
+                if (r.frequency < 4000 && shouldUseWifi) {
+                    addRecord(getDevice(r.BSSID, r.SSID + " (WiFi " + r.frequency + "MHz)"),
+                            Settings.SIGNAL_WIFI, r.level, r.frequency);
+                } else if (r.frequency > 4000 && shouldUseWifi5g) {
+                    addRecord(getDevice(r.BSSID, r.SSID + " (WiFi " + r.frequency + "MHz)"),
+                            Settings.SIGNAL_WIFI5G, r.level, r.frequency);
+                }
+
             }
         }
     };
