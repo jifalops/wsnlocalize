@@ -3,12 +3,12 @@ package com.jifalops.wsnlocalize;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.GridLayout;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,10 +19,9 @@ import com.jifalops.wsnlocalize.util.Stats;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
+import java.util.TreeMap;
 
 /**
  *
@@ -35,10 +34,12 @@ public class SampleViewerActivity extends Activity {
     double[][] bt = null, btle = null, wifi = null, wifi5g = null;
     boolean btLoaded, btleLoaded, wifiLoaded, wifi5gLoaded;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_samplesview);
+
         new NumberReaderWriter(new File(Settings.getDataDir(SampleViewerActivity.this),
                 Settings.getFileName(Settings.SIGNAL_BT, Settings.DATA_SAMPLES)),
                 new NumberReaderWriter.NumberCallbacks() {
@@ -53,7 +54,7 @@ public class SampleViewerActivity extends Activity {
                     public void onNumbersWritten(NumberReaderWriter rw, int recordsWritten) {
 
                     }
-                });
+                }).readNumbers();
         new NumberReaderWriter(new File(Settings.getDataDir(SampleViewerActivity.this),
                 Settings.getFileName(Settings.SIGNAL_BTLE, Settings.DATA_SAMPLES)),
                 new NumberReaderWriter.NumberCallbacks() {
@@ -68,7 +69,7 @@ public class SampleViewerActivity extends Activity {
                     public void onNumbersWritten(NumberReaderWriter rw, int recordsWritten) {
 
                     }
-                });
+                }).readNumbers();
         new NumberReaderWriter(new File(Settings.getDataDir(SampleViewerActivity.this),
                 Settings.getFileName(Settings.SIGNAL_WIFI, Settings.DATA_SAMPLES)),
                 new NumberReaderWriter.NumberCallbacks() {
@@ -83,7 +84,7 @@ public class SampleViewerActivity extends Activity {
                     public void onNumbersWritten(NumberReaderWriter rw, int recordsWritten) {
 
                     }
-                });
+                }).readNumbers();
         new NumberReaderWriter(new File(Settings.getDataDir(SampleViewerActivity.this),
                 Settings.getFileName(Settings.SIGNAL_WIFI5G, Settings.DATA_SAMPLES)),
                 new NumberReaderWriter.NumberCallbacks() {
@@ -98,7 +99,7 @@ public class SampleViewerActivity extends Activity {
                     public void onNumbersWritten(NumberReaderWriter rw, int recordsWritten) {
 
                     }
-                });
+                }).readNumbers();
     }
 
     void checkIfAllLoaded() {
@@ -110,50 +111,54 @@ public class SampleViewerActivity extends Activity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_sampleviewer, menu);
-        Spinner groups = (Spinner) menu.findItem(R.id.action_samplesspinner).getActionView();
-        groups.setAdapter(new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1,
-                GROUPS) {
-        });
-        groups.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                showSamples(position);
-            }
 
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {
-
-            }
-        });
         return true;
     }
 
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        switch (item.getItemId()) {
-//            case R.id.action_samplesspinner:
-//
-//                return true;
-//        }
-//        return super.onOptionsItemSelected(item);
-//    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.sampleAll:
+                showSamples(ALL);
+                return true;
+            case R.id.sampleWifi:
+                showSamples(WIFI);
+                return true;
+            case R.id.sampleWifi5g:
+                showSamples(WIFI5G);
+                return true;
+            case R.id.sampleBt:
+                showSamples(BT);
+                return true;
+            case R.id.sampleBtle:
+                showSamples(BTLE);
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     void showSamples(int index) {
         double[][] samples = null;
+        String title;
         switch (index) {
             case WIFI:
                 samples = wifi;
+                title = GROUPS[WIFI];
                 break;
             case WIFI5G:
                 samples = wifi5g;
+                title = GROUPS[WIFI5G];
                 break;
             case BT:
                 samples = bt;
+                title = GROUPS[BT];
                 break;
             case BTLE:
                 samples = btle;
+                title = GROUPS[BTLE];
                 break;
             default:
+                title = GROUPS[ALL];
                 if (wifi != null) samples = wifi;
                 if (wifi5g != null) {
                     samples = samples == null ? wifi5g : Arrays.concat(samples, wifi5g);
@@ -171,13 +176,15 @@ public class SampleViewerActivity extends Activity {
             return;
         }
 
+        setTitle(title + " Samples");
+
         final double[][] finalSamples = samples;
 
-        TextView summary = (TextView) findViewById(R.id.overallSummary);
+        GridLayout summary = (GridLayout) findViewById(R.id.overallSummary);
         ListView distSummariesView = (ListView) findViewById(R.id.distanceSummary);
         ListView samplesView = (ListView) findViewById(R.id.samples);
 
-        summary.setText(new SamplesSummary(samples).toString());
+        fillSampleView(summary, new SamplesSummary(samples));
 
         final List<SamplesSummary> distanceSummaries = makeDistanceSummaries(samples);
         distSummariesView.setAdapter(new ArrayAdapter<SamplesSummary>(this,
@@ -187,7 +194,7 @@ public class SampleViewerActivity extends Activity {
                 if (convertView == null) {
                     convertView = getLayoutInflater().inflate(R.layout.listitem_sample, parent, false);
                 }
-                ((TextView) convertView).setText(distanceSummaries.get(position).toString());
+                fillSampleView(convertView, distanceSummaries.get(position));
                 return convertView;
             }
         });
@@ -199,21 +206,97 @@ public class SampleViewerActivity extends Activity {
                 if (convertView == null) {
                     convertView = getLayoutInflater().inflate(R.layout.listitem_sample, parent, false);
                 }
-                ((TextView) convertView).setText(makeSampleString(finalSamples[position]));
+                fillSampleView(convertView, finalSamples[position]);
                 return convertView;
             }
         });
     }
 
-    String makeSampleString(double[] s) {
-        return String.format(Locale.US,
-                "%.1fm. med:%.1f avg:%.1f std:%.1f\n" +
-                        "#rss:%d #dev:%d tavg:%.1f.\n" +
-                        "tmed:%.1f tstd:%.1f ttot:%.1f rmin:%d rmax:%d rrng:%d tmin:%d tmax:%d trng:%d",
-                s[15], s[5], s[4], s[6],
-                (int) s[0], (int) s[14], s[11] / 1000,
-                s[12] / 1000, s[13] / 1000, s[7] / 1000, (int) s[1], (int) s[2], (int) s[3],
-                (int) s[8], (int) s[9], (int) s[10]);
+    static class Holder {
+        TextView dist, rmin, rmax, rrange,
+                 rcount, rmean, rmed, rstd,
+                 time, tmin, tmax, trange,
+                 dcount, tmean, tmed, tstd;
+    }
+    
+    void fillSampleView(View v, SamplesSummary s) {
+        Holder holder = (Holder) v.getTag();
+        if (holder == null) {
+            holder = new Holder();
+            holder.dist = (TextView) v.findViewById(R.id.dist);
+            holder.rmin = (TextView) v.findViewById(R.id.rmin);
+            holder.rmax = (TextView) v.findViewById(R.id.rmax);
+            holder.rrange = (TextView) v.findViewById(R.id.rrange);
+            holder.rcount = (TextView) v.findViewById(R.id.rcount);
+            holder.rmean = (TextView) v.findViewById(R.id.rmean);
+            holder.rmed = (TextView) v.findViewById(R.id.rmedian);
+            holder.rstd = (TextView) v.findViewById(R.id.rstddev);
+            holder.time = (TextView) v.findViewById(R.id.time);
+            holder.tmin = (TextView) v.findViewById(R.id.tmin);
+            holder.tmax = (TextView) v.findViewById(R.id.tmax);
+            holder.trange = (TextView) v.findViewById(R.id.trange);
+            holder.dcount = (TextView) v.findViewById(R.id.numDevices);
+            holder.tmean = (TextView) v.findViewById(R.id.tmean);
+            holder.tmed = (TextView) v.findViewById(R.id.tmedian);
+            holder.tstd = (TextView) v.findViewById(R.id.tstddev);
+        }
+        holder.dist.setText(String.format(Locale.US, "%.1fm", s.dist));
+        holder.rmin.setText(String.format(Locale.US, "%d", s.rmin));
+        holder.rmax.setText(String.format(Locale.US, "%d", s.rmax));
+        holder.rrange.setText(String.format(Locale.US, "%d", s.rrange));
+        holder.rcount.setText(String.format(Locale.US, "%d (%.1f)", s.count, s.avgrssicount));
+        holder.rmean.setText(String.format(Locale.US, "%.1f", s.rmean));
+        holder.rmed.setText(String.format(Locale.US, "%.1f", s.rmedian));
+        holder.rstd.setText(String.format(Locale.US, "%.1f", s.rstddev));
+        holder.time.setText(String.format(Locale.US, "%.1fs", s.millis / 1000));
+        holder.tmin.setText(String.format(Locale.US, "%.1fs", s.tmin / 1000f));
+        holder.tmax.setText(String.format(Locale.US, "%.1fs", s.tmax / 1000f));
+        holder.trange.setText(String.format(Locale.US, "%.1fs", s.trange / 1000f));
+        holder.dcount.setText(String.format(Locale.US, "%.1f", s.avgdevices));
+        holder.tmean.setText(String.format(Locale.US, "%.1fs", s.tmean / 1000));
+        holder.tmed.setText(String.format(Locale.US, "%.1fs", s.tmedian / 1000));
+        holder.tstd.setText(String.format(Locale.US, "%.1fs", s.tstddev / 1000));
+        v.setTag(holder);
+    }
+
+    void fillSampleView(View v, double[] s) {
+        Holder holder = (Holder) v.getTag();
+        if (holder == null) {
+            holder = new Holder();
+            holder.dist = (TextView) v.findViewById(R.id.dist);
+            holder.rmin = (TextView) v.findViewById(R.id.rmin);
+            holder.rmax = (TextView) v.findViewById(R.id.rmax);
+            holder.rrange = (TextView) v.findViewById(R.id.rrange);
+            holder.rcount = (TextView) v.findViewById(R.id.rcount);
+            holder.rmean = (TextView) v.findViewById(R.id.rmean);
+            holder.rmed = (TextView) v.findViewById(R.id.rmedian);
+            holder.rstd = (TextView) v.findViewById(R.id.rstddev);
+            holder.time = (TextView) v.findViewById(R.id.time);
+            holder.tmin = (TextView) v.findViewById(R.id.tmin);
+            holder.tmax = (TextView) v.findViewById(R.id.tmax);
+            holder.trange = (TextView) v.findViewById(R.id.trange);
+            holder.dcount = (TextView) v.findViewById(R.id.numDevices);
+            holder.tmean = (TextView) v.findViewById(R.id.tmean);
+            holder.tmed = (TextView) v.findViewById(R.id.tmedian);
+            holder.tstd = (TextView) v.findViewById(R.id.tstddev);
+        }
+        holder.dist.setText(String.format(Locale.US, "%.1fm", s[15]));
+        holder.rmin.setText(String.format(Locale.US, "%d", (int) s[1]));
+        holder.rmax.setText(String.format(Locale.US, "%d", (int) s[2]));
+        holder.rrange.setText(String.format(Locale.US, "%d", (int) s[3]));
+        holder.rcount.setText(String.format(Locale.US, "%d", (int) s[0]));
+        holder.rmean.setText(String.format(Locale.US, "%.1f", s[4]));
+        holder.rmed.setText(String.format(Locale.US, "%.1f", s[5]));
+        holder.rstd.setText(String.format(Locale.US, "%.1f", s[6]));
+        holder.time.setText(String.format(Locale.US, "%.1fs", s[7] / 1000));
+        holder.tmin.setText(String.format(Locale.US, "%.1fs", s[8] / 1000f));
+        holder.tmax.setText(String.format(Locale.US, "%.1fs", s[9] / 1000f));
+        holder.trange.setText(String.format(Locale.US, "%.1fs", s[10] / 1000f));
+        holder.dcount.setText(String.format(Locale.US, "%.1f", s[14]));
+        holder.tmean.setText(String.format(Locale.US, "%.1fs", s[11] / 1000));
+        holder.tmed.setText(String.format(Locale.US, "%.1fs", s[12] / 1000));
+        holder.tstd.setText(String.format(Locale.US, "%.1fs", s[13] / 1000));
+        v.setTag(holder);
     }
 
     static class SamplesSummary {
@@ -240,21 +323,11 @@ public class SampleViewerActivity extends Activity {
             avgdevices = Stats.mean(cols[14]);
             dist = Stats.mean(cols[15]);
         }
-
-        @Override
-        public String toString() {
-            return String.format(Locale.US,
-                    "%.1fm (%d). med:%.1f avg:%.1f std:%.1f\n" +
-                            "#rss:%.1f #dev:%.1f tavg:%.1f\n" +
-                            "tmed:%.1f tstd:%.1f ttot:%.1f rmin:%d rmax:%d rrng:%d tmin:%d tmax:%d trng:%d",
-                    dist, count, rmedian, rmean, rstddev,
-                    avgrssicount, avgdevices, tmean/1000,
-                    tmedian/1000, tstddev/1000, millis/1000, rmin, rmax, rrange, tmin, tmax, trange);
-        }
     }
 
+
     List<SamplesSummary> makeDistanceSummaries(double[][] samples) {
-        Map<Double, List<double[]>> distances = new HashMap<>();
+        TreeMap<Double, List<double[]>> distances = new TreeMap<>();
         List<SamplesSummary> summaries;
         int rows = samples.length;
         List<double[]> list;

@@ -4,33 +4,31 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <TextView
-        android:text="Overall Summary"
+        android:text="Overall Summary (mostly averages)"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:textAppearanceMedium" />
-    <TextView
+        android:background="#666" />
+    <include
         android:id="@+id/overallSummary"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:textAppearanceSmall" />
+        layout="@layout/listitem_sample"/>
     <TextView
-        android:text="Distance Summary"
+        android:text="Summaries by Distance"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:textAppearanceMedium" />
+        android:background="#666" />
     <ListView
         android:id="@+id/distanceSummary"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight=".4"/>
+        android:layout_weight=".5"/>
     <TextView
-        android:text="Samples"
+        android:text="All Relevant Samples"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:textAppearanceMedium" />
+        android:background="#666" />
     <ListView
         android:id="@+id/samples"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight=".6" />
+        android:layout_weight=".5" />
 </LinearLayout>
