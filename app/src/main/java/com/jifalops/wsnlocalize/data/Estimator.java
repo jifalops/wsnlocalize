@@ -9,7 +9,7 @@ import org.json.JSONObject;
 /**
  *
  */
-public class Estimator {
+public class Estimator implements Comparable<Estimator> {
     public static final double MIN = 0.1;
     public static final double BT_MAX = 15;
     public static final double WIFI_MAX = 110;
@@ -51,5 +51,10 @@ public class Estimator {
             estimate = max;
         }
         return estimate;
+    }
+
+    @Override
+    public int compareTo(Estimator another) {
+        return results.compareTo(another.results);
     }
 }

@@ -7,7 +7,8 @@ import org.json.JSONObject;
 /**
  *
  */
-public class TrainingResults {
+public class TrainingResults implements Comparable<TrainingResults> {
+    public static final double GOOD_ERROR = 0.01;
     public final double[] weights;
     public final double error, mean, stddev;
     public final int samples, generations;
@@ -62,5 +63,14 @@ public class TrainingResults {
             e.printStackTrace();
         }
         return json.toString();
+    }
+
+    @Override
+    public int compareTo(TrainingResults another) {
+//        if (samples < another.samples) return -1;
+//        if (samples > another.samples) return 1;
+        if (error < another.error) return -1;
+        if (error > another.error) return 1;
+        return 0;
     }
 }
