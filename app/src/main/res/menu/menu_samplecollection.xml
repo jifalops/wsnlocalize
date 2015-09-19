@@ -6,23 +6,6 @@
         android:orderInCategory="10"
         android:checkable="true"
         app:showAsAction="always" />
-    <item android:id="@+id/action_viewsamples"
-        android:title="View samples"
-        android:orderInCategory="12"
-        app:showAsAction="ifRoom">
-        <menu>
-            <item android:id="@+id/sampleAll"
-                android:title="View All" />
-            <item android:id="@+id/sampleWifi"
-                android:title="WiFi 2.4GHz" />
-            <item android:id="@+id/sampleWifi5g"
-                android:title="WiFi 5GHz" />
-            <item android:id="@+id/sampleBt"
-                android:title="Bluetooth" />
-            <item android:id="@+id/sampleBtle"
-                android:title="Bluetooth LE" />
-        </menu>
-    </item>
     <item android:title="Set log level"
         android:orderInCategory="15"
         app:showAsAction="ifRoom">
