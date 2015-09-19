@@ -142,7 +142,7 @@ public class DistanceEstimationActivity extends Activity {
                         }
                     }
                 });
-        wifi5gCheckbox = (CheckBox) findViewById(R.id.wifiCheckBox);
+        wifi5gCheckbox = (CheckBox) findViewById(R.id.wifi5gCheckBox);
         wifi5gCheckbox.setOnCheckedChangeListener(
                 new CompoundButton.OnCheckedChangeListener() {
                     @Override
@@ -397,7 +397,6 @@ public class DistanceEstimationActivity extends Activity {
     final WifiScanner.ScanListener wifiScanListener = new WifiScanner.ScanListener() {
         @Override
         public void onScanResults(List<android.net.wifi.ScanResult> scanResults) {
-            String signal;
             for (android.net.wifi.ScanResult r : scanResults) {
                 if (r.frequency < 4000 && wifiCheckbox.isChecked()) {
                     reportSignal(r.BSSID, r.SSID, Settings.SIGNAL_WIFI, r.level, r.frequency);
