@@ -1,0 +1,14 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".SampleViewerActivity">
+    <item android:id="@+id/estimatorAll"
+        android:title="All" />
+    <item android:id="@+id/estimatorWifi"
+        android:title="WiFi 2.4GHz" />
+    <item android:id="@+id/estimatorWifi5g"
+        android:title="WiFi 5GHz" />
+    <item android:id="@+id/estimatorBt"
+        android:title="Bluetooth" />
+    <item android:id="@+id/estimatorBtle"
+        android:title="Bluetooth LE" />
+</menu>

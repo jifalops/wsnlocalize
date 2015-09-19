@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <TextView
+        android:text="Overall Summary"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#666" />
+    <include layout="@layout/summary_estimators"
+        android:id="@+id/estimatorSummary"/>
+    <include
+        android:id="@+id/estimatorAverages"
+        layout="@layout/listitem_estimator"/>
+    <TextView
+        android:text="Estimators by Samples, Error"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#666" />
+    <ListView
+        android:id="@+id/estimators"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+</LinearLayout>

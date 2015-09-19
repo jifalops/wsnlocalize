@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
+    android:columnCount="6">
+    <TextView android:text="Error"
+        android:layout_rowSpan="2"
+        android:layout_gravity="center_vertical"
+        android:layout_columnWeight="1"/>
+    <TextView android:id="@+id/error"
+        android:layout_rowSpan="2"
+        android:layout_gravity="center_vertical"
+        android:layout_columnWeight="1"
+        android:text="0"/>
+    <TextView android:text="Mean"
+        android:layout_columnWeight="1"/>
+    <TextView android:id="@+id/mean"
+        android:layout_columnWeight="1"
+        android:text="0"/>
+    <TextView android:text="Std."
+        android:layout_columnWeight="1"/>
+    <TextView android:id="@+id/stddev"
+        android:layout_columnWeight="1"
+        android:text="0"/>
+    <TextView android:text="Samp."
+        android:layout_columnWeight="1"/>
+    <TextView android:id="@+id/samples"
+        android:layout_columnWeight="1"
+        android:text="0"/>
+    <TextView android:text="Gen."/>
+    <TextView android:id="@+id/generations"
+        android:text="0"/>
+</GridLayout>

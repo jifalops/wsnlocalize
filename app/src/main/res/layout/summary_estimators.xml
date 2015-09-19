@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
+    android:columnCount="3">
+    <TextView android:text="Count"
+        android:layout_gravity="center_horizontal"
+        android:layout_columnWeight="1"/>
+    <TextView android:text="Good (<0.01)"
+        android:layout_gravity="center_horizontal"
+        android:layout_columnWeight="1"/>
+    <TextView android:text="Good Max Samp."
+        android:layout_gravity="center_horizontal"
+        android:layout_columnWeight="1"/>
+    <TextView android:id="@+id/count"
+        android:layout_gravity="center_horizontal"
+        android:text="0"/>
+    <TextView android:id="@+id/countGood"
+        android:layout_gravity="center_horizontal"
+        android:text="0"/>
+    <TextView android:id="@+id/countGoodMaxSamples"
+        android:layout_gravity="center_horizontal"
+        android:text="0"/>
+</GridLayout>
