@@ -16,24 +16,27 @@ public class NumberReaderWriter extends TextReaderWriter {
     final IoCallbacks ioCallbacks = new IoCallbacks() {
         @Override
         public void onReadCompleted(TextReaderWriter rw, List<String> lines) {
+            double[][] numbers = null;
             int rows = lines.size();
-//            if (rows == 0) { return; }
-            int cols = lines.get(0).split(",").length;
-            final double[][] numbers = new double[rows][cols];
-            for (int i = 0; i < rows; ++i) {
-                String[] p = lines.get(i).split(",");
-                for (int j = 0; j < cols; ++j) {
-                    try {
-                        numbers[i][j] = Double.valueOf(p[j]);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+            if (rows > 0) {
+                int cols = lines.get(0).split(",").length;
+                numbers = new double[rows][cols];
+                for (int i = 0; i < rows; ++i) {
+                    String[] p = lines.get(i).split(",");
+                    for (int j = 0; j < cols; ++j) {
+                        try {
+                            numbers[i][j] = Double.valueOf(p[j]);
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
             }
+            final double[][] finalNumbers = numbers;
             creationThreadHandler.post(new Runnable() {
                 @Override
                 public void run() {
-                    callbacks.onNumbersRead(NumberReaderWriter.this, numbers);
+                    callbacks.onNumbersRead(NumberReaderWriter.this, finalNumbers);
                 }
             });
         }
