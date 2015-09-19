@@ -9,4 +9,15 @@ class SampleMetrics {
         this.numInputs = numInputs;
         this.numOutputs = numOutputs;
     }
+
+    SampleMetrics(String csv) {
+        String[] p = csv.split(",");
+        numInputs = Integer.valueOf(p[0]);
+        numOutputs = Integer.valueOf(p[1]);
+    }
+
+    @Override
+    public String toString() {
+        return numInputs +","+ numOutputs;
+    }
 }

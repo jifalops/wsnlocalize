@@ -128,7 +128,7 @@ public class WindowRecord {
     }
 
     /** Does not include the estimated distance. */
-    public double[] toTrainingArray() {
+    public double[] toSample() {
         return new double[] {
                 rss.count, rss.min, rss.max, rss.range,
                 rss.mean, rss.median, rss.stdDev,
@@ -146,7 +146,7 @@ public class WindowRecord {
         int len = records.size();
         double[][] samples = new double[len][TRAINING_ARRAY_SIZE];
         for (int i = 0; i < len; ++i) {
-            samples[i] = records.get(i).toTrainingArray();
+            samples[i] = records.get(i).toSample();
         }
         return samples;
     }

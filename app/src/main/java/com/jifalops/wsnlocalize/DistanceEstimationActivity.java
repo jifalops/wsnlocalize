@@ -321,7 +321,7 @@ public class DistanceEstimationActivity extends Activity {
                     }
 
                     if (estimator != null) {
-                        double estimate = estimator.estimate(new WindowRecord(list));
+                        double estimate = estimator.estimate(new WindowRecord(list).toSample());
                         finalDevice.previous = finalDevice.estimate;
                         finalDevice.estimate = estimate;
                         adapter.notifyDataSetChanged();

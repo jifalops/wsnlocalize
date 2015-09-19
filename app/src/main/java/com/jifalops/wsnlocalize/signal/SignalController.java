@@ -372,11 +372,11 @@ public class SignalController {
         }
 
         @Override
-        public void onTrainingComplete(String signal, Estimator estimator, double error, int samples, int generations) {
-            addEvent(LOG_IMPORTANT, "Trained " + signal + " with " +
-                    samples + " samples, error = " + String.format(Locale.US, "%1.4f", error)
-                    + " gen: " + generations);
-            for (SignalListener l : listeners) l.onTrainingComplete(signal, estimator, error, samples, generations);
+        public void onTrainingComplete(String signal, Estimator estimator) {
+            addEvent(LOG_IMPORTANT, "Trained " + signal + " with " + estimator.results.samples +
+                    " samples, error = " + String.format(Locale.US, "%1.4f", estimator.results.error)
+                    + " gen: " + estimator.results.generations);
+            for (SignalListener l : listeners) l.onTrainingComplete(signal, estimator);
         }
 
         @Override
@@ -427,7 +427,7 @@ public class SignalController {
         void onRecordAdded(String signal, Device device, RssiRecord r);
         void onTrainingStarting(String signal, int samples);
         void onGenerationFinished(String signal, int gen, double best, double mean, double stdDev);
-        void onTrainingComplete(String signal, Estimator estimator, double error, int samples, int generations);
+        void onTrainingComplete(String signal, Estimator estimator);
         void onWindowReady(String signal, WindowRecord record);
         void onSentSuccess(String signal, String dataType, int count);
         void onSentFailure(String signal, String dataType, int count, int respCode, String resp, String result);

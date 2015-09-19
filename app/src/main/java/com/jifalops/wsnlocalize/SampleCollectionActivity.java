@@ -453,7 +453,7 @@ public class SampleCollectionActivity extends Activity {
         }
 
         @Override
-        public void onTrainingComplete(String signal, Estimator estimator, double error, int samples, int generations) {
+        public void onTrainingComplete(String signal, Estimator estimator) {
             updateCountView(signal, Settings.DATA_ESTIMATOR);
         }
 

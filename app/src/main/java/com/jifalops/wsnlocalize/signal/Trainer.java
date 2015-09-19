@@ -8,8 +8,8 @@ import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.neuralnet.Depso;
 import com.jifalops.wsnlocalize.neuralnet.MlpWeightMetrics;
 import com.jifalops.wsnlocalize.neuralnet.NeuralNetwork;
-import com.jifalops.wsnlocalize.neuralnet.Scaler;
 import com.jifalops.wsnlocalize.neuralnet.TerminationConditions;
+import com.jifalops.wsnlocalize.neuralnet.TrainingResults;
 import com.jifalops.wsnlocalize.util.ResettingList;
 
 import java.util.List;
@@ -23,7 +23,7 @@ public class Trainer {
         void onWindowRecordReady(WindowRecord record, List<RssiRecord> from);
         double[][] onTimeToTrain(List<WindowRecord> records, final double[][] samples);
         void onGenerationFinished(int gen, double best, double mean, double stdDev);
-        void onTrainingComplete(double[] weights, double error, int samples, int generations, Scaler scaler);
+        void onTrainingComplete(TrainingResults results);
     }
 
     private final ResettingList<RssiRecord> windower;
@@ -73,7 +73,7 @@ public class Trainer {
                 @Override
                 public void run() {
                     final AtomicInteger generations = new AtomicInteger();
-                    final Scaler scaler = new Scaler(toTrain, toTrain[0].length-1);
+//                    final Scaler scaler = new Scaler(toTrain, toTrain[0].length-1);
 
                     nnet = new Depso(NeuralNetwork.initPop(20, metrics),
                             NeuralNetwork.initPop(20, metrics), metrics, new NeuralNetwork.Callbacks() {
@@ -84,14 +84,11 @@ public class Trainer {
                         }
                     });
 
-                    final double[][] scaled = scaler.scaleAndRandomize(toTrain);
-                    final double[] weights = nnet.trainSampleBySample(scaled, termCond);
-                    final double error = nnet.getGlobalBestError();
+                    final TrainingResults results = nnet.trainSampleBySample(toTrain, termCond);
                     uiHandler.post(new Runnable() {
                         @Override
                         public void run() {
-                            callbacks.onTrainingComplete(weights, error, scaled.length,
-                                    generations.get(), scaler);
+                            callbacks.onTrainingComplete(results);
                         }
                     });
                 }

@@ -35,20 +35,23 @@ public abstract class NeuralNetwork {
     protected abstract void onGenerationStarting(int index);
     protected abstract void trainSampleBySample(double[][] samples);
 
-    public double[] trainSampleBySample(double[][] samples, TerminationConditions conditions) {
+    public TrainingResults trainSampleBySample(double[][] samples, TerminationConditions conditions) {
+        Scaler scaler = new Scaler(samples, weightMetrics.numInputs);
+        samples = scaler.scaleAndRandomize(samples);
         status = new TrainingStatus(weightMetrics, conditions);
         status.updateIfBest(population[0], 0, 1_000_000 - 1);
-        double stdDev;
+        double mean, stdDev;
         int generation = 0;
         do {
             onGenerationStarting(generation);
             trainSampleBySample(samples);
+            mean = Stats.mean(errors);
             stdDev = Stats.stdDev(errors);
             generation++;
-            callbacks.onGenerationFinished(generation, status.getBestError(),
-                    Stats.mean(errors), stdDev);
+            callbacks.onGenerationFinished(generation, status.getBestError(), mean, stdDev);
         } while (!status.isComplete(generation, stdDev));
-        return status.getBest();
+        return new TrainingResults(status.getBest(), weightMetrics, status.getBestError(),
+                mean, stdDev, samples.length, generation, scaler);
     }
 
 

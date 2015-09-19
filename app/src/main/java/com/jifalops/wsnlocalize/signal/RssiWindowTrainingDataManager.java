@@ -11,7 +11,7 @@ import com.jifalops.wsnlocalize.file.EstimatorReaderWriter;
 import com.jifalops.wsnlocalize.file.NumberReaderWriter;
 import com.jifalops.wsnlocalize.file.RssiReaderWriter;
 import com.jifalops.wsnlocalize.file.WindowReaderWriter;
-import com.jifalops.wsnlocalize.neuralnet.Scaler;
+import com.jifalops.wsnlocalize.neuralnet.TrainingResults;
 import com.jifalops.wsnlocalize.request.AbsRequest;
 import com.jifalops.wsnlocalize.request.EstimatorRequest;
 import com.jifalops.wsnlocalize.request.RssiRequest;
@@ -33,7 +33,7 @@ public class RssiWindowTrainingDataManager {
         void onEstimatorsLoadedFromDisk(String signal, List<Estimator> estimators);
         void onTrainingStarting(String signal, int samples);
         void onGenerationFinished(String signal, int gen, double best, double mean, double stdDev);
-        void onTrainingComplete(String signal, Estimator estimator, double error, int samples, int generations);
+        void onTrainingComplete(String signal, Estimator estimator);
         void onWindowReady(String signal, WindowRecord record);
         void onSentSuccess(String signal, String dataType, int count);
         void onSentFailure(String signal, String dataType, int count, int respCode, String resp, String result);
@@ -259,7 +259,7 @@ public class RssiWindowTrainingDataManager {
             rssiRW.writeRecords(from, true);
 
             if (estimator != null) {
-                estimator.estimate(record);
+                record.estimated = estimator.estimate(record.toSample());
             }
 
             windows.add(record);
@@ -289,15 +289,15 @@ public class RssiWindowTrainingDataManager {
         }
 
         @Override
-        public void onTrainingComplete(double[] weights, double error, int samples, int generations, Scaler scaler) {
-            estimator = new Estimator(weights, scaler, maxEstimate);
+        public void onTrainingComplete(TrainingResults results) {
+            estimator = new Estimator(results, maxEstimate);
             estimators.add(estimator);
 
             List<Estimator> tmp = new ArrayList<>();
             tmp.add(estimator);
             estimatorRW.writeRecords(tmp, true);
 
-            callbacks.onTrainingComplete(signalType, estimator, error, samples, generations);
+            callbacks.onTrainingComplete(signalType, estimator);
         }
 
         @Override
