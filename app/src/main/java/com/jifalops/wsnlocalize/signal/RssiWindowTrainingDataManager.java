@@ -119,10 +119,12 @@ public class RssiWindowTrainingDataManager {
     public void clearTrainingSamples() {
         trainer.resetAllWindows();
         toTrain = null;
+        sampleRW.truncate();
+    }
+
+    public void clearEstimators() {
         estimators.clear();
         estimator = null;
-        estimatorRW.truncate();
-        sampleRW.truncate();
         estimatorRW.truncate();
     }
 

@@ -259,25 +259,35 @@ public class SampleCollectionActivity extends Activity {
                 }
                 return true;
             case R.id.action_clearSend:
-                AlertDialog.Builder b = new AlertDialog.Builder(this);
-                b.setMessage("Clear send queue?");
-                b.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        controller.clearPendingSendLists();
-                        updateSendCounts();
-                    }
-                }).show();
+                new AlertDialog.Builder(this)
+                    .setMessage("Clear send queue?")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            controller.clearPendingSendLists();
+                            updateSendCounts();
+                        }
+                    }).show();
+                return true;
+            case R.id.action_clearEstimators:
+                new AlertDialog.Builder(this)
+                    .setMessage("Clear Estimators?")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            controller.clearEstimators();
+                        }
+                    }).show();
                 return true;
             case R.id.action_clearTraining:
-                AlertDialog.Builder b2 = new AlertDialog.Builder(this);
-                b2.setMessage("Clear all training samples?");
-                b2.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        controller.clearTrainingSamples();
-                    }
-                }).show();
+                new AlertDialog.Builder(this)
+                    .setMessage("Clear all training samples?")
+                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            controller.clearTrainingSamples();
+                        }
+                    }).show();
                 return true;
             case R.id.logImportant:
                 logLevel = SignalController.LOG_IMPORTANT;

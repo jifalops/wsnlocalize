@@ -115,6 +115,13 @@ public class SignalController {
         wifi5g.clearPendingSendLists();
     }
 
+    public void clearEstimators() {
+        bt.clearEstimators();
+        btle.clearEstimators();
+        wifi.clearEstimators();
+        wifi5g.clearEstimators();
+    }
+
     public void clearTrainingSamples() {
         bt.clearTrainingSamples();
         btle.clearTrainingSamples();
