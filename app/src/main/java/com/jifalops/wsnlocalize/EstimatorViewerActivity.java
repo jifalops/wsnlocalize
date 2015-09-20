@@ -12,10 +12,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jifalops.wsnlocalize.data.Estimator;
-import com.jifalops.wsnlocalize.file.EstimatorReaderWriter;
 import com.jifalops.wsnlocalize.neuralnet.TrainingResults;
+import com.jifalops.wsnlocalize.signal.EstimatorHelper;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -30,7 +29,6 @@ public class EstimatorViewerActivity extends Activity {
             "All", "WiFi 2.4GHz", "WiFi 5GHz", "Bluetooth", "Bluetooth LE"};
 
     List<Estimator> bt = null, btle = null, wifi = null, wifi5g = null;
-    boolean btLoaded, btleLoaded, wifiLoaded, wifi5gLoaded;
 
     TextView countView, goodCountView, goodSamplesCountView;
     View summary;
@@ -46,73 +44,16 @@ public class EstimatorViewerActivity extends Activity {
         goodSamplesCountView = (TextView) v.findViewById(R.id.countGoodMaxSamples);
         summary = findViewById(R.id.estimatorAverages);
         estimatorsView = (ListView) findViewById(R.id.estimators);
-
-        new EstimatorReaderWriter(new File(Settings.getDataDir(EstimatorViewerActivity.this),
-                Settings.getFileName(Settings.SIGNAL_BT, Settings.DATA_ESTIMATOR)),
-                new EstimatorReaderWriter.EstimatorCallbacks() {
-                    @Override
-                    public void onEstimatorRecordsRead(EstimatorReaderWriter rw, List<Estimator> records) {
-                        bt = records;
-                        btLoaded = true;
-                        checkIfAllLoaded();
-                    }
-
-                    @Override
-                    public void onEstimatorRecordsWritten(EstimatorReaderWriter rw, int recordsWritten) {
-
-                    }
-                }).readRecords();
-        new EstimatorReaderWriter(new File(Settings.getDataDir(EstimatorViewerActivity.this),
-                Settings.getFileName(Settings.SIGNAL_BTLE, Settings.DATA_ESTIMATOR)),
-                new EstimatorReaderWriter.EstimatorCallbacks() {
-                    @Override
-                    public void onEstimatorRecordsRead(EstimatorReaderWriter rw, List<Estimator> records) {
-                        btle = records;
-                        btleLoaded = true;
-                        checkIfAllLoaded();
-                    }
-
-                    @Override
-                    public void onEstimatorRecordsWritten(EstimatorReaderWriter rw, int recordsWritten) {
-
-                    }
-                }).readRecords();
-        new EstimatorReaderWriter(new File(Settings.getDataDir(EstimatorViewerActivity.this),
-                Settings.getFileName(Settings.SIGNAL_WIFI, Settings.DATA_ESTIMATOR)),
-                new EstimatorReaderWriter.EstimatorCallbacks() {
-                    @Override
-                    public void onEstimatorRecordsRead(EstimatorReaderWriter rw, List<Estimator> records) {
-                        wifi = records;
-                        wifiLoaded = true;
-                        checkIfAllLoaded();
-                    }
-
-                    @Override
-                    public void onEstimatorRecordsWritten(EstimatorReaderWriter rw, int recordsWritten) {
-
-                    }
-                }).readRecords();
-        new EstimatorReaderWriter(new File(Settings.getDataDir(EstimatorViewerActivity.this),
-                Settings.getFileName(Settings.SIGNAL_WIFI5G, Settings.DATA_ESTIMATOR)),
-                new EstimatorReaderWriter.EstimatorCallbacks() {
-                    @Override
-                    public void onEstimatorRecordsRead(EstimatorReaderWriter rw, List<Estimator> records) {
-                        wifi5g = records;
-                        wifi5gLoaded = true;
-                        checkIfAllLoaded();
-                    }
-
-                    @Override
-                    public void onEstimatorRecordsWritten(EstimatorReaderWriter rw, int recordsWritten) {
-
-                    }
-                }).readRecords();
-    }
-
-    void checkIfAllLoaded() {
-        if (btLoaded && btleLoaded && wifiLoaded && wifi5gLoaded) {
-            showEstimators(ALL);
-        }
+        EstimatorHelper.loadEstimators(new EstimatorHelper.EstimatorsLoadedCallback() {
+            @Override
+            public void onEstimatorsLoaded(List<Estimator> bt, List<Estimator> btle,
+                                           List<Estimator> wifi, List<Estimator> wifi5g) {
+                EstimatorViewerActivity.this.bt = bt;
+                EstimatorViewerActivity.this.btle = btle;
+                EstimatorViewerActivity.this.wifi = wifi;
+                EstimatorViewerActivity.this.wifi5g = wifi5g;
+            }
+        });
     }
 
     @Override

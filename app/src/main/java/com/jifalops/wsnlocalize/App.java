@@ -18,9 +18,11 @@ import com.android.volley.toolbox.Volley;
 import com.jifalops.wsnlocalize.bluetooth.BtHelper;
 import com.jifalops.wsnlocalize.request.AbsRequest;
 import com.jifalops.wsnlocalize.request.MacRequest;
+import com.jifalops.wsnlocalize.util.ResettingList;
 import com.jifalops.wsnlocalize.util.ServiceThreadApplication;
 import com.jifalops.wsnlocalize.wifi.WifiHelper;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +32,23 @@ import java.util.List;
 public class App extends ServiceThreadApplication {
     public static final String NSD_SERVICE_PREFIX = "wsnloco_";
     public static final String WIFI_BEACON_SSID_PREFIX = "wsnloco_";
+
+    public static final String SIGNAL_BT = "bt";
+    public static final String SIGNAL_BTLE = "btle";
+    public static final String SIGNAL_WIFI = "wifi";
+    public static final String SIGNAL_WIFI5G = "wifi5g";
+
+    public static final String DATA_RSSI = "rssi";
+    public static final String DATA_WINDOW = "windows";
+    public static final String DATA_ESTIMATOR = "estimator";
+    public static final String DATA_SAMPLES = "samples";
+
+    public static final ResettingList.Limits btWindowTrigger   = new ResettingList.Limits(3, 10_000, 5, 120_000);
+    public static final ResettingList.Limits btTrainTrigger    = new ResettingList.Limits(2, 30_000, 10, 120_000);
+    public static final ResettingList.Limits btleWindowTrigger = new ResettingList.Limits(15, 5_000, 20, 30_000);
+    public static final ResettingList.Limits btleTrainTrigger  = new ResettingList.Limits(3, 30_000, 10, 120_000);
+    public static final ResettingList.Limits wifiWindowTrigger = new ResettingList.Limits(5, 5_000, 20, 20_000);
+    public static final ResettingList.Limits wifiTrainTrigger  = new ResettingList.Limits(3, 30_000, 10, 1200_000);
 
     private static App instance;
     public static App getInstance() {
@@ -115,14 +134,29 @@ public class App extends ServiceThreadApplication {
         }
     }
 
-    public void sendRequest(AbsRequest request) {
-        requestQueue.add(request);
+    public static void sendRequest(AbsRequest request) {
+        instance.requestQueue.add(request);
     }
 
-    public String getWifiMac() {
-        return wifiMac;
+    public static String getWifiMac() {
+        return instance.wifiMac;
     }
-    public String getBtMac() {
-        return btMac;
+    public static String getBtMac() {
+        return instance.btMac;
+    }
+
+
+    public static String getFileName(String signalType, String dataType) {
+        String ext = ".csv";
+        if (DATA_ESTIMATOR.equals(dataType)) ext = ".json";
+        return signalType + "-" + dataType + ext;
+    }
+
+    public static File getDataDir() {
+        return instance.getExternalFilesDir(null);
+    }
+
+    public static File getFile(String signalType, String dataType) {
+        return new File(getDataDir(), getFileName(signalType, dataType));
     }
 }

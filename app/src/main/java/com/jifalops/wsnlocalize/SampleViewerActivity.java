@@ -47,8 +47,8 @@ public class SampleViewerActivity extends Activity {
         distSummariesView = (ListView) findViewById(R.id.distanceSummary);
         samplesView = (ListView) findViewById(R.id.samples);
 
-        new NumberReaderWriter(new File(Settings.getDataDir(SampleViewerActivity.this),
-                Settings.getFileName(Settings.SIGNAL_BT, Settings.DATA_SAMPLES)),
+        new NumberReaderWriter(new File(App.getDataDir(SampleViewerActivity.this),
+                App.getFileName(App.SIGNAL_BT, App.DATA_SAMPLES)),
                 new NumberReaderWriter.NumberCallbacks() {
                     @Override
                     public void onNumbersRead(NumberReaderWriter rw, double[][] numbers) {
@@ -62,8 +62,8 @@ public class SampleViewerActivity extends Activity {
 
                     }
                 }).readNumbers();
-        new NumberReaderWriter(new File(Settings.getDataDir(SampleViewerActivity.this),
-                Settings.getFileName(Settings.SIGNAL_BTLE, Settings.DATA_SAMPLES)),
+        new NumberReaderWriter(new File(App.getDataDir(SampleViewerActivity.this),
+                App.getFileName(App.SIGNAL_BTLE, App.DATA_SAMPLES)),
                 new NumberReaderWriter.NumberCallbacks() {
                     @Override
                     public void onNumbersRead(NumberReaderWriter rw, double[][] numbers) {
@@ -77,8 +77,8 @@ public class SampleViewerActivity extends Activity {
 
                     }
                 }).readNumbers();
-        new NumberReaderWriter(new File(Settings.getDataDir(SampleViewerActivity.this),
-                Settings.getFileName(Settings.SIGNAL_WIFI, Settings.DATA_SAMPLES)),
+        new NumberReaderWriter(new File(App.getDataDir(SampleViewerActivity.this),
+                App.getFileName(App.SIGNAL_WIFI, App.DATA_SAMPLES)),
                 new NumberReaderWriter.NumberCallbacks() {
                     @Override
                     public void onNumbersRead(NumberReaderWriter rw, double[][] numbers) {
@@ -92,8 +92,8 @@ public class SampleViewerActivity extends Activity {
 
                     }
                 }).readNumbers();
-        new NumberReaderWriter(new File(Settings.getDataDir(SampleViewerActivity.this),
-                Settings.getFileName(Settings.SIGNAL_WIFI5G, Settings.DATA_SAMPLES)),
+        new NumberReaderWriter(new File(App.getDataDir(SampleViewerActivity.this),
+                App.getFileName(App.SIGNAL_WIFI5G, App.DATA_SAMPLES)),
                 new NumberReaderWriter.NumberCallbacks() {
                     @Override
                     public void onNumbersRead(NumberReaderWriter rw, double[][] numbers) {

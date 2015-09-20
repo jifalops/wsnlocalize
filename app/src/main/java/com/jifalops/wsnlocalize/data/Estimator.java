@@ -1,5 +1,6 @@
 package com.jifalops.wsnlocalize.data;
 
+import com.jifalops.wsnlocalize.App;
 import com.jifalops.wsnlocalize.neuralnet.NeuralNetwork;
 import com.jifalops.wsnlocalize.neuralnet.TrainingResults;
 
@@ -14,7 +15,7 @@ public class Estimator implements Comparable<Estimator> {
     public static final double BT_MAX = 15;
     public static final double WIFI_MAX = 110;
 
-    public final double min = MIN, max;
+    public final double max;
     public final TrainingResults results;
 
     public Estimator(TrainingResults results, double max) {
@@ -26,6 +27,17 @@ public class Estimator implements Comparable<Estimator> {
         JSONObject json = new JSONObject(jsonObject);
         max = json.getDouble("max");
         results = new TrainingResults(json.getString("results"));
+    }
+
+    public static double getMax(String signalType) {
+        switch (signalType) {
+            case App.SIGNAL_BT:
+                // fall through
+            case App.SIGNAL_BTLE:
+                return BT_MAX;
+            default:
+                return WIFI_MAX;
+        }
     }
 
     @Override
@@ -45,8 +57,8 @@ public class Estimator implements Comparable<Estimator> {
         double[][] scaled = results.scaler.scale(toEstimate);
         double[] outputs = NeuralNetwork.calcOutputs(results.weights, scaled[0], results.metrics);
         double estimate = results.scaler.unscale(outputs)[0];
-        if (estimate < min) {
-            estimate = min;
+        if (estimate < MIN) {
+            estimate = MIN;
         } else if (estimate > max) {
             estimate = max;
         }

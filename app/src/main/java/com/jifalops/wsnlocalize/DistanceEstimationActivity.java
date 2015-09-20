@@ -154,10 +154,10 @@ public class DistanceEstimationActivity extends Activity {
                     }
                 });
 
-        File dir = Settings.getDataDir(this);
+        File dir = App.getDataDir(this);
 
-        new EstimatorReaderWriter(new File(dir, Settings.getFileName(Settings.SIGNAL_BT,
-                Settings.DATA_ESTIMATOR)), new EstimatorReaderWriter.EstimatorCallbacks() {
+        new EstimatorReaderWriter(new File(dir, App.getFileName(App.SIGNAL_BT,
+                App.DATA_ESTIMATOR)), new EstimatorReaderWriter.EstimatorCallbacks() {
             @Override
             public void onEstimatorRecordsRead(EstimatorReaderWriter rw, List<Estimator> records) {
                 if (records.size() > 0) {
@@ -175,8 +175,8 @@ public class DistanceEstimationActivity extends Activity {
             }
         }).readRecords();
 
-        new EstimatorReaderWriter(new File(dir, Settings.getFileName(Settings.SIGNAL_BTLE,
-                Settings.DATA_ESTIMATOR)), new EstimatorReaderWriter.EstimatorCallbacks() {
+        new EstimatorReaderWriter(new File(dir, App.getFileName(App.SIGNAL_BTLE,
+                App.DATA_ESTIMATOR)), new EstimatorReaderWriter.EstimatorCallbacks() {
             @Override
             public void onEstimatorRecordsRead(EstimatorReaderWriter rw, List<Estimator> records) {
                 if (records.size() > 0) {
@@ -194,8 +194,8 @@ public class DistanceEstimationActivity extends Activity {
             }
         }).readRecords();
 
-        new EstimatorReaderWriter(new File(dir, Settings.getFileName(Settings.SIGNAL_WIFI,
-                Settings.DATA_ESTIMATOR)), new EstimatorReaderWriter.EstimatorCallbacks() {
+        new EstimatorReaderWriter(new File(dir, App.getFileName(App.SIGNAL_WIFI,
+                App.DATA_ESTIMATOR)), new EstimatorReaderWriter.EstimatorCallbacks() {
             @Override
             public void onEstimatorRecordsRead(EstimatorReaderWriter rw, List<Estimator> records) {
                 if (records.size() > 0) {
@@ -213,8 +213,8 @@ public class DistanceEstimationActivity extends Activity {
             }
         }).readRecords();
 
-        new EstimatorReaderWriter(new File(dir, Settings.getFileName(Settings.SIGNAL_WIFI5G,
-                Settings.DATA_ESTIMATOR)), new EstimatorReaderWriter.EstimatorCallbacks() {
+        new EstimatorReaderWriter(new File(dir, App.getFileName(App.SIGNAL_WIFI5G,
+                App.DATA_ESTIMATOR)), new EstimatorReaderWriter.EstimatorCallbacks() {
             @Override
             public void onEstimatorRecordsRead(EstimatorReaderWriter rw, List<Estimator> records) {
                 if (records.size() > 0) {
@@ -302,21 +302,21 @@ public class DistanceEstimationActivity extends Activity {
             adapter.notifyDataSetChanged();
             final Device finalDevice = device;
             ResettingList.Limits limits;
-            if (Settings.SIGNAL_BT.equals(signal)) limits = Settings.btWindowTrigger;
-            else if (Settings.SIGNAL_BTLE.equals(signal)) limits = Settings.btleWindowTrigger;
-            else limits = Settings.wifiWindowTrigger;
+            if (App.SIGNAL_BT.equals(signal)) limits = App.btWindowTrigger;
+            else if (App.SIGNAL_BTLE.equals(signal)) limits = App.btleWindowTrigger;
+            else limits = App.wifiWindowTrigger;
             windowers.put(device, new ResettingList<>(limits,
                     new ResettingList.LimitsCallback<RssiRecord>() {
                 @Override
                 public void onLimitsReached(List<RssiRecord> list, long time) {
                     Estimator estimator = null;
-                    if (Settings.SIGNAL_BT.equals(signal)) {
+                    if (App.SIGNAL_BT.equals(signal)) {
                         estimator = btEstimator;
-                    } else if (Settings.SIGNAL_BTLE.equals(signal)) {
+                    } else if (App.SIGNAL_BTLE.equals(signal)) {
                         estimator = btleEstimator;
-                    } else if (Settings.SIGNAL_WIFI.equals(signal)) {
+                    } else if (App.SIGNAL_WIFI.equals(signal)) {
                         estimator = wifiEstimator;
-                    } else if (Settings.SIGNAL_WIFI5G.equals(signal)) {
+                    } else if (App.SIGNAL_WIFI5G.equals(signal)) {
                         estimator = wifi5gEstimator;
                     }
 
@@ -338,7 +338,7 @@ public class DistanceEstimationActivity extends Activity {
     final BtBeacon.BtBeaconListener btBeaconListener = new BtBeacon.BtBeaconListener() {
         @Override
         public void onDeviceFound(BluetoothDevice device, short rssi) {
-            reportSignal(device.getAddress(), device.getName(), Settings.SIGNAL_BT, rssi, 2400);
+            reportSignal(device.getAddress(), device.getName(), App.SIGNAL_BT, rssi, 2400);
         }
 
         @Override
@@ -388,7 +388,7 @@ public class DistanceEstimationActivity extends Activity {
         void handleScanResult(ScanResult result) {
             BluetoothDevice device = result.getDevice();
             if (device != null) {
-                reportSignal(device.getAddress(), device.getName(), Settings.SIGNAL_BTLE,
+                reportSignal(device.getAddress(), device.getName(), App.SIGNAL_BTLE,
                         result.getRssi(), 2400);
             }
         }
@@ -399,9 +399,9 @@ public class DistanceEstimationActivity extends Activity {
         public void onScanResults(List<android.net.wifi.ScanResult> scanResults) {
             for (android.net.wifi.ScanResult r : scanResults) {
                 if (r.frequency < 4000 && wifiCheckbox.isChecked()) {
-                    reportSignal(r.BSSID, r.SSID, Settings.SIGNAL_WIFI, r.level, r.frequency);
+                    reportSignal(r.BSSID, r.SSID, App.SIGNAL_WIFI, r.level, r.frequency);
                 } else if (r.frequency > 4000 && wifi5gCheckbox.isChecked()) {
-                    reportSignal(r.BSSID, r.SSID, Settings.SIGNAL_WIFI5G, r.level, r.frequency);
+                    reportSignal(r.BSSID, r.SSID, App.SIGNAL_WIFI5G, r.level, r.frequency);
                 }
             }
         }

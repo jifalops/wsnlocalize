@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
+ * @deprecated
  */
 public class EstimatorRequest extends AbsRequest {
     private final List<Estimator> estimators;

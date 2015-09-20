@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextUtils;
@@ -35,22 +34,15 @@ import java.util.List;
 /**
  *
  */
-public class SampleCollectionActivity extends Activity {
-    static final int REQUEST_BT_ENABLE = 1;
-    static final int REQUEST_BT_DISCOVERABLE = 2;
-    static final String CONTROLLER = SampleCollectionActivity.class.getName() + ".controller";
+public class EstimatorTrainingActivity extends Activity {
+//    static final String CONTROLLER = EstimatorTrainingActivity.class.getName() + ".controller";
 
-    TextView eventLogView, deviceLogView,
-            btRssiCountView, btWindowCountView, btEstimatorCountView,
-            btleRssiCountView, btleWindowCountView, btleEstimatorCountView,
-            wifiRssiCountView, wifiWindowCountView, wifiEstimatorCountView,
-            wifi5gRssiCountView, wifi5gWindowCountView, wifi5gEstimatorCountView,
-            deviceIdView;
-    EditText distanceView;
-    Switch collectSwitch;
+    TextView eventLogView,
+            btEstimatorCountView, btleEstimatorCountView,
+            wifiEstimatorCountView, wifi5gEstimatorCountView;
+
     CheckBox btCheckBox, btleCheckBox, wifiCheckBox, wifi5gCheckBox;
 
-    SharedPreferences prefs;
     int logLevel;
 
     ServiceThreadApplication.LocalService service;
@@ -91,8 +83,8 @@ public class SampleCollectionActivity extends Activity {
         deviceIdView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AlertDialog.Builder b = new AlertDialog.Builder(SampleCollectionActivity.this);
-                final EditText input = new EditText(SampleCollectionActivity.this);
+                AlertDialog.Builder b = new AlertDialog.Builder(EstimatorTrainingActivity.this);
+                final EditText input = new EditText(EstimatorTrainingActivity.this);
                 LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.WRAP_CONTENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT);

@@ -5,7 +5,7 @@ import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
 
-import com.jifalops.wsnlocalize.Settings;
+import com.jifalops.wsnlocalize.App;
 import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
 import com.jifalops.wsnlocalize.data.Estimator;
@@ -64,16 +64,16 @@ public class SignalController {
         btleBeacon = BtLeBeacon.getInstance(ctx);
         wifiScanner = WifiScanner.getInstance(ctx);
 
-        File dir = Settings.getDataDir(ctx);
+        File dir = App.getDataDir(ctx);
 
-        bt = new RssiWindowTrainingDataManager(Settings.SIGNAL_BT, dir,
-                Settings.btWindowTrigger, Settings.btTrainTrigger, callbacks);
-        btle = new RssiWindowTrainingDataManager(Settings.SIGNAL_BTLE, dir,
-                Settings.btleWindowTrigger, Settings.btleTrainTrigger, callbacks);
-        wifi = new RssiWindowTrainingDataManager(Settings.SIGNAL_WIFI, dir,
-                Settings.wifiWindowTrigger, Settings.wifiTrainTrigger, callbacks);
-        wifi5g = new RssiWindowTrainingDataManager(Settings.SIGNAL_WIFI5G, dir,
-                Settings.wifiWindowTrigger, Settings.wifiTrainTrigger, callbacks);
+        bt = new RssiWindowTrainingDataManager(App.SIGNAL_BT, dir,
+                App.btWindowTrigger, App.btTrainTrigger, callbacks);
+        btle = new RssiWindowTrainingDataManager(App.SIGNAL_BTLE, dir,
+                App.btleWindowTrigger, App.btleTrainTrigger, callbacks);
+        wifi = new RssiWindowTrainingDataManager(App.SIGNAL_WIFI, dir,
+                App.wifiWindowTrigger, App.wifiTrainTrigger, callbacks);
+        wifi5g = new RssiWindowTrainingDataManager(App.SIGNAL_WIFI5G, dir,
+                App.wifiWindowTrigger, App.wifiTrainTrigger, callbacks);
     }
 
     public RssiWindowTrainingDataManager getBt() { return bt; }
@@ -249,13 +249,13 @@ public class SignalController {
 //                String time = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.US).format(new Date());
                 RssiRecord record = new RssiRecord(device.mac, rssi, freq,
                         System.currentTimeMillis(), distance);
-                if (signal.equals(Settings.SIGNAL_BT)) {
+                if (signal.equals(App.SIGNAL_BT)) {
                     bt.add(record);
-                } else if (signal.equals(Settings.SIGNAL_BTLE)) {
+                } else if (signal.equals(App.SIGNAL_BTLE)) {
                     btle.add(record);
-                } else if (signal.equals(Settings.SIGNAL_WIFI)) {
+                } else if (signal.equals(App.SIGNAL_WIFI)) {
                     wifi.add(record);
-                } else if (signal.equals(Settings.SIGNAL_WIFI5G)) {
+                } else if (signal.equals(App.SIGNAL_WIFI5G)) {
                     wifi5g.add(record);
                 }
                 for (SignalListener l : listeners) l.onRecordAdded(signal, device, record);
@@ -271,7 +271,7 @@ public class SignalController {
         @Override
         public void onDeviceFound(BluetoothDevice device, short rssi) {
             addRecord(getDevice(device.getAddress(), device.getName() + " (BT)"),
-                    Settings.SIGNAL_BT, rssi, 2400);
+                    App.SIGNAL_BT, rssi, 2400);
         }
 
         @Override
@@ -324,7 +324,7 @@ public class SignalController {
             BluetoothDevice device = result.getDevice();
             if (device != null) {
                 addRecord(getDevice(device.getAddress(), device.getName() + " (BTLE)"),
-                        Settings.SIGNAL_BTLE, result.getRssi(), 2400);
+                        App.SIGNAL_BTLE, result.getRssi(), 2400);
             } else {
                 addEvent(LOG_INFORMATIVE, "BTLE received " + result.getRssi() + " dBm from null device.");
             }
@@ -339,10 +339,10 @@ public class SignalController {
             for (android.net.wifi.ScanResult r : scanResults) {
                 if (r.frequency < 4000 && shouldUseWifi) {
                     addRecord(getDevice(r.BSSID, r.SSID + " (WiFi " + r.frequency + "MHz)"),
-                            Settings.SIGNAL_WIFI, r.level, r.frequency);
+                            App.SIGNAL_WIFI, r.level, r.frequency);
                 } else if (r.frequency > 4000 && shouldUseWifi5g) {
                     addRecord(getDevice(r.BSSID, r.SSID + " (WiFi " + r.frequency + "MHz)"),
-                            Settings.SIGNAL_WIFI5G, r.level, r.frequency);
+                            App.SIGNAL_WIFI5G, r.level, r.frequency);
                 }
 
             }

@@ -3,7 +3,6 @@ package com.jifalops.wsnlocalize.signal;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.jifalops.wsnlocalize.App;
-import com.jifalops.wsnlocalize.Settings;
 import com.jifalops.wsnlocalize.data.Estimator;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
@@ -65,19 +64,19 @@ public class RssiWindowTrainingDataManager {
         MyCallbacks myCallbacks = new MyCallbacks();
         trainer = new Trainer(rssiWindowLimits, windowTrainingLimits, myCallbacks);
         rssiRW = new RssiReaderWriter(new File(dir,
-                Settings.getFileName(signalType, Settings.DATA_RSSI)), myCallbacks);
+                App.getFileName(signalType, App.DATA_RSSI)), myCallbacks);
         windowRW = new WindowReaderWriter(new File(dir,
-                Settings.getFileName(signalType, Settings.DATA_WINDOW)), myCallbacks);
+                App.getFileName(signalType, App.DATA_WINDOW)), myCallbacks);
         sampleRW = new NumberReaderWriter(new File(dir,
-                Settings.getFileName(signalType, Settings.DATA_SAMPLES)), myCallbacks);
+                App.getFileName(signalType, App.DATA_SAMPLES)), myCallbacks);
         estimatorRW = new EstimatorReaderWriter(new File(dir,
-                Settings.getFileName(signalType, Settings.DATA_ESTIMATOR)), myCallbacks);
+                App.getFileName(signalType, App.DATA_ESTIMATOR)), myCallbacks);
         this.callbacks = callbacks;
         rssiRW.readRecords();
         windowRW.readRecords();
         sampleRW.readNumbers();
         estimatorRW.readLines();
-        maxEstimate = (signalType == Settings.SIGNAL_BT || signalType == Settings.SIGNAL_BTLE)
+        maxEstimate = (signalType == App.SIGNAL_BT || signalType == App.SIGNAL_BTLE)
                 ? Estimator.BT_MAX
                 : Estimator.WIFI_MAX;
     }
@@ -129,10 +128,10 @@ public class RssiWindowTrainingDataManager {
     }
 
     public void close() {
-        rssiRW.close();
-        windowRW.close();
-        sampleRW.close();
-        estimatorRW.close();
+//        rssiRW.close();
+//        windowRW.close();
+//        sampleRW.close();
+//        estimatorRW.close();
         trainer.close();
     }
 
@@ -147,10 +146,10 @@ public class RssiWindowTrainingDataManager {
                         public void onResponse(AbsRequest.MyResponse response) {
                             if (response.responseCode == 200) {
                                 rssiRW.writeRecords(rssi, false);
-                                callbacks.onSentSuccess(signalType, Settings.DATA_RSSI, toSend);
+                                callbacks.onSentSuccess(signalType, App.DATA_RSSI, toSend);
                             } else {
                                 rssi.addAll(sending);
-                                callbacks.onSentFailure(signalType, Settings.DATA_RSSI, toSend,
+                                callbacks.onSentFailure(signalType, App.DATA_RSSI, toSend,
                                         response.responseCode, response.responseMessage,
                                         response.queryResult);
                             }
@@ -159,7 +158,7 @@ public class RssiWindowTrainingDataManager {
                         @Override
                         public void onErrorResponse(VolleyError volleyError) {
                             rssi.addAll(sending);
-                            callbacks.onSentFailure(signalType, Settings.DATA_RSSI, toSend,
+                            callbacks.onSentFailure(signalType, App.DATA_RSSI, toSend,
                                     volleyError.toString());
                         }
                     }));
@@ -174,10 +173,10 @@ public class RssiWindowTrainingDataManager {
                         public void onResponse(AbsRequest.MyResponse response) {
                             if (response.responseCode == 200) {
                                 windowRW.writeRecords(windows, false);
-                                callbacks.onSentSuccess(signalType, Settings.DATA_WINDOW, toSend);
+                                callbacks.onSentSuccess(signalType, App.DATA_WINDOW, toSend);
                             } else {
                                 windows.addAll(sending);
-                                callbacks.onSentFailure(signalType, Settings.DATA_WINDOW, toSend,
+                                callbacks.onSentFailure(signalType, App.DATA_WINDOW, toSend,
                                         response.responseCode, response.responseMessage,
                                         response.queryResult);
                             }
@@ -186,7 +185,7 @@ public class RssiWindowTrainingDataManager {
                 @Override
                 public void onErrorResponse(VolleyError volleyError) {
                     windows.addAll(sending);
-                    callbacks.onSentFailure(signalType, Settings.DATA_WINDOW, toSend, volleyError.toString());
+                    callbacks.onSentFailure(signalType, App.DATA_WINDOW, toSend, volleyError.toString());
                 }
             }));
         }
@@ -200,10 +199,10 @@ public class RssiWindowTrainingDataManager {
                         public void onResponse(AbsRequest.MyResponse response) {
                             if (response.responseCode == 200) {
                                 estimatorRW.writeRecords(estimators, false);
-                                callbacks.onSentSuccess(signalType, Settings.DATA_ESTIMATOR, toSend);
+                                callbacks.onSentSuccess(signalType, App.DATA_ESTIMATOR, toSend);
                             } else {
                                 estimators.addAll(sending);
-                                callbacks.onSentFailure(signalType, Settings.DATA_ESTIMATOR, toSend,
+                                callbacks.onSentFailure(signalType, App.DATA_ESTIMATOR, toSend,
                                         response.responseCode, response.responseMessage,
                                         response.queryResult);
                             }
@@ -212,7 +211,7 @@ public class RssiWindowTrainingDataManager {
                 @Override
                 public void onErrorResponse(VolleyError volleyError) {
                     estimators.addAll(sending);
-                    callbacks.onSentFailure(signalType, Settings.DATA_ESTIMATOR, toSend, volleyError.toString());
+                    callbacks.onSentFailure(signalType, App.DATA_ESTIMATOR, toSend, volleyError.toString());
                 }
             }));
         }
