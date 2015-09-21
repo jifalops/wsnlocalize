@@ -22,12 +22,10 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jifalops.toolbox.SimpleLog;
 import com.jifalops.toolbox.app.ServiceThreadApplication;
-import com.jifalops.wsnlocalize.data.Estimator;
+import com.jifalops.toolbox.util.SimpleLog;
 import com.jifalops.wsnlocalize.data.RssiRecord;
-import com.jifalops.wsnlocalize.data.WindowRecord;
-import com.jifalops.wsnlocalize.signal.SignalController;
+import com.jifalops.wsnlocalize.signal.RssiSampler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +52,7 @@ public class SampleCollectionActivity extends Activity {
     int logLevel;
 
     ServiceThreadApplication.LocalService service;
-    SignalController controller;
+    RssiSampler rssiSampler;
 
 
 
@@ -105,13 +103,13 @@ public class SampleCollectionActivity extends Activity {
                     public void onClick(DialogInterface dialog, int which) {
                         deviceIdView.setText("");
                         List<Integer> deviceIds = new ArrayList<Integer>();
-                        controller.resetKnownDistances();
+                        rssiSampler.resetKnownDistances();
                         try {
                             String[] ids = input.getText().toString().split(",");
                             int id;
                             for (String s : ids) {
                                 id = Integer.valueOf(s);
-                                SignalController.Device d = controller.getDevice(id - 1);
+                                RssiSampler.Device d = rssiSampler.getDevice(id - 1);
                                 if (d != null) {
                                     d.isDistanceKnown = true;
                                     deviceIds.add(d.id);
@@ -150,21 +148,21 @@ public class SampleCollectionActivity extends Activity {
             @Override
             public void afterTextChanged(Editable s) {
                 try {
-                    controller.setDistance(Double.valueOf(s.toString()));
+                    rssiSampler.setDistance(Double.valueOf(s.toString()));
                 } catch (NumberFormatException e) {
-                    distanceView.setText(controller.getDistance() + "");
+                    distanceView.setText(rssiSampler.getDistance() + "");
                 }
             }
         });
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                controller.send();
+                rssiSampler.send();
             }
         });
 
         prefs = getSharedPreferences("rssitraining", MODE_PRIVATE);
-        controller = SignalController.getInstance(this);
+        rssiSampler = RssiSampler.getInstance(this);
 
         App.getInstance().bindLocalService(new Runnable() {
             @Override
@@ -181,9 +179,9 @@ public class SampleCollectionActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         if (service != null && !service.isPersistent()) {
-            controller.setCollectEnabled(false);
-            controller.close();
-            controller = null;
+            rssiSampler.setCollectEnabled(false);
+            rssiSampler.close();
+            rssiSampler = null;
         }
         App.getInstance().unbindLocalService(null);
     }
@@ -236,11 +234,11 @@ public class SampleCollectionActivity extends Activity {
 //        SubMenu sub = menu.getItem(0);
         menu.findItem(R.id.action_persist).setChecked(service != null && service.isPersistent());
         menu.findItem(R.id.logImportant).setChecked(
-                logLevel == SignalController.LOG_IMPORTANT);
+                logLevel == RssiSampler.LOG_IMPORTANT);
         menu.findItem(R.id.logInformative).setChecked(
-                logLevel == SignalController.LOG_INFORMATIVE);
+                logLevel == RssiSampler.LOG_INFORMATIVE);
         menu.findItem(R.id.logAll).setChecked(
-                logLevel == SignalController.LOG_ALL);
+                logLevel == RssiSampler.LOG_ALL);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -264,18 +262,8 @@ public class SampleCollectionActivity extends Activity {
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            controller.clearPendingSendLists();
+                            rssiSampler.clearPendingSendLists();
                             updateSendCounts();
-                        }
-                    }).show();
-                return true;
-            case R.id.action_clearEstimators:
-                new AlertDialog.Builder(this)
-                    .setMessage("Clear Estimators?")
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            controller.clearEstimators();
                         }
                     }).show();
                 return true;
@@ -285,18 +273,18 @@ public class SampleCollectionActivity extends Activity {
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            controller.clearTrainingSamples();
+                            rssiSampler.clearTrainingSamples();
                         }
                     }).show();
                 return true;
             case R.id.logImportant:
-                logLevel = SignalController.LOG_IMPORTANT;
+                logLevel = RssiSampler.LOG_IMPORTANT;
                 return true;
             case R.id.logInformative:
-                logLevel = SignalController.LOG_INFORMATIVE;
+                logLevel = RssiSampler.LOG_INFORMATIVE;
                 return true;
             case R.id.logAll:
-                logLevel = SignalController.LOG_ALL;
+                logLevel = RssiSampler.LOG_ALL;
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -304,89 +292,89 @@ public class SampleCollectionActivity extends Activity {
 
     void setPersistent(boolean persist) {
         if (service == null) return;
-        Object obj = persist ? controller : null;
+        Object obj = persist ? rssiSampler : null;
         service.setPersistent(persist, getClass());
         service.setCachedObject(getLocalClassName() + CONTROLLER, obj);
     }
 
     void updateSendCounts() {
-        btRssiCountView.setText(controller.getBt().getRssiCount() + "");
-        btWindowCountView.setText(controller.getBt().getWindowCount() + "");
-        btEstimatorCountView.setText(controller.getBt().getEstimatorCount() + "");
-        btleRssiCountView.setText(controller.getBtle().getRssiCount() + "");
-        btleWindowCountView.setText(controller.getBtle().getWindowCount() + "");
-        btleEstimatorCountView.setText(controller.getBtle().getEstimatorCount() + "");
-        wifiRssiCountView.setText(controller.getWifi().getRssiCount() + "");
-        wifiWindowCountView.setText(controller.getWifi().getWindowCount() + "");
-        wifiEstimatorCountView.setText(controller.getWifi().getEstimatorCount() + "");
-        wifi5gRssiCountView.setText(controller.getWifi5g().getRssiCount() + "");
-        wifi5gWindowCountView.setText(controller.getWifi5g().getWindowCount() + "");
-        wifi5gEstimatorCountView.setText(controller.getWifi5g().getEstimatorCount() + "");
+//        btRssiCountView.setText(controller.getBt().getRssiCount() + "");
+//        btWindowCountView.setText(controller.getBt().getWindowCount() + "");
+//        btEstimatorCountView.setText(controller.getBt().getEstimatorCount() + "");
+//        btleRssiCountView.setText(controller.getBtle().getRssiCount() + "");
+//        btleWindowCountView.setText(controller.getBtle().getWindowCount() + "");
+//        btleEstimatorCountView.setText(controller.getBtle().getEstimatorCount() + "");
+//        wifiRssiCountView.setText(controller.getWifi().getRssiCount() + "");
+//        wifiWindowCountView.setText(controller.getWifi().getWindowCount() + "");
+//        wifiEstimatorCountView.setText(controller.getWifi().getEstimatorCount() + "");
+//        wifi5gRssiCountView.setText(controller.getWifi5g().getRssiCount() + "");
+//        wifi5gWindowCountView.setText(controller.getWifi5g().getWindowCount() + "");
+//        wifi5gEstimatorCountView.setText(controller.getWifi5g().getEstimatorCount() + "");
     }
 
     void loadDevicesAndEvents() {
         deviceLogView.setText("Devices:\n");
         eventLogView.setText("Events:\n");
-        for (SignalController.Device d : controller.getDevices()) {
+        for (RssiSampler.Device d : rssiSampler.getDevices()) {
             deviceLogView.append(d.toString() + "\n");
         }
-        List<SimpleLog.LogItem> items =  controller.getLog().getByImportance(logLevel, true);
+        List<SimpleLog.LogItem> items =  rssiSampler.getLog().getByImportance(logLevel, true);
         for (SimpleLog.LogItem item : items) {
             eventLogView.append(item.msg + "\n");
         }
     }
 
     void setupControls() {
-        controller.setShouldUseBt(prefs.getBoolean("btEnabled", true));
-        controller.setShouldUseBtle(prefs.getBoolean("btleEnabled", true));
-        controller.setShouldUseWifi(prefs.getBoolean("wifiEnabled", true));
-        controller.setShouldUseWifi5g(prefs.getBoolean("wifi5gEnabled", true));
+        rssiSampler.setShouldUseBt(prefs.getBoolean("btEnabled", true));
+        rssiSampler.setShouldUseBtle(prefs.getBoolean("btleEnabled", true));
+        rssiSampler.setShouldUseWifi(prefs.getBoolean("wifiEnabled", true));
+        rssiSampler.setShouldUseWifi5g(prefs.getBoolean("wifi5gEnabled", true));
 
         btCheckBox.setOnCheckedChangeListener(null);
-        btCheckBox.setChecked(controller.getShouldUseBt());
+        btCheckBox.setChecked(rssiSampler.getShouldUseBt());
         btCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                controller.setShouldUseBt(isChecked);
+                rssiSampler.setShouldUseBt(isChecked);
             }
         });
         btleCheckBox.setOnCheckedChangeListener(null);
-        btleCheckBox.setChecked(controller.getShouldUseBtle());
+        btleCheckBox.setChecked(rssiSampler.getShouldUseBtle());
         btleCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                controller.setShouldUseBtle(isChecked);
+                rssiSampler.setShouldUseBtle(isChecked);
             }
         });
         wifiCheckBox.setOnCheckedChangeListener(null);
-        wifiCheckBox.setChecked(controller.getShouldUseWifi());
+        wifiCheckBox.setChecked(rssiSampler.getShouldUseWifi());
         wifiCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                controller.setShouldUseWifi(isChecked);
+                rssiSampler.setShouldUseWifi(isChecked);
             }
         });
         wifi5gCheckBox.setOnCheckedChangeListener(null);
-        wifi5gCheckBox.setChecked(controller.getShouldUseWifi5g());
+        wifi5gCheckBox.setChecked(rssiSampler.getShouldUseWifi5g());
         wifi5gCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                controller.setShouldUseWifi5g(isChecked);
+                rssiSampler.setShouldUseWifi5g(isChecked);
             }
         });
 
         collectSwitch.setOnCheckedChangeListener(null);
-        collectSwitch.setChecked(controller.getCollectEnabled());
+        collectSwitch.setChecked(rssiSampler.getCollectEnabled());
         collectSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                controller.setCollectEnabled(isChecked);
+                rssiSampler.setCollectEnabled(isChecked);
             }
         });
 
-        distanceView.setText(controller.getDistance() + "");
+        distanceView.setText(rssiSampler.getDistance() + "");
         List<Integer> ids = new ArrayList<>();
-        for (SignalController.Device d : controller.getDevices()) {
+        for (RssiSampler.Device d : rssiSampler.getDevices()) {
             if (d.isDistanceKnown) ids.add(d.id);
         }
         if (ids.size() > 0) deviceIdView.setText(TextUtils.join(",", ids));
@@ -395,8 +383,8 @@ public class SampleCollectionActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        controller.registerListener(signalListener);
-        logLevel = prefs.getInt("logLevel", SignalController.LOG_INFORMATIVE);
+        rssiSampler.registerListener(samplerListener);
+        logLevel = prefs.getInt("logLevel", RssiSampler.LOG_INFORMATIVE);
         updateSendCounts();
         loadDevicesAndEvents();
         setupControls();
@@ -407,14 +395,14 @@ public class SampleCollectionActivity extends Activity {
         super.onPause();
         prefs.edit()
                 .putInt("logLevel", logLevel)
-                .putBoolean("btEnabled", controller.getShouldUseBt())
-                .putBoolean("btleEnabled", controller.getShouldUseBtle())
-                .putBoolean("wifiEnabled", controller.getShouldUseWifi())
-                .putBoolean("wifi5gEnabled", controller.getShouldUseWifi5g()).apply();
-        controller.unregisterListener(signalListener);
+                .putBoolean("btEnabled", rssiSampler.getShouldUseBt())
+                .putBoolean("btleEnabled", rssiSampler.getShouldUseBtle())
+                .putBoolean("wifiEnabled", rssiSampler.getShouldUseWifi())
+                .putBoolean("wifi5gEnabled", rssiSampler.getShouldUseWifi5g()).apply();
+        rssiSampler.unregisterListener(samplerListener);
     }
 
-    private final SignalController.SignalListener signalListener = new SignalController.SignalListener() {
+    private final RssiSampler.SamplerListener samplerListener = new RssiSampler.SamplerListener() {
         @Override
         public void onMessageLogged(int level, final String msg) {
             if (level >= logLevel) {
@@ -428,120 +416,150 @@ public class SampleCollectionActivity extends Activity {
         }
 
         @Override
-        public void onDeviceFound(SignalController.Device device) {
+        public void onDeviceFound(RssiSampler.Device device) {
             deviceLogView.append(device.toString() + "\n");
         }
 
         @Override
-        public void onRssiLoadedFromDisk(String signal, List<RssiRecord> records) {
+        public void onRssiLoadedFromDisk() {
+
+        }
+
+//        @Override
+//        public void onRssiLoadedFromDisk(String signal, List<RssiRecord> records) {
+//            updateCountView(signal, App.DATA_RSSI);
+//        }
+//
+//        @Override
+//        public void onWindowsLoadedFromDisk(String signal, List<WindowRecord> records) {
+//            updateCountView(signal, App.DATA_WINDOW);
+//        }
+//
+//        @Override
+//        public void onEstimatorsLoadedFromDisk(String signal, List<DistanceEstimator> estimators) {
+//            updateCountView(signal, App.DATA_ESTIMATOR);
+//        }
+
+        @Override
+        public void onRecordAdded(String signal, RssiSampler.Device device, RssiRecord r) {
             updateCountView(signal, App.DATA_RSSI);
         }
 
         @Override
-        public void onWindowsLoadedFromDisk(String signal, List<WindowRecord> records) {
-            updateCountView(signal, App.DATA_WINDOW);
-        }
-
-        @Override
-        public void onEstimatorsLoadedFromDisk(String signal, List<Estimator> estimators) {
-            updateCountView(signal, App.DATA_ESTIMATOR);
-        }
-
-        @Override
-        public void onRecordAdded(String signal, SignalController.Device device, RssiRecord r) {
-            updateCountView(signal, App.DATA_RSSI);
-        }
-
-        @Override
-        public void onTrainingStarting(String signal, int samples) {
+        public void onSamplesLoadedFromDisk() {
 
         }
 
         @Override
-        public void onGenerationFinished(String signal, int gen, double best, double mean, double stdDev) {
+        public void onBtSampleAdded() {
 
         }
 
         @Override
-        public void onTrainingComplete(String signal, Estimator estimator) {
-            updateCountView(signal, App.DATA_ESTIMATOR);
-        }
-
-        @Override
-        public void onWindowReady(String signal, WindowRecord record) {
-            updateCountView(signal, App.DATA_WINDOW);
-        }
-
-        @Override
-        public void onSentSuccess(String signal, String dataType, int count) {
+        public void onBtleSampleAdded() {
 
         }
 
         @Override
-        public void onSentFailure(String signal, String dataType, int count, int respCode, String resp, String result) {
+        public void onWifiSampleAdded() {
 
         }
 
         @Override
-        public void onSentFailure(String signal, String dataType, int count, String volleyError) {
+        public void onWifi5gSampleAdded() {
 
         }
+
+//        @Override
+//        public void onTrainingStarting(String signal, int samples) {
+//
+//        }
+//
+//        @Override
+//        public void onGenerationFinished(String signal, int gen, double best, double mean, double stdDev) {
+//
+//        }
+//
+//        @Override
+//        public void onTrainingComplete(String signal, DistanceEstimator estimator) {
+//            updateCountView(signal, App.DATA_ESTIMATOR);
+//        }
+//
+//        @Override
+//        public void onWindowReady(String signal, WindowRecord record) {
+//            updateCountView(signal, App.DATA_WINDOW);
+//        }
+//
+//        @Override
+//        public void onSentSuccess(String signal, String dataType, int count) {
+//
+//        }
+//
+//        @Override
+//        public void onSentFailure(String signal, String dataType, int count, int respCode, String resp, String result) {
+//
+//        }
+//
+//        @Override
+//        public void onSentFailure(String signal, String dataType, int count, String volleyError) {
+//
+//        }
     };
 
     void updateCountView(String signal, String data) {
-        switch (signal) {
-            case App.SIGNAL_BT:
-                switch (data) {
-                    case App.DATA_RSSI:
-                        btRssiCountView.setText(controller.getBt().getRssiCount() + "");
-                        break;
-                    case App.DATA_WINDOW:
-                        btWindowCountView.setText(controller.getBt().getWindowCount() + "");
-                        break;
-                    case App.DATA_ESTIMATOR:
-                        btEstimatorCountView.setText(controller.getBt().getEstimatorCount()+"");
-                        break;
-                }
-                break;
-            case App.SIGNAL_BTLE:
-                switch (data) {
-                    case App.DATA_RSSI:
-                        btleRssiCountView.setText(controller.getBtle().getRssiCount() + "");
-                        break;
-                    case App.DATA_WINDOW:
-                        btleWindowCountView.setText(controller.getBtle().getWindowCount() + "");
-                        break;
-                    case App.DATA_ESTIMATOR:
-                        btleEstimatorCountView.setText(controller.getBtle().getEstimatorCount()+"");
-                        break;
-                }
-                break;
-            case App.SIGNAL_WIFI:
-                switch (data) {
-                    case App.DATA_RSSI:
-                        wifiRssiCountView.setText(controller.getWifi().getRssiCount() + "");
-                        break;
-                    case App.DATA_WINDOW:
-                        wifiWindowCountView.setText(controller.getWifi().getWindowCount() + "");
-                        break;
-                    case App.DATA_ESTIMATOR:
-                        wifiEstimatorCountView.setText(controller.getWifi().getEstimatorCount()+"");
-                        break;
-                }
-                break;
-            case App.SIGNAL_WIFI5G:
-                switch (data) {
-                    case App.DATA_RSSI:
-                        wifi5gRssiCountView.setText(controller.getWifi5g().getRssiCount() + "");
-                        break;
-                    case App.DATA_WINDOW:
-                        wifi5gWindowCountView.setText(controller.getWifi5g().getWindowCount() + "");
-                        break;
-                    case App.DATA_ESTIMATOR:
-                        wifi5gEstimatorCountView.setText(controller.getWifi5g().getEstimatorCount()+"");
-                        break;
-                }
-                break;
-        }
+//        switch (signal) {
+//            case App.SIGNAL_BT:
+//                switch (data) {
+//                    case App.DATA_RSSI:
+//                        btRssiCountView.setText(controller.getBt().getRssiCount() + "");
+//                        break;
+//                    case App.DATA_WINDOW:
+//                        btWindowCountView.setText(controller.getBt().getWindowCount() + "");
+//                        break;
+//                    case App.DATA_ESTIMATOR:
+//                        btEstimatorCountView.setText(controller.getBt().getEstimatorCount()+"");
+//                        break;
+//                }
+//                break;
+//            case App.SIGNAL_BTLE:
+//                switch (data) {
+//                    case App.DATA_RSSI:
+//                        btleRssiCountView.setText(controller.getBtle().getRssiCount() + "");
+//                        break;
+//                    case App.DATA_WINDOW:
+//                        btleWindowCountView.setText(controller.getBtle().getWindowCount() + "");
+//                        break;
+//                    case App.DATA_ESTIMATOR:
+//                        btleEstimatorCountView.setText(controller.getBtle().getEstimatorCount()+"");
+//                        break;
+//                }
+//                break;
+//            case App.SIGNAL_WIFI:
+//                switch (data) {
+//                    case App.DATA_RSSI:
+//                        wifiRssiCountView.setText(controller.getWifi().getRssiCount() + "");
+//                        break;
+//                    case App.DATA_WINDOW:
+//                        wifiWindowCountView.setText(controller.getWifi().getWindowCount() + "");
+//                        break;
+//                    case App.DATA_ESTIMATOR:
+//                        wifiEstimatorCountView.setText(controller.getWifi().getEstimatorCount()+"");
+//                        break;
+//                }
+//                break;
+//            case App.SIGNAL_WIFI5G:
+//                switch (data) {
+//                    case App.DATA_RSSI:
+//                        wifi5gRssiCountView.setText(controller.getWifi5g().getRssiCount() + "");
+//                        break;
+//                    case App.DATA_WINDOW:
+//                        wifi5gWindowCountView.setText(controller.getWifi5g().getWindowCount() + "");
+//                        break;
+//                    case App.DATA_ESTIMATOR:
+//                        wifi5gEstimatorCountView.setText(controller.getWifi5g().getEstimatorCount()+"");
+//                        break;
+//                }
+//                break;
+//        }
     }
 }

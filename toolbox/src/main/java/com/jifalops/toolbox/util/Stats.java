@@ -1,4 +1,4 @@
-package com.jifalops.toolbox;
+package com.jifalops.toolbox.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;

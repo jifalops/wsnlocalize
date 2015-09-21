@@ -7,15 +7,14 @@ import org.json.JSONObject;
 /**
  *
  */
-public class TrainingResults implements Comparable<TrainingResults> {
-    public static final double GOOD_ERROR = 0.01;
+public class Estimator implements Comparable<Estimator> {
     public final double[] weights;
     public final double error, mean, stddev;
     public final int samples, generations;
     public final Scaler scaler;
     public final MlpWeightMetrics metrics;
-    TrainingResults(double[] weights, MlpWeightMetrics metrics, double error, double mean,
-                    double stddev, int samples, int generations, Scaler scaler) {
+    Estimator(double[] weights, MlpWeightMetrics metrics, double error, double mean,
+              double stddev, int samples, int generations, Scaler scaler) {
         this.weights = weights;
         this.metrics = metrics;
         this.error = error;
@@ -26,7 +25,7 @@ public class TrainingResults implements Comparable<TrainingResults> {
         this.scaler = scaler;
     }
 
-    public TrainingResults(String jsonObject) throws JSONException {
+    public Estimator(String jsonObject) throws JSONException {
         JSONObject json = new JSONObject(jsonObject);
         error = json.getDouble("error");
         mean = json.getDouble("mean");
@@ -41,6 +40,12 @@ public class TrainingResults implements Comparable<TrainingResults> {
         for (int i = 0; i < len; ++i) {
             weights[i] = weightsj.getDouble(i);
         }
+    }
+
+    public double[] estimate(double[] sample) {
+        double[] scaled = scaler.scale(new double[][] {sample})[0];
+        double[] outputs = NeuralNetwork.calcOutputs(weights, scaled, metrics);
+        return scaler.unscale(outputs);
     }
 
     @Override
@@ -66,7 +71,7 @@ public class TrainingResults implements Comparable<TrainingResults> {
     }
 
     @Override
-    public int compareTo(TrainingResults another) {
+    public int compareTo(Estimator another) {
 //        if (samples < another.samples) return -1;
 //        if (samples > another.samples) return 1;
         if (error < another.error) return -1;

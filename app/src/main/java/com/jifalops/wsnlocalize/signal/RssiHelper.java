@@ -3,122 +3,122 @@ package com.jifalops.wsnlocalize.signal;
 import android.util.Log;
 
 import com.jifalops.toolbox.file.AbsTextReaderWriter;
-import com.jifalops.toolbox.file.NumberReaderWriter;
 import com.jifalops.wsnlocalize.App;
+import com.jifalops.wsnlocalize.data.RssiRecord;
+import com.jifalops.wsnlocalize.file.RssiReaderWriter;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
  *
  */
-public class SampleHelper {
-    static final String TAG = SampleHelper.class.getSimpleName();
+public class RssiHelper {
+    static final String TAG = RssiHelper.class.getSimpleName();
 
-    public interface SamplesCallback {
-        void onSamplesLoaded();
+    public interface RssiCallback {
+        void onRssiLoaded();
     }
 
-    final List<double[]>
+    final List<RssiRecord>
             bt = new ArrayList<>(),
             btle = new ArrayList<>(),
             wifi = new ArrayList<>(),
             wifi5g = new ArrayList<>();
-    final NumberReaderWriter btRW, btleRW, wifiRW, wifi5gRW;
+    final RssiReaderWriter btRW, btleRW, wifiRW, wifi5gRW;
     boolean btLoaded, btleLoaded, wifiLoaded, wifi5gLoaded;
-    SamplesCallback callback;
+    RssiCallback callback;
 
-    public SampleHelper(SamplesCallback onLoadFinished) {
+    public RssiHelper(RssiCallback onLoadFinished) {
         callback = onLoadFinished;
 
-        btRW = new NumberReaderWriter(App.getFile(App.SIGNAL_BT, App.DATA_ESTIMATOR));
-        btleRW = new NumberReaderWriter(App.getFile(App.SIGNAL_BTLE, App.DATA_ESTIMATOR));
-        wifiRW = new NumberReaderWriter(App.getFile(App.SIGNAL_WIFI, App.DATA_ESTIMATOR));
-        wifi5gRW = new NumberReaderWriter(App.getFile(App.SIGNAL_WIFI5G, App.DATA_ESTIMATOR));
+        btRW = new RssiReaderWriter(App.getFile(App.SIGNAL_BT, App.DATA_RSSI));
+        btleRW = new RssiReaderWriter(App.getFile(App.SIGNAL_BTLE, App.DATA_RSSI));
+        wifiRW = new RssiReaderWriter(App.getFile(App.SIGNAL_WIFI, App.DATA_RSSI));
+        wifi5gRW = new RssiReaderWriter(App.getFile(App.SIGNAL_WIFI5G, App.DATA_RSSI));
 
-        btRW.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+        btRW.readRssi(new AbsTextReaderWriter.TypedReadListener<RssiRecord>() {
             @Override
-            public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+            public void onReadSucceeded(List<RssiRecord> list, int typingExceptions) {
                 bt.addAll(list);
                 btLoaded = true;
                 if (typingExceptions > 0) {
-                    Log.e(TAG, typingExceptions + " BT samples are corrupted.");
+                    Log.e(TAG, typingExceptions + " BT rssi are corrupted.");
                 }
                 checkIfAllLoaded();
             }
 
             @Override
             public void onReadFailed(IOException e) {
-                Log.e(TAG, "Failed to read BT samples.", e);
+                Log.e(TAG, "Failed to read BT rssi.", e);
             }
         });
 
-        btleRW.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+        btleRW.readRssi(new AbsTextReaderWriter.TypedReadListener<RssiRecord>() {
             @Override
-            public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+            public void onReadSucceeded(List<RssiRecord> list, int typingExceptions) {
                 btle.addAll(list);
                 btleLoaded = true;
                 if (typingExceptions > 0) {
-                    Log.e(TAG, typingExceptions + " BTLE samples are corrupted.");
+                    Log.e(TAG, typingExceptions + " BTLE rssi are corrupted.");
                 }
                 checkIfAllLoaded();
             }
 
             @Override
             public void onReadFailed(IOException e) {
-                Log.e(TAG, "Failed to read BTLE samples.", e);
+                Log.e(TAG, "Failed to read BTLE rssi.", e);
             }
         });
 
-        wifiRW.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+        wifiRW.readRssi(new AbsTextReaderWriter.TypedReadListener<RssiRecord>() {
             @Override
-            public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+            public void onReadSucceeded(List<RssiRecord> list, int typingExceptions) {
                 wifi.addAll(list);
                 wifiLoaded = true;
                 if (typingExceptions > 0) {
-                    Log.e(TAG, typingExceptions + " WiFi samples are corrupted.");
+                    Log.e(TAG, typingExceptions + " WiFi rssi are corrupted.");
                 }
                 checkIfAllLoaded();
             }
 
             @Override
             public void onReadFailed(IOException e) {
-                Log.e(TAG, "Failed to read WiFi samples.", e);
+                Log.e(TAG, "Failed to read WiFi rssi.", e);
             }
         });
 
-        wifi5gRW.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+        wifi5gRW.readRssi(new AbsTextReaderWriter.TypedReadListener<RssiRecord>() {
             @Override
-            public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+            public void onReadSucceeded(List<RssiRecord> list, int typingExceptions) {
                 wifi5g.addAll(list);
                 wifi5gLoaded = true;
                 if (typingExceptions > 0) {
-                    Log.e(TAG, typingExceptions + " WiFi5G samples are corrupted.");
+                    Log.e(TAG, typingExceptions + " WiFi5G rssi are corrupted.");
                 }
                 checkIfAllLoaded();
             }
 
             @Override
             public void onReadFailed(IOException e) {
-                Log.e(TAG, "Failed to read WiFi5G samples.", e);
+                Log.e(TAG, "Failed to read WiFi5G rssi.", e);
             }
         });
     }
 
     void checkIfAllLoaded() {
         if (btLoaded && btleLoaded && wifiLoaded && wifi5gLoaded) {
-            callback.onSamplesLoaded();
+            callback.onRssiLoaded();
         }
     }
 
-    public List<double[]> getBt() { return bt; }
-    public List<double[]> getBtle() { return btle; }
-    public List<double[]> getWifi() { return wifi; }
-    public List<double[]> getWifi5g() { return wifi5g; }
-    public List<double[]> getAll() {
-        List<double[]> list = new ArrayList<>();
+    public List<RssiRecord> getBt() { return bt; }
+    public List<RssiRecord> getBtle() { return btle; }
+    public List<RssiRecord> getWifi() { return wifi; }
+    public List<RssiRecord> getWifi5g() { return wifi5g; }
+    public List<RssiRecord> getAll() {
+        List<RssiRecord> list = new ArrayList<>();
         list.addAll(bt);
         list.addAll(btle);
         list.addAll(wifi);
@@ -126,8 +126,8 @@ public class SampleHelper {
         return list;
     }
 
-    public void addBt(double[] e) {
-        btRW.writeNumbers(Collections.singletonList(e), true, new AbsTextReaderWriter.WriteListener() {
+    public void addBt(List<RssiRecord> rssi) {
+        btRW.writeRecords(rssi, true, new AbsTextReaderWriter.WriteListener() {
             @Override
             public void onWriteSucceed(int linesWritten) {
 
@@ -138,10 +138,10 @@ public class SampleHelper {
                 Log.e(TAG, "Failed writing BT estimator.", e);
             }
         });
-        bt.add(e);
+        bt.addAll(rssi);
     }
-    public void addBtle(double[] e) {
-        btleRW.writeNumbers(Collections.singletonList(e), true, new AbsTextReaderWriter.WriteListener() {
+    public void addBtle(List<RssiRecord> rssi) {
+        btleRW.writeRecords(rssi, true, new AbsTextReaderWriter.WriteListener() {
             @Override
             public void onWriteSucceed(int linesWritten) {
 
@@ -152,10 +152,10 @@ public class SampleHelper {
                 Log.e(TAG, "Failed writing BTLE estimator.", e);
             }
         });
-        btle.add(e);
+        btle.addAll(rssi);
     }
-    public void addWifi(double[] e) {
-        wifiRW.writeNumbers(Collections.singletonList(e), true, new AbsTextReaderWriter.WriteListener() {
+    public void addWifi(List<RssiRecord> rssi) {
+        wifiRW.writeRecords(rssi, true, new AbsTextReaderWriter.WriteListener() {
             @Override
             public void onWriteSucceed(int linesWritten) {
 
@@ -166,10 +166,10 @@ public class SampleHelper {
                 Log.e(TAG, "Failed writing WiFi estimator.", e);
             }
         });
-        wifi.add(e);
+        wifi.addAll(rssi);
     }
-    public void addWifi5g(double[] e) {
-        wifi5gRW.writeNumbers(Collections.singletonList(e), true, new AbsTextReaderWriter.WriteListener() {
+    public void addWifi5g(List<RssiRecord> rssi) {
+        wifi5gRW.writeRecords(rssi, true, new AbsTextReaderWriter.WriteListener() {
             @Override
             public void onWriteSucceed(int linesWritten) {
 
@@ -180,6 +180,6 @@ public class SampleHelper {
                 Log.e(TAG, "Failed writing WiFi5G estimator.", e);
             }
         });
-        wifi5g.add(e);
+        wifi5g.addAll(rssi);
     }
 }

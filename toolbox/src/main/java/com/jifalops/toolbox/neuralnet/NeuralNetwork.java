@@ -1,6 +1,6 @@
 package com.jifalops.toolbox.neuralnet;
 
-import com.jifalops.toolbox.Stats;
+import com.jifalops.toolbox.util.Stats;
 
 /**
  *
@@ -35,7 +35,7 @@ public abstract class NeuralNetwork {
     protected abstract void onGenerationStarting(int index);
     protected abstract void trainSampleBySample(double[][] samples);
 
-    public TrainingResults trainSampleBySample(double[][] samples, TerminationConditions conditions) {
+    public Estimator trainSampleBySample(double[][] samples, TerminationConditions conditions) {
         Scaler scaler = new Scaler(samples, weightMetrics.numInputs);
         samples = scaler.scaleAndRandomize(samples);
         status = new TrainingStatus(weightMetrics, conditions);
@@ -50,7 +50,7 @@ public abstract class NeuralNetwork {
             generation++;
             callbacks.onGenerationFinished(generation, status.getBestError(), mean, stdDev);
         } while (!status.isComplete(generation, stdDev));
-        return new TrainingResults(status.getBest(), weightMetrics, status.getBestError(),
+        return new Estimator(status.getBest(), weightMetrics, status.getBestError(),
                 mean, stdDev, samples.length, generation, scaler);
     }
 

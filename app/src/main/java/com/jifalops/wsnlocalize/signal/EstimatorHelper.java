@@ -1,21 +1,28 @@
 package com.jifalops.wsnlocalize.signal;
 
+import android.util.Log;
+
+import com.jifalops.toolbox.file.AbsTextReaderWriter;
 import com.jifalops.wsnlocalize.App;
-import com.jifalops.wsnlocalize.data.Estimator;
+import com.jifalops.wsnlocalize.data.DistanceEstimator;
 import com.jifalops.wsnlocalize.file.EstimatorReaderWriter;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
  *
  */
 public class EstimatorHelper {
+    static final String TAG = EstimatorHelper.class.getSimpleName();
+
     public interface EstimatorsCallback {
         void onEstimatorsLoaded();
     }
 
-    final List<Estimator>
+    final List<DistanceEstimator>
             bt = new ArrayList<>(),
             btle = new ArrayList<>(),
             wifi = new ArrayList<>(),
@@ -26,67 +33,79 @@ public class EstimatorHelper {
 
     public EstimatorHelper(EstimatorsCallback onLoadFinished) {
         callback = onLoadFinished;
-        btRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_BT, App.DATA_ESTIMATOR),
-                new EstimatorReaderWriter.EstimatorCallbacks() {
-                    @Override
-                    public void onEstimatorRecordsRead(EstimatorReaderWriter rw, List<Estimator> records) {
-                        bt.addAll(records);
-                        btLoaded = true;
-                        checkIfAllLoaded();
-                    }
 
-                    @Override
-                    public void onEstimatorRecordsWritten(EstimatorReaderWriter rw, int recordsWritten) {
+        btRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_BT, App.DATA_ESTIMATOR));
+        btleRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_BTLE, App.DATA_ESTIMATOR));
+        wifiRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_WIFI, App.DATA_ESTIMATOR));
+        wifi5gRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_WIFI5G, App.DATA_ESTIMATOR));
 
-                    }
-                });
-        btleRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_BTLE, App.DATA_ESTIMATOR),
-                new EstimatorReaderWriter.EstimatorCallbacks() {
-                    @Override
-                    public void onEstimatorRecordsRead(EstimatorReaderWriter rw, List<Estimator> records) {
-                        btle.addAll(records);
-                        btleLoaded = true;
-                        checkIfAllLoaded();
-                    }
+        btRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
+            @Override
+            public void onReadSucceeded(List<DistanceEstimator> list, int typingExceptions) {
+                bt.addAll(list);
+                btLoaded = true;
+                if (typingExceptions > 0) {
+                    Log.e(TAG, typingExceptions + " BT estimators are corrupted.");
+                }
+                checkIfAllLoaded();
+            }
 
-                    @Override
-                    public void onEstimatorRecordsWritten(EstimatorReaderWriter rw, int recordsWritten) {
+            @Override
+            public void onReadFailed(IOException e) {
+                Log.e(TAG, "Failed to read BT estimators.", e);
+            }
+        });
 
-                    }
-                });
-        wifiRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_WIFI, App.DATA_ESTIMATOR),
-                new EstimatorReaderWriter.EstimatorCallbacks() {
-                    @Override
-                    public void onEstimatorRecordsRead(EstimatorReaderWriter rw, List<Estimator> records) {
-                        wifi.addAll(records);
-                        wifiLoaded = true;
-                        checkIfAllLoaded();
-                    }
+        btleRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
+            @Override
+            public void onReadSucceeded(List<DistanceEstimator> list, int typingExceptions) {
+                btle.addAll(list);
+                btleLoaded = true;
+                if (typingExceptions > 0) {
+                    Log.e(TAG, typingExceptions + " BTLE estimators are corrupted.");
+                }
+                checkIfAllLoaded();
+            }
 
-                    @Override
-                    public void onEstimatorRecordsWritten(EstimatorReaderWriter rw, int recordsWritten) {
+            @Override
+            public void onReadFailed(IOException e) {
+                Log.e(TAG, "Failed to read BTLE estimators.", e);
+            }
+        });
 
-                    }
-                });
-        wifi5gRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_WIFI5G, App.DATA_ESTIMATOR),
-                new EstimatorReaderWriter.EstimatorCallbacks() {
-                    @Override
-                    public void onEstimatorRecordsRead(EstimatorReaderWriter rw, List<Estimator> records) {
-                        wifi5g.addAll(records);
-                        wifi5gLoaded = true;
-                        checkIfAllLoaded();
-                    }
+        wifiRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
+            @Override
+            public void onReadSucceeded(List<DistanceEstimator> list, int typingExceptions) {
+                wifi.addAll(list);
+                wifiLoaded = true;
+                if (typingExceptions > 0) {
+                    Log.e(TAG, typingExceptions + " WiFi estimators are corrupted.");
+                }
+                checkIfAllLoaded();
+            }
 
-                    @Override
-                    public void onEstimatorRecordsWritten(EstimatorReaderWriter rw, int recordsWritten) {
+            @Override
+            public void onReadFailed(IOException e) {
+                Log.e(TAG, "Failed to read WiFi estimators.", e);
+            }
+        });
 
-                    }
-                });
+        wifi5gRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
+            @Override
+            public void onReadSucceeded(List<DistanceEstimator> list, int typingExceptions) {
+                wifi5g.addAll(list);
+                wifi5gLoaded = true;
+                if (typingExceptions > 0) {
+                    Log.e(TAG, typingExceptions + " WiFi5G estimators are corrupted.");
+                }
+                checkIfAllLoaded();
+            }
 
-        btRW.readRecords();
-        btleRW.readRecords();
-        wifiRW.readRecords();
-        wifi5gRW.readRecords();
+            @Override
+            public void onReadFailed(IOException e) {
+                Log.e(TAG, "Failed to read WiFi5G estimators.", e);
+            }
+        });
     }
 
     void checkIfAllLoaded() {
@@ -95,12 +114,12 @@ public class EstimatorHelper {
         }
     }
 
-    public List<Estimator> getBt() { return bt; }
-    public List<Estimator> getBtle() { return btle; }
-    public List<Estimator> getWifi() { return wifi; }
-    public List<Estimator> getWifi5g() { return wifi5g; }
-    public List<Estimator> getAll() {
-        List<Estimator> list = new ArrayList<>();
+    public List<DistanceEstimator> getBt() { return bt; }
+    public List<DistanceEstimator> getBtle() { return btle; }
+    public List<DistanceEstimator> getWifi() { return wifi; }
+    public List<DistanceEstimator> getWifi5g() { return wifi5g; }
+    public List<DistanceEstimator> getAll() {
+        List<DistanceEstimator> list = new ArrayList<>();
         list.addAll(bt);
         list.addAll(btle);
         list.addAll(wifi);
@@ -108,26 +127,60 @@ public class EstimatorHelper {
         return list;
     }
 
-    public void addBt(Estimator e) {
-        btRW.writeRecords(makeList(e), true);
+    public void addBt(DistanceEstimator e) {
+        btRW.writeEstimators(Collections.singletonList(e), true, new AbsTextReaderWriter.WriteListener() {
+            @Override
+            public void onWriteSucceed(int linesWritten) {
+
+            }
+
+            @Override
+            public void onWriteFailed(IOException e) {
+                Log.e(TAG, "Failed writing BT estimator.", e);
+            }
+        });
         bt.add(e);
     }
-    public void addBtle(Estimator e) {
-        btleRW.writeRecords(makeList(e), true);
+    public void addBtle(DistanceEstimator e) {
+        btleRW.writeEstimators(Collections.singletonList(e), true, new AbsTextReaderWriter.WriteListener() {
+            @Override
+            public void onWriteSucceed(int linesWritten) {
+
+            }
+
+            @Override
+            public void onWriteFailed(IOException e) {
+                Log.e(TAG, "Failed writing BTLE estimator.", e);
+            }
+        });
         btle.add(e);
     }
-    public void addWifi(Estimator e) {
-        wifiRW.writeRecords(makeList(e), true);
+    public void addWifi(DistanceEstimator e) {
+        wifiRW.writeEstimators(Collections.singletonList(e), true, new AbsTextReaderWriter.WriteListener() {
+            @Override
+            public void onWriteSucceed(int linesWritten) {
+
+            }
+
+            @Override
+            public void onWriteFailed(IOException e) {
+                Log.e(TAG, "Failed writing WiFi estimator.", e);
+            }
+        });
         wifi.add(e);
     }
-    public void addWifi5g(Estimator e) {
-        wifi5gRW.writeRecords(makeList(e), true);
-        wifi5g.add(e);
-    }
+    public void addWifi5g(DistanceEstimator e) {
+        wifi5gRW.writeEstimators(Collections.singletonList(e), true, new AbsTextReaderWriter.WriteListener() {
+            @Override
+            public void onWriteSucceed(int linesWritten) {
 
-    List<Estimator> makeList(Estimator e) {
-        List<Estimator> list = new ArrayList<>();
-        list.add(e);
-        return list;
+            }
+
+            @Override
+            public void onWriteFailed(IOException e) {
+                Log.e(TAG, "Failed writing WiFi5G estimator.", e);
+            }
+        });
+        wifi5g.add(e);
     }
 }

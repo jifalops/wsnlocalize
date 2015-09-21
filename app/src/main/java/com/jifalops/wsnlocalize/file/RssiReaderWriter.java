@@ -1,9 +1,11 @@
 package com.jifalops.wsnlocalize.file;
 
 import com.jifalops.toolbox.file.AbsTextReaderWriter;
+import com.jifalops.toolbox.util.Lists;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,46 +13,35 @@ import java.util.List;
  *
  */
 public class RssiReaderWriter extends AbsTextReaderWriter {
-    public interface RssiCallbacks {
-        void onRssiRecordsRead(RssiReaderWriter rw, List<RssiRecord> records);
-        void onRssiRecordsWritten(RssiReaderWriter rw, int recordsWritten);
-    }
 
-    final IoCallbacks ioCallbacks = new IoCallbacks() {
-        @Override
-        public void onReadCompleted(AbsTextReaderWriter rw, List<String> lines) {
-            final List<RssiRecord> records = new ArrayList<>();
-            for (String line : lines) {
-                try {
-                    records.add(new RssiRecord(line.split(",")));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            callbacks.onRssiRecordsRead(RssiReaderWriter.this, records);
-        }
-        @Override
-        public void onWriteCompleted(AbsTextReaderWriter rw, final int linesWritten) {
-            callbacks.onRssiRecordsWritten(RssiReaderWriter.this, linesWritten);
-        }
-    };
-
-    final RssiCallbacks callbacks;
-    public RssiReaderWriter(File file, RssiCallbacks callbacks) {
+    public RssiReaderWriter(File file) {
         super(file);
-        this.callbacks = callbacks;
-        setIoCallbacks(ioCallbacks);
     }
 
-    public boolean readRecords() {
-        return readLines();
+    public boolean readRssi(final TypedReadListener<RssiRecord> callback) {
+        return readLines(new ReadListener() {
+            @Override
+            public void onReadSucceeded(List<String> lines) {
+                int exceptions = 0;
+                final List<RssiRecord> records = new ArrayList<>();
+                for (String line : lines) {
+                    try {
+                        records.add(new RssiRecord(line.split(",")));
+                    } catch (NumberFormatException e) {
+                        ++exceptions;
+                    }
+                }
+                callback.onReadSucceeded(records, exceptions);
+            }
+
+            @Override
+            public void onReadFailed(IOException e) {
+                callback.onReadFailed(e);
+            }
+        });
     }
 
-    public void writeRecords(List<RssiRecord> records, boolean append) {
-        List<String> lines = new ArrayList<>();
-        for (RssiRecord r : records) {
-            lines.add(r.toString());
-        }
-        writeLines(lines, append);
+    public void writeRecords(List<RssiRecord> records, boolean append, WriteListener callback) {
+        writeLines(Lists.toString(records), append, callback);
     }
 }

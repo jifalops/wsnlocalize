@@ -5,16 +5,15 @@ import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
 
-import com.jifalops.toolbox.SimpleLog;
+import com.jifalops.toolbox.util.ResettingList;
+import com.jifalops.toolbox.util.SimpleLog;
 import com.jifalops.toolbox.wifi.WifiScanner;
 import com.jifalops.wsnlocalize.App;
 import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
-import com.jifalops.wsnlocalize.data.Estimator;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -22,10 +21,13 @@ import java.util.Locale;
 /**
  *
  */
-public class SignalController {
+public class RssiSampler {
     public static final int LOG_IMPORTANT = 3;
     public static final int LOG_INFORMATIVE = 2;
     public static final int LOG_ALL = 1;
+
+    public void send() { //TODO
+    }
 
     public static class Device {
         public final int id;
@@ -42,7 +44,9 @@ public class SignalController {
         }
     }
 
-    RssiWindowTrainingDataManager bt, btle, wifi, wifi5g;
+    ResettingList<RssiRecord> bt, btle, wifi, wifi5g;
+    SampleHelper sampleHelper;
+    RssiHelper rssiHelper;
     boolean collectEnabled, shouldUseBt, shouldUseBtle, shouldUseWifi, shouldUseWifi5g;
 
     final List<Device> devices = new ArrayList<>();
@@ -54,32 +58,73 @@ public class SignalController {
     BtLeBeacon btleBeacon;
     WifiScanner wifiScanner;
 
-    private static SignalController instance;
-    public static SignalController getInstance(Context ctx) {
-        if (instance == null) instance = new SignalController(ctx.getApplicationContext());
+    private static RssiSampler instance;
+    public static RssiSampler getInstance(Context ctx) {
+        if (instance == null) instance = new RssiSampler(ctx.getApplicationContext());
         return instance;
     }
-    private SignalController(Context ctx) {
+    private RssiSampler(Context ctx) {
         btBeacon = BtBeacon.getInstance(ctx);
         btleBeacon = BtLeBeacon.getInstance(ctx);
-        wifiScanner = WifiScanner.getInstance(ctx);
+        wifiScanner = new WifiScanner(ctx);
 
-        File dir = App.getDataDir(ctx);
+        rssiHelper = new RssiHelper(new RssiHelper.RssiCallback() {
+            @Override
+            public void onRssiLoaded() {
+                addEvent(LOG_IMPORTANT, "RSSI Loaded from disk.");
+                for (SamplerListener l : listeners) l.onRssiLoadedFromDisk();
+            }
+        });
 
-        bt = new RssiWindowTrainingDataManager(App.SIGNAL_BT, dir,
-                App.btWindowTrigger, App.btTrainTrigger, callbacks);
-        btle = new RssiWindowTrainingDataManager(App.SIGNAL_BTLE, dir,
-                App.btleWindowTrigger, App.btleTrainTrigger, callbacks);
-        wifi = new RssiWindowTrainingDataManager(App.SIGNAL_WIFI, dir,
-                App.wifiWindowTrigger, App.wifiTrainTrigger, callbacks);
-        wifi5g = new RssiWindowTrainingDataManager(App.SIGNAL_WIFI5G, dir,
-                App.wifiWindowTrigger, App.wifiTrainTrigger, callbacks);
+        sampleHelper = new SampleHelper(new SampleHelper.SamplesCallback() {
+            @Override
+            public void onSamplesLoaded() {
+                addEvent(LOG_IMPORTANT, "Samples Loaded from disk.");
+                for (SamplerListener l : listeners) l.onSamplesLoadedFromDisk();
+            }
+        });
+
+        bt = new ResettingList<>(App.btWindowTrigger, new ResettingList.LimitsCallback<RssiRecord>() {
+            @Override
+            public void onLimitsReached(List<RssiRecord> list, long time) {
+                rssiHelper.addBt(list);
+                sampleHelper.addBt(new WindowRecord(list).toSample());
+                addEvent(LOG_IMPORTANT, String.format(Locale.US,
+                        "BT sample created from %d RSSI in %.1fs.", list.size(), time/1000f));
+                for (SamplerListener l : listeners) l.onBtSampleAdded();
+            }
+        });
+        btle = new ResettingList<>(App.btleWindowTrigger, new ResettingList.LimitsCallback<RssiRecord>() {
+            @Override
+            public void onLimitsReached(List<RssiRecord> list, long time) {
+                rssiHelper.addBtle(list);
+                sampleHelper.addBtle(new WindowRecord(list).toSample());
+                addEvent(LOG_IMPORTANT, String.format(Locale.US,
+                        "BTLE sample created from %d RSSI in %.1fs.", list.size(), time / 1000f));
+                for (SamplerListener l : listeners) l.onBtleSampleAdded();
+            }
+        });
+        wifi = new ResettingList<>(App.wifiWindowTrigger, new ResettingList.LimitsCallback<RssiRecord>() {
+            @Override
+            public void onLimitsReached(List<RssiRecord> list, long time) {
+                rssiHelper.addWifi(list);
+                sampleHelper.addWifi(new WindowRecord(list).toSample());
+                addEvent(LOG_IMPORTANT, String.format(Locale.US,
+                        "WIFI sample created from %d RSSI in %.1fs.", list.size(), time / 1000f));
+                for (SamplerListener l : listeners) l.onWifiSampleAdded();
+            }
+        });
+        wifi5g = new ResettingList<>(App.wifiWindowTrigger, new ResettingList.LimitsCallback<RssiRecord>() {
+            @Override
+            public void onLimitsReached(List<RssiRecord> list, long time) {
+                rssiHelper.addWifi5g(list);
+                sampleHelper.addWifi5g(new WindowRecord(list).toSample());
+                addEvent(LOG_IMPORTANT, String.format(Locale.US,
+                        "WIFI5G sample created from %d RSSI in %.1fs.", list.size(), time / 1000f));
+                for (SamplerListener l : listeners) l.onWifi5gSampleAdded();
+            }
+        });
     }
-
-    public RssiWindowTrainingDataManager getBt() { return bt; }
-    public RssiWindowTrainingDataManager getBtle() { return btle; }
-    public RssiWindowTrainingDataManager getWifi() { return wifi; }
-    public RssiWindowTrainingDataManager getWifi5g() { return wifi5g; }
 
     public SimpleLog getLog() {
         return log;
@@ -93,40 +138,24 @@ public class SignalController {
         return distance;
     }
 
-    public void send() {
-        bt.send();
-        btle.send();
-        wifi.send();
-        wifi5g.send();
-    }
-
     public void close() {
-        bt.close();
-        btle.close();
-        wifi.close();
-        wifi5g.close();
         instance = null;
     }
 
     public void clearPendingSendLists() {
-        bt.clearPendingSendLists();
-        btle.clearPendingSendLists();
-        wifi.clearPendingSendLists();
-        wifi5g.clearPendingSendLists();
-    }
-
-    public void clearEstimators() {
-        bt.clearEstimators();
-        btle.clearEstimators();
-        wifi.clearEstimators();
-        wifi5g.clearEstimators();
+        //TODO
+//        bt.clearPendingSendLists();
+//        btle.clearPendingSendLists();
+//        wifi.clearPendingSendLists();
+//        wifi5g.clearPendingSendLists();
     }
 
     public void clearTrainingSamples() {
-        bt.clearTrainingSamples();
-        btle.clearTrainingSamples();
-        wifi.clearTrainingSamples();
-        wifi5g.clearTrainingSamples();
+        //TODO not available for now (would be bad accident)
+//        bt.clearTrainingSamples();
+//        btle.clearTrainingSamples();
+//        wifi.clearTrainingSamples();
+//        wifi5g.clearTrainingSamples();
     }
 
     public List<Device> getDevices() {
@@ -155,7 +184,7 @@ public class SignalController {
             device = new Device(devices.size()+1, mac, desc);
             devices.add(device);
             addEvent(LOG_INFORMATIVE, "Found new device, " + device.id);
-            for (SignalListener l : listeners) l.onDeviceFound(device);
+            for (SamplerListener l : listeners) l.onDeviceFound(device);
         }
         return device;
     }
@@ -167,7 +196,7 @@ public class SignalController {
     private void disableBt() {
         btBeacon.stopBeaconing();
         btBeacon.unregisterListener(btBeaconListener);
-        bt.resetCurrentWindow();
+        bt.reset();
     }
     private void enableBtle() {
         btleBeacon.registerListener(btLeBeaconListener);
@@ -176,7 +205,7 @@ public class SignalController {
     private void disableBtle() {
         btleBeacon.stopBeaconing();
         btleBeacon.unregisterListener(btLeBeaconListener);
-        btle.resetCurrentWindow();
+        btle.reset();
     }
     private void enableWifi() {
         wifiScanner.registerListener(wifiScanListener);
@@ -185,8 +214,8 @@ public class SignalController {
     private void disableWifi() {
         wifiScanner.stopScanning();
         wifiScanner.unregisterListener(wifiScanListener);
-        wifi.resetCurrentWindow();
-        wifi5g.resetCurrentWindow();
+        wifi.reset();
+        wifi5g.reset();
     }
 
     public void setShouldUseBt(boolean use) {
@@ -237,7 +266,7 @@ public class SignalController {
 
     void addEvent(int level, String msg) {
         log.add(level, msg);
-        for (SignalListener l : listeners) l.onMessageLogged(level, msg);
+        for (SamplerListener l : listeners) l.onMessageLogged(level, msg);
     }
 
     void addRecord(Device device, String signal, int rssi, int freq) {
@@ -258,7 +287,7 @@ public class SignalController {
                 } else if (signal.equals(App.SIGNAL_WIFI5G)) {
                     wifi5g.add(record);
                 }
-                for (SignalListener l : listeners) l.onRecordAdded(signal, device, record);
+                for (SamplerListener l : listeners) l.onRecordAdded(signal, device, record);
             } else {
                 addEvent(LOG_ALL, "Ignoring " + rssi + " dBm (" + freq + " MHz) for device " +
                         device.id + " (" + signal + ").");
@@ -349,102 +378,22 @@ public class SignalController {
         }
     };
 
-    final RssiWindowTrainingDataManager.Callbacks callbacks = new RssiWindowTrainingDataManager.Callbacks() {
-        @Override
-        public void onRssiLoadedFromDisk(String signal, List<RssiRecord> records) {
-            for (SignalListener l : listeners) l.onRssiLoadedFromDisk(signal, records);
-        }
-
-        @Override
-        public void onWindowsLoadedFromDisk(String signal, List<WindowRecord> records) {
-            for (SignalListener l : listeners) l.onWindowsLoadedFromDisk(signal, records);
-        }
-
-        @Override
-        public void onEstimatorsLoadedFromDisk(String signal, List<Estimator> estimators) {
-            for (SignalListener l : listeners) l.onEstimatorsLoadedFromDisk(signal, estimators);
-        }
-
-        @Override
-        public void onTrainingStarting(String signal, int samples) {
-            addEvent(LOG_IMPORTANT, "Training " + signal + " with " + samples + " samples.");
-            for (SignalListener l : listeners) l.onTrainingStarting(signal, samples);
-        }
-
-        @Override
-        public void onGenerationFinished(String signal, int gen, double best, double mean, double stdDev) {
-            addEvent(LOG_ALL, String.format(Locale.US,
-                    "%s gen:%d best:%.4f mean:%.4f std:%.4f", signal, gen, best, mean, stdDev));
-            for (SignalListener l : listeners) l.onGenerationFinished(signal, gen, best, mean, stdDev);
-        }
-
-        @Override
-        public void onTrainingComplete(String signal, Estimator estimator) {
-            addEvent(LOG_IMPORTANT, "Trained " + signal + " with " + estimator.results.samples +
-                    " samples, error = " + String.format(Locale.US, "%1.4f", estimator.results.error)
-                    + " gen: " + estimator.results.generations);
-            for (SignalListener l : listeners) l.onTrainingComplete(signal, estimator);
-        }
-
-        @Override
-        public void onWindowReady(String signal, WindowRecord record) {
-            String msg = signal + " window: " + record.rss.count + " in " +
-                    formatMillis(record.elapsed.millis);
-            if (record.estimated != 0) {
-                double error = (record.estimated - record.distance) / record.distance;
-                msg += String.format(Locale.US, ", est: %.1fm %.1f%%",
-                        record.estimated, error * 100);
-            }
-            addEvent(LOG_IMPORTANT, msg);
-            for (SignalListener l : listeners) l.onWindowReady(signal, record);
-        }
-
-        @Override
-        public void onSentSuccess(String signal, String dataType, int count) {
-            addEvent(LOG_IMPORTANT, signal + " sent " + count + " " + dataType + " records successfully.");
-            for (SignalListener l : listeners) l.onSentSuccess(signal, dataType, count);
-        }
-
-        @Override
-        public void onSentFailure(String signal, String dataType, int count,
-                                  int respCode, String resp, String result) {
-            addEvent(LOG_IMPORTANT, signal + " failed to send " + count + " " + dataType + " records. " +
-                    respCode + ": " + resp + ". Result: " + result);
-            for (SignalListener l : listeners) l.onSentFailure(signal, dataType, count, respCode, resp, result);
-        }
-
-        @Override
-        public void onSentFailure(String signal, String dataType, int count, String volleyError) {
-            addEvent(LOG_IMPORTANT, signal + " failed to send " + count + " " + dataType + " records. " +
-                    volleyError);
-            for (SignalListener l : listeners) l.onSentFailure(signal, dataType, count, volleyError);
-        }
-    };
-
-    String formatMillis(long millis) {
-        return String.format(Locale.US, "%.1fs", ((double)millis)/1000);
-    }
-
-    public interface SignalListener {
+    public interface SamplerListener {
         void onMessageLogged(int level, String msg);
         void onDeviceFound(Device device);
-        void onRssiLoadedFromDisk(String signal, List<RssiRecord> records);
-        void onWindowsLoadedFromDisk(String signal, List<WindowRecord> records);
-        void onEstimatorsLoadedFromDisk(String signal, List<Estimator> estimators);
+        void onRssiLoadedFromDisk();
         void onRecordAdded(String signal, Device device, RssiRecord r);
-        void onTrainingStarting(String signal, int samples);
-        void onGenerationFinished(String signal, int gen, double best, double mean, double stdDev);
-        void onTrainingComplete(String signal, Estimator estimator);
-        void onWindowReady(String signal, WindowRecord record);
-        void onSentSuccess(String signal, String dataType, int count);
-        void onSentFailure(String signal, String dataType, int count, int respCode, String resp, String result);
-        void onSentFailure(String signal, String dataType, int count, String volleyError);
+        void onSamplesLoadedFromDisk();
+        void onBtSampleAdded();
+        void onBtleSampleAdded();
+        void onWifiSampleAdded();
+        void onWifi5gSampleAdded();
     }
-    private final List<SignalListener> listeners = new ArrayList<>(1);
-    public boolean registerListener(SignalListener l) {
+    private final List<SamplerListener> listeners = new ArrayList<>(1);
+    public boolean registerListener(SamplerListener l) {
         return !listeners.contains(l) && listeners.add(l);
     }
-    public boolean unregisterListener(SignalListener l) {
+    public boolean unregisterListener(SamplerListener l) {
         return listeners.remove(l);
     }
 }

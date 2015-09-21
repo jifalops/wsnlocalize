@@ -2,7 +2,7 @@ package com.jifalops.wsnlocalize.request;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Response;
-import com.jifalops.wsnlocalize.data.Estimator;
+import com.jifalops.wsnlocalize.data.DistanceEstimator;
 
 import java.util.HashMap;
 import java.util.List;
@@ -12,9 +12,9 @@ import java.util.Map;
  * @deprecated
  */
 public class EstimatorRequest extends AbsRequest {
-    private final List<Estimator> estimators;
+    private final List<DistanceEstimator> estimators;
     private final String signalType;
-    public EstimatorRequest(String signalType, List<Estimator> estimators,
+    public EstimatorRequest(String signalType, List<DistanceEstimator> estimators,
                             Response.Listener<MyResponse> listener,
                             Response.ErrorListener errorListener) {
         super(listener, errorListener);

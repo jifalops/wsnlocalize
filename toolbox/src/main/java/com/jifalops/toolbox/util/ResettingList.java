@@ -1,4 +1,4 @@
-package com.jifalops.toolbox;
+package com.jifalops.toolbox.util;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;

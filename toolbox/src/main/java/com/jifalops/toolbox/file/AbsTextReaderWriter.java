@@ -24,8 +24,12 @@ import java.util.List;
  * file. The rename operation is atomic on most OSes. (http://stackoverflow.com/a/697436/884522)
  */
 public abstract class AbsTextReaderWriter {
-    public interface ReadListener<T> {
-        void onReadSucceeded(List<T> lines);
+    public interface ReadListener {
+        void onReadSucceeded(List<String> lines);
+        void onReadFailed(IOException e);
+    }
+    public interface TypedReadListener<T> {
+        void onReadSucceeded(List<T> list, int typingExceptions);
         void onReadFailed(IOException e);
     }
     public interface WriteListener {
@@ -43,7 +47,7 @@ public abstract class AbsTextReaderWriter {
      * Read all lines from the file in a temporary thread.
      * @return true if a read is attempted (file exists).
      */
-    protected boolean readLines(@NonNull final ReadListener<String> callback) {
+    protected boolean readLines(@NonNull final ReadListener callback) {
         if (file.exists()) {
             new AsyncTask<Void, Void, List<String>>() {
                 IOException ioe = null;
@@ -85,16 +89,6 @@ public abstract class AbsTextReaderWriter {
             return true;
         }
         return false;
-    }
-
-    /**
-     * Write a single line to the file in a temporary thread.
-     */
-    protected void writeLine(String line, boolean append,
-                             @NonNull WriteListener callback) {
-        List<String> list = new ArrayList<>();
-        list.add(line);
-        writeLines(list, append, callback);
     }
 
     /**

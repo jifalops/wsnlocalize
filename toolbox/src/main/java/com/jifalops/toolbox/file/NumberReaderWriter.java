@@ -11,20 +11,16 @@ import java.util.List;
  *
  */
 public class NumberReaderWriter extends AbsTextReaderWriter {
-    public interface NumbersReadListener {
-        void onReadSucceeded(List<double[]> lines, int numberFormatExceptions);
-        void onReadFailed(IOException e);
-    }
 
     public NumberReaderWriter(File file) {
         super(file);
     }
 
-    public boolean readNumbers(@NonNull final NumbersReadListener callback) {
-        return readLines(new ReadListener<String>() {
-            int numExceptions = 0;
+    public boolean readNumbers(@NonNull final TypedReadListener<double[]> callback) {
+        return readLines(new ReadListener() {
             @Override
             public void onReadSucceeded(List<String> lines) {
+                int numExceptions = 0;
                 List<double[]> numbers = new ArrayList<>(lines.size());
                 if (lines.size() > 0) {
                     int cols = lines.get(0).split(",").length;
@@ -36,7 +32,7 @@ public class NumberReaderWriter extends AbsTextReaderWriter {
                         for (int j = 0; j < cols; ++j) {
                             try {
                                 nums[j] = Double.valueOf(parts[j]);
-                            } catch (NumberFormatException e) {
+                            } catch (Exception e) {
                                 ++numExceptions;
                             }
                         }
@@ -53,10 +49,10 @@ public class NumberReaderWriter extends AbsTextReaderWriter {
         });
     }
 
-    public void writeNumbers(@NonNull double[][] numbers, boolean append, @NonNull WriteListener callback) {
+    public void writeNumbers(@NonNull List<double[]> numbers, boolean append, @NonNull WriteListener callback) {
         List<String> lines = new ArrayList<>();
         StringBuilder sb;
-        int cols = numbers[0].length;
+        int cols = numbers.get(0).length;
         for (double[] row : numbers) {
             sb = new StringBuilder(cols * 2 - 1);
             for (int i = 0; i < cols; ++i) {

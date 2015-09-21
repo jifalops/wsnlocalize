@@ -14,13 +14,8 @@ public class TextReaderWriter extends AbsTextReaderWriter {
         super(file);
     }
 
-    public boolean readLines(@NonNull ReadListener<String> callback) {
+    public boolean readLines(@NonNull ReadListener callback) {
         return super.readLines(callback);
-    }
-
-    @Override
-    public void writeLine(String line, boolean append, @NonNull WriteListener callback) {
-        super.writeLine(line, append, callback);
     }
 
     @Override

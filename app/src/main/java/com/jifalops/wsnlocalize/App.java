@@ -15,9 +15,9 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.Volley;
-import com.jifalops.toolbox.ResettingList;
 import com.jifalops.toolbox.app.ServiceThreadApplication;
 import com.jifalops.toolbox.bluetooth.BtHelper;
+import com.jifalops.toolbox.util.ResettingList;
 import com.jifalops.toolbox.wifi.WifiHelper;
 import com.jifalops.wsnlocalize.request.AbsRequest;
 import com.jifalops.wsnlocalize.request.MacRequest;
@@ -44,11 +44,11 @@ public class App extends ServiceThreadApplication {
     public static final String DATA_SAMPLES = "samples";
 
     public static final ResettingList.Trigger btWindowTrigger   = new ResettingList.Trigger(3, 10_000, 5, 120_000);
-    public static final ResettingList.Trigger btTrainTrigger    = new ResettingList.Trigger(2, 30_000, 10, 120_000);
+//    public static final ResettingList.Trigger btTrainTrigger    = new ResettingList.Trigger(2, 30_000, 10, 120_000);
     public static final ResettingList.Trigger btleWindowTrigger = new ResettingList.Trigger(15, 5_000, 20, 30_000);
-    public static final ResettingList.Trigger btleTrainTrigger  = new ResettingList.Trigger(3, 30_000, 10, 120_000);
+//    public static final ResettingList.Trigger btleTrainTrigger  = new ResettingList.Trigger(3, 30_000, 10, 120_000);
     public static final ResettingList.Trigger wifiWindowTrigger = new ResettingList.Trigger(5, 5_000, 20, 20_000);
-    public static final ResettingList.Trigger wifiTrainTrigger  = new ResettingList.Trigger(3, 30_000, 10, 1200_000);
+//    public static final ResettingList.Trigger wifiTrainTrigger  = new ResettingList.Trigger(3, 30_000, 10, 1200_000);
 
     private static App instance;
     public static App getInstance() {
@@ -59,6 +59,7 @@ public class App extends ServiceThreadApplication {
     private RequestQueue requestQueue;
 
     private String wifiMac, btMac;
+    private boolean debug;
 
     @Override
     public void onCreate() {
@@ -66,7 +67,7 @@ public class App extends ServiceThreadApplication {
         instance = this;
         requestQueue = Volley.newRequestQueue(this);
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
-
+        debug = prefs.getBoolean("debug", false);
         initWifiMac();
         initBtMac();
         tryDeviceRequest();
@@ -158,5 +159,15 @@ public class App extends ServiceThreadApplication {
 
     public static File getFile(String signalType, String dataType) {
         return new File(getDataDir(), getFileName(signalType, dataType));
+    }
+
+    public static void showToast(CharSequence msg, boolean lengthLong) {
+        Toast.makeText(instance, msg, lengthLong ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT).show();
+    }
+
+    public static boolean debug() { return instance.debug; }
+    public static void setDebugMode(boolean debug) {
+        instance.debug = debug;
+        instance.prefs.edit().putBoolean("debug", debug).apply();
     }
 }

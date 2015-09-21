@@ -1,9 +1,11 @@
 package com.jifalops.wsnlocalize.file;
 
 import com.jifalops.toolbox.file.AbsTextReaderWriter;
+import com.jifalops.toolbox.util.Lists;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,47 +13,34 @@ import java.util.List;
  *
  */
 public class WindowReaderWriter extends AbsTextReaderWriter {
-    public interface WindowCallbacks {
-        void onWindowRecordsRead(WindowReaderWriter rw, List<WindowRecord> records);
-        void onWindowRecordsWritten(WindowReaderWriter rw, int recordsWritten);
-    }
-
-    final IoCallbacks ioCallbacks = new IoCallbacks() {
-        @Override
-        public void onReadCompleted(AbsTextReaderWriter rw, List<String> lines) {
-            final List<WindowRecord> records = new ArrayList<>();
-            for (String line : lines) {
-
-                try {
-                    records.add(new WindowRecord(line.split(",")));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-            callbacks.onWindowRecordsRead(WindowReaderWriter.this, records);
-        }
-        @Override
-        public void onWriteCompleted(AbsTextReaderWriter rw, final int linesWritten) {
-            callbacks.onWindowRecordsWritten(WindowReaderWriter.this, linesWritten);
-        }
-    };
-
-    final WindowCallbacks callbacks;
-    public WindowReaderWriter(File file, WindowCallbacks callbacks) {
+    public WindowReaderWriter(File file) {
         super(file);
-        this.callbacks = callbacks;
-        setIoCallbacks(ioCallbacks);
     }
 
-    public boolean readRecords() {
-        return readLines();
+    public boolean readRecords(final TypedReadListener<WindowRecord> callback) {
+        return readLines(new ReadListener() {
+            @Override
+            public void onReadSucceeded(List<String> lines) {
+                int exceptions = 0;
+                List<WindowRecord> records = new ArrayList<>();
+                for (String line : lines) {
+                    try {
+                        records.add(new WindowRecord(line.split(",")));
+                    } catch (Exception e) {
+                        ++exceptions;
+                    }
+                }
+                callback.onReadSucceeded(records, exceptions);
+            }
+
+            @Override
+            public void onReadFailed(IOException e) {
+                callback.onReadFailed(e);
+            }
+        });
     }
 
-    public void writeRecords(List<WindowRecord> records, boolean append) {
-        List<String> lines = new ArrayList<>();
-        for (WindowRecord r : records) {
-            lines.add(r.toString());
-        }
-        writeLines(lines, append);
+    public void writeRecords(List<WindowRecord> records, boolean append, WriteListener callback) {
+        writeLines(Lists.toString(records), append, callback);
     }
 }

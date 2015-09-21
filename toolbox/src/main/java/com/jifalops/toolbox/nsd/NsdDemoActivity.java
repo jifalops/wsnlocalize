@@ -26,11 +26,10 @@ import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
+import com.jifalops.toolbox.R;
 import com.jifalops.toolbox.socket.MyConnectionSocket;
 import com.jifalops.toolbox.socket.MyServerSocket;
 import com.jifalops.toolbox.wifi.WifiHelper;
-import com.jifalops.wsnlocalize.App;
-import com.jifalops.wsnlocalize.R;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -39,6 +38,8 @@ public class NsdDemoActivity extends Activity {
     private NsdController nsdController;
     private TextView statusView;
     private EditText sendView;
+
+    static String NSD_SERVICE_PREFIX = "NSD_DEMO_";
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -50,12 +51,12 @@ public class NsdDemoActivity extends Activity {
 
         WifiHelper wifi = WifiHelper.getInstance(this);
         wifi.setWifiEnabled(true);
-        String service = App.NSD_SERVICE_PREFIX + wifi.getMacAddress();
+        String service = NSD_SERVICE_PREFIX + wifi.getMacAddress();
 
         nsdController = new NsdController(this, service, new NsdServiceFilter() {
             @Override
             public boolean isAcceptableService(NsdServiceInfo info) {
-                return info.getServiceName().startsWith(App.NSD_SERVICE_PREFIX);
+                return info.getServiceName().startsWith(NSD_SERVICE_PREFIX);
             }
         });
     }

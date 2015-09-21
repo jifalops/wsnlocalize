@@ -16,16 +16,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jifalops.toolbox.ResettingList;
+import com.jifalops.toolbox.util.ResettingList;
 import com.jifalops.toolbox.wifi.WifiScanner;
 import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
-import com.jifalops.wsnlocalize.data.Estimator;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
-import com.jifalops.wsnlocalize.file.EstimatorReaderWriter;
+import com.jifalops.wsnlocalize.signal.BestDistanceEstimator;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -88,12 +86,11 @@ public class DistanceEstimationActivity extends Activity {
     BtLeBeacon btle;
     WifiScanner wifi;
 
+    BestDistanceEstimator estimator;
+
     List<Device> devices = new ArrayList<>();
     Map<Device, ResettingList<RssiRecord>> windowers = new HashMap<>();
 
-    Estimator btEstimator, btleEstimator, wifiEstimator, wifi5gEstimator;
-
-    boolean btUnavailable, btleUnavailable, wifiUnavailable, wifi5gUnavailable;
     CheckBox btCheckbox, btleCheckbox, wifiCheckbox, wifi5gCheckbox;
 
     @Override
@@ -106,7 +103,7 @@ public class DistanceEstimationActivity extends Activity {
 
         bt = BtBeacon.getInstance(this);
         btle = BtLeBeacon.getInstance(this);
-        wifi = WifiScanner.getInstance(this);
+        wifi = new WifiScanner(this);
 
 
 
@@ -154,83 +151,29 @@ public class DistanceEstimationActivity extends Activity {
                     }
                 });
 
-        File dir = App.getDataDir(this);
-
-        new EstimatorReaderWriter(new File(dir, App.getFileName(App.SIGNAL_BT,
-                App.DATA_ESTIMATOR)), new EstimatorReaderWriter.EstimatorCallbacks() {
+        estimator = new BestDistanceEstimator(new BestDistanceEstimator.OnReadyListener() {
             @Override
-            public void onEstimatorRecordsRead(EstimatorReaderWriter rw, List<Estimator> records) {
-                if (records.size() > 0) {
-                    btEstimator = records.get(records.size() - 1);
+            public void onReady() {
+                if (estimator.getBtSize() > 0) {
                     btCheckbox.setEnabled(true);
-                } else {
-                    btUnavailable = true;
-                    checkIfFailed();
                 }
-            }
-
-            @Override
-            public void onEstimatorRecordsWritten(EstimatorReaderWriter rw, int recordsWritten) {
-
-            }
-        }).readRecords();
-
-        new EstimatorReaderWriter(new File(dir, App.getFileName(App.SIGNAL_BTLE,
-                App.DATA_ESTIMATOR)), new EstimatorReaderWriter.EstimatorCallbacks() {
-            @Override
-            public void onEstimatorRecordsRead(EstimatorReaderWriter rw, List<Estimator> records) {
-                if (records.size() > 0) {
-                    btleEstimator = records.get(records.size() - 1);
+                if (estimator.getBtleSize() > 0) {
                     btleCheckbox.setEnabled(true);
-                } else {
-                    btleUnavailable = true;
-                    checkIfFailed();
                 }
-            }
-
-            @Override
-            public void onEstimatorRecordsWritten(EstimatorReaderWriter rw, int recordsWritten) {
-
-            }
-        }).readRecords();
-
-        new EstimatorReaderWriter(new File(dir, App.getFileName(App.SIGNAL_WIFI,
-                App.DATA_ESTIMATOR)), new EstimatorReaderWriter.EstimatorCallbacks() {
-            @Override
-            public void onEstimatorRecordsRead(EstimatorReaderWriter rw, List<Estimator> records) {
-                if (records.size() > 0) {
-                    wifiEstimator = records.get(records.size() - 1);
+                if (estimator.getWifiSize() > 0) {
                     wifiCheckbox.setEnabled(true);
-                } else {
-                    wifiUnavailable = true;
-                    checkIfFailed();
                 }
-            }
-
-            @Override
-            public void onEstimatorRecordsWritten(EstimatorReaderWriter rw, int recordsWritten) {
-
-            }
-        }).readRecords();
-
-        new EstimatorReaderWriter(new File(dir, App.getFileName(App.SIGNAL_WIFI5G,
-                App.DATA_ESTIMATOR)), new EstimatorReaderWriter.EstimatorCallbacks() {
-            @Override
-            public void onEstimatorRecordsRead(EstimatorReaderWriter rw, List<Estimator> records) {
-                if (records.size() > 0) {
-                    wifi5gEstimator = records.get(records.size() - 1);
+                if (estimator.getWifi5gSize() > 0) {
                     wifi5gCheckbox.setEnabled(true);
-                } else {
-                    wifi5gUnavailable = true;
-                    checkIfFailed();
+                }
+                if (!btCheckbox.isEnabled() && !btleCheckbox.isEnabled() &&
+                        !wifiCheckbox.isEnabled() && !wifi5gCheckbox.isEnabled()) {
+                    Toast.makeText(DistanceEstimationActivity.this,
+                            "No estimators available; need to train first.", Toast.LENGTH_LONG).show();
+                    finish();
                 }
             }
-
-            @Override
-            public void onEstimatorRecordsWritten(EstimatorReaderWriter rw, int recordsWritten) {
-
-            }
-        }).readRecords();
+        });
     }
 
     @Override
@@ -239,13 +182,6 @@ public class DistanceEstimationActivity extends Activity {
         bt = null;
         btle = null;
         wifi = null;
-    }
-
-    void checkIfFailed() {
-        if (btUnavailable && btleUnavailable && wifiUnavailable) {
-            Toast.makeText(this, "No estimators available; need to train first.", Toast.LENGTH_LONG).show();
-            finish();
-        }
     }
 
     @Override
@@ -309,23 +245,20 @@ public class DistanceEstimationActivity extends Activity {
                     new ResettingList.LimitsCallback<RssiRecord>() {
                 @Override
                 public void onLimitsReached(List<RssiRecord> list, long time) {
-                    Estimator estimator = null;
+                    double estimate = 0;
+                    double[] sample = new WindowRecord(list).toSample();
                     if (App.SIGNAL_BT.equals(signal)) {
-                        estimator = btEstimator;
+                        estimate = estimator.estimateBt(sample);
                     } else if (App.SIGNAL_BTLE.equals(signal)) {
-                        estimator = btleEstimator;
+                        estimate = estimator.estimateBtle(sample);
                     } else if (App.SIGNAL_WIFI.equals(signal)) {
-                        estimator = wifiEstimator;
+                        estimate = estimator.estimateWifi(sample);
                     } else if (App.SIGNAL_WIFI5G.equals(signal)) {
-                        estimator = wifi5gEstimator;
+                        estimate = estimator.estimateWifi5g(sample);
                     }
-
-                    if (estimator != null) {
-                        double estimate = estimator.estimate(new WindowRecord(list).toSample());
-                        finalDevice.previous = finalDevice.estimate;
-                        finalDevice.estimate = estimate;
-                        adapter.notifyDataSetChanged();
-                    }
+                    finalDevice.previous = finalDevice.estimate;
+                    finalDevice.estimate = estimate;
+                    adapter.notifyDataSetChanged();
                 }
             }));
         }
