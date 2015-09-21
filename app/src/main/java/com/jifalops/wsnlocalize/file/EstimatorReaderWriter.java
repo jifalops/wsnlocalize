@@ -1,5 +1,6 @@
 package com.jifalops.wsnlocalize.file;
 
+import com.jifalops.toolbox.file.AbsTextReaderWriter;
 import com.jifalops.wsnlocalize.data.Estimator;
 
 import java.io.File;
@@ -9,7 +10,7 @@ import java.util.List;
 /**
  *
  */
-public class EstimatorReaderWriter extends TextReaderWriter {
+public class EstimatorReaderWriter extends AbsTextReaderWriter {
     public interface EstimatorCallbacks {
         void onEstimatorRecordsRead(EstimatorReaderWriter rw, List<Estimator> records);
         void onEstimatorRecordsWritten(EstimatorReaderWriter rw, int recordsWritten);
@@ -17,7 +18,7 @@ public class EstimatorReaderWriter extends TextReaderWriter {
 
     final IoCallbacks ioCallbacks = new IoCallbacks() {
         @Override
-        public void onReadCompleted(TextReaderWriter rw, List<String> lines) {
+        public void onReadCompleted(AbsTextReaderWriter rw, List<String> lines) {
             final List<Estimator> records = new ArrayList<>();
             for (String line : lines) {
                 try {
@@ -29,7 +30,7 @@ public class EstimatorReaderWriter extends TextReaderWriter {
             callbacks.onEstimatorRecordsRead(EstimatorReaderWriter.this, records);
         }
         @Override
-        public void onWriteCompleted(TextReaderWriter rw, final int linesWritten) {
+        public void onWriteCompleted(AbsTextReaderWriter rw, final int linesWritten) {
             callbacks.onEstimatorRecordsWritten(EstimatorReaderWriter.this, linesWritten);
         }
     };

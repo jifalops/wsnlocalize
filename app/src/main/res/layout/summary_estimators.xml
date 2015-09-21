@@ -8,7 +8,7 @@
     <TextView android:text="Count"
         android:layout_gravity="center_horizontal"
         android:layout_columnWeight="1"/>
-    <TextView android:text="Good (<0.01)"
+    <TextView android:text="Good (&lt;0.01)"
         android:layout_gravity="center_horizontal"
         android:layout_columnWeight="1"/>
     <TextView android:text="Good Max Samp."

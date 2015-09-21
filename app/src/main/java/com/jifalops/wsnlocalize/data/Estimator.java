@@ -1,8 +1,8 @@
 package com.jifalops.wsnlocalize.data;
 
+import com.jifalops.toolbox.neuralnet.NeuralNetwork;
+import com.jifalops.toolbox.neuralnet.TrainingResults;
 import com.jifalops.wsnlocalize.App;
-import com.jifalops.wsnlocalize.neuralnet.NeuralNetwork;
-import com.jifalops.wsnlocalize.neuralnet.TrainingResults;
 
 import org.json.JSONException;
 import org.json.JSONObject;

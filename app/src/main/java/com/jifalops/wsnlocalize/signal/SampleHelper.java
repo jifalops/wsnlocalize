@@ -1,8 +1,8 @@
 package com.jifalops.wsnlocalize.signal;
 
+import com.jifalops.toolbox.Arrays;
+import com.jifalops.toolbox.file.NumberReaderWriter;
 import com.jifalops.wsnlocalize.App;
-import com.jifalops.wsnlocalize.file.NumberReaderWriter;
-import com.jifalops.wsnlocalize.util.Arrays;
 
 /**
  *

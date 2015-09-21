@@ -12,10 +12,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jifalops.toolbox.Arrays;
+import com.jifalops.toolbox.Stats;
+import com.jifalops.toolbox.file.NumberReaderWriter;
 import com.jifalops.wsnlocalize.data.WindowRecord;
-import com.jifalops.wsnlocalize.file.NumberReaderWriter;
-import com.jifalops.wsnlocalize.util.Arrays;
-import com.jifalops.wsnlocalize.util.Stats;
 
 import java.io.File;
 import java.util.ArrayList;

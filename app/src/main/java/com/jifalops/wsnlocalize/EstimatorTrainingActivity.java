@@ -21,12 +21,12 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jifalops.toolbox.SimpleLog;
 import com.jifalops.wsnlocalize.data.Estimator;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.signal.SignalController;
 import com.jifalops.wsnlocalize.util.ServiceThreadApplication;
-import com.jifalops.wsnlocalize.util.SimpleLog;
 
 import java.util.ArrayList;
 import java.util.List;

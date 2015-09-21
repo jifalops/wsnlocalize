@@ -15,12 +15,12 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.Volley;
-import com.jifalops.wsnlocalize.bluetooth.BtHelper;
+import com.jifalops.toolbox.ResettingList;
+import com.jifalops.toolbox.app.ServiceThreadApplication;
+import com.jifalops.toolbox.bluetooth.BtHelper;
+import com.jifalops.toolbox.wifi.WifiHelper;
 import com.jifalops.wsnlocalize.request.AbsRequest;
 import com.jifalops.wsnlocalize.request.MacRequest;
-import com.jifalops.wsnlocalize.util.ResettingList;
-import com.jifalops.wsnlocalize.util.ServiceThreadApplication;
-import com.jifalops.wsnlocalize.wifi.WifiHelper;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -43,12 +43,12 @@ public class App extends ServiceThreadApplication {
     public static final String DATA_ESTIMATOR = "estimator";
     public static final String DATA_SAMPLES = "samples";
 
-    public static final ResettingList.Limits btWindowTrigger   = new ResettingList.Limits(3, 10_000, 5, 120_000);
-    public static final ResettingList.Limits btTrainTrigger    = new ResettingList.Limits(2, 30_000, 10, 120_000);
-    public static final ResettingList.Limits btleWindowTrigger = new ResettingList.Limits(15, 5_000, 20, 30_000);
-    public static final ResettingList.Limits btleTrainTrigger  = new ResettingList.Limits(3, 30_000, 10, 120_000);
-    public static final ResettingList.Limits wifiWindowTrigger = new ResettingList.Limits(5, 5_000, 20, 20_000);
-    public static final ResettingList.Limits wifiTrainTrigger  = new ResettingList.Limits(3, 30_000, 10, 1200_000);
+    public static final ResettingList.Trigger btWindowTrigger   = new ResettingList.Trigger(3, 10_000, 5, 120_000);
+    public static final ResettingList.Trigger btTrainTrigger    = new ResettingList.Trigger(2, 30_000, 10, 120_000);
+    public static final ResettingList.Trigger btleWindowTrigger = new ResettingList.Trigger(15, 5_000, 20, 30_000);
+    public static final ResettingList.Trigger btleTrainTrigger  = new ResettingList.Trigger(3, 30_000, 10, 120_000);
+    public static final ResettingList.Trigger wifiWindowTrigger = new ResettingList.Trigger(5, 5_000, 20, 20_000);
+    public static final ResettingList.Trigger wifiTrainTrigger  = new ResettingList.Trigger(3, 30_000, 10, 1200_000);
 
     private static App instance;
     public static App getInstance() {

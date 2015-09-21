@@ -1,5 +1,6 @@
 package com.jifalops.wsnlocalize.file;
 
+import com.jifalops.toolbox.file.AbsTextReaderWriter;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 
 import java.io.File;
@@ -9,7 +10,7 @@ import java.util.List;
 /**
  *
  */
-public class WindowReaderWriter extends TextReaderWriter {
+public class WindowReaderWriter extends AbsTextReaderWriter {
     public interface WindowCallbacks {
         void onWindowRecordsRead(WindowReaderWriter rw, List<WindowRecord> records);
         void onWindowRecordsWritten(WindowReaderWriter rw, int recordsWritten);
@@ -17,7 +18,7 @@ public class WindowReaderWriter extends TextReaderWriter {
 
     final IoCallbacks ioCallbacks = new IoCallbacks() {
         @Override
-        public void onReadCompleted(TextReaderWriter rw, List<String> lines) {
+        public void onReadCompleted(AbsTextReaderWriter rw, List<String> lines) {
             final List<WindowRecord> records = new ArrayList<>();
             for (String line : lines) {
 
@@ -30,7 +31,7 @@ public class WindowReaderWriter extends TextReaderWriter {
             callbacks.onWindowRecordsRead(WindowReaderWriter.this, records);
         }
         @Override
-        public void onWriteCompleted(TextReaderWriter rw, final int linesWritten) {
+        public void onWriteCompleted(AbsTextReaderWriter rw, final int linesWritten) {
             callbacks.onWindowRecordsWritten(WindowReaderWriter.this, linesWritten);
         }
     };

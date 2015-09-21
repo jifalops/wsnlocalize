@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Toolbox</string>
+    <string name="app_persisting">%1$s is running in the background</string>
+</resources>

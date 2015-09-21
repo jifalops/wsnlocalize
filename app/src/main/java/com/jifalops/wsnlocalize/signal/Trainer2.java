@@ -3,12 +3,12 @@ package com.jifalops.wsnlocalize.signal;
 import android.os.Handler;
 import android.os.HandlerThread;
 
+import com.jifalops.toolbox.neuralnet.Depso;
+import com.jifalops.toolbox.neuralnet.MlpWeightMetrics;
+import com.jifalops.toolbox.neuralnet.NeuralNetwork;
+import com.jifalops.toolbox.neuralnet.TerminationConditions;
+import com.jifalops.toolbox.neuralnet.TrainingResults;
 import com.jifalops.wsnlocalize.data.WindowRecord;
-import com.jifalops.wsnlocalize.neuralnet.Depso;
-import com.jifalops.wsnlocalize.neuralnet.MlpWeightMetrics;
-import com.jifalops.wsnlocalize.neuralnet.NeuralNetwork;
-import com.jifalops.wsnlocalize.neuralnet.TerminationConditions;
-import com.jifalops.wsnlocalize.neuralnet.TrainingResults;
 
 /**
  *

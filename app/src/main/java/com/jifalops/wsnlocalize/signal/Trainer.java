@@ -3,14 +3,14 @@ package com.jifalops.wsnlocalize.signal;
 import android.os.Handler;
 import android.os.HandlerThread;
 
+import com.jifalops.toolbox.ResettingList;
+import com.jifalops.toolbox.neuralnet.Depso;
+import com.jifalops.toolbox.neuralnet.MlpWeightMetrics;
+import com.jifalops.toolbox.neuralnet.NeuralNetwork;
+import com.jifalops.toolbox.neuralnet.TerminationConditions;
+import com.jifalops.toolbox.neuralnet.TrainingResults;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
-import com.jifalops.wsnlocalize.neuralnet.Depso;
-import com.jifalops.wsnlocalize.neuralnet.MlpWeightMetrics;
-import com.jifalops.wsnlocalize.neuralnet.NeuralNetwork;
-import com.jifalops.wsnlocalize.neuralnet.TerminationConditions;
-import com.jifalops.wsnlocalize.neuralnet.TrainingResults;
-import com.jifalops.wsnlocalize.util.ResettingList;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,11 +37,11 @@ public class Trainer {
     private final TrainerCallbacks callbacks;
     final MlpWeightMetrics metrics;
 
-    public Trainer(ResettingList.Limits rssiWindowLimits,
-                   ResettingList.Limits windowTrainingLimits, final TrainerCallbacks callbacks) {
+    public Trainer(ResettingList.Trigger rssiWindowTrigger,
+                   ResettingList.Trigger windowTrainingTrigger, final TrainerCallbacks callbacks) {
         this.callbacks = callbacks;
-        windower = new ResettingList<>(rssiWindowLimits, windowerCB);
-        trigger = new ResettingList<>(windowTrainingLimits, trainingCB);
+        windower = new ResettingList<>(rssiWindowTrigger, windowerCB);
+        trigger = new ResettingList<>(windowTrainingTrigger, trainingCB);
         metrics = new MlpWeightMetrics(WindowRecord.TRAINING_ARRAY_SIZE - 1, 1);
         termCond = new TerminationConditions();
         thread = new HandlerThread(getClass().getName());

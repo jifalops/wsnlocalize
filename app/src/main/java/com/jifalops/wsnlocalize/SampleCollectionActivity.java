@@ -22,12 +22,12 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jifalops.toolbox.SimpleLog;
+import com.jifalops.toolbox.app.ServiceThreadApplication;
 import com.jifalops.wsnlocalize.data.Estimator;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.signal.SignalController;
-import com.jifalops.wsnlocalize.util.ServiceThreadApplication;
-import com.jifalops.wsnlocalize.util.SimpleLog;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -490,54 +490,54 @@ public class SampleCollectionActivity extends Activity {
 
     void updateCountView(String signal, String data) {
         switch (signal) {
-            case SIGNAL_BT:
+            case App.SIGNAL_BT:
                 switch (data) {
-                    case DATA_RSSI:
+                    case App.DATA_RSSI:
                         btRssiCountView.setText(controller.getBt().getRssiCount() + "");
                         break;
-                    case DATA_WINDOW:
+                    case App.DATA_WINDOW:
                         btWindowCountView.setText(controller.getBt().getWindowCount() + "");
                         break;
-                    case DATA_ESTIMATOR:
+                    case App.DATA_ESTIMATOR:
                         btEstimatorCountView.setText(controller.getBt().getEstimatorCount()+"");
                         break;
                 }
                 break;
-            case SIGNAL_BTLE:
+            case App.SIGNAL_BTLE:
                 switch (data) {
-                    case DATA_RSSI:
+                    case App.DATA_RSSI:
                         btleRssiCountView.setText(controller.getBtle().getRssiCount() + "");
                         break;
-                    case DATA_WINDOW:
+                    case App.DATA_WINDOW:
                         btleWindowCountView.setText(controller.getBtle().getWindowCount() + "");
                         break;
-                    case DATA_ESTIMATOR:
+                    case App.DATA_ESTIMATOR:
                         btleEstimatorCountView.setText(controller.getBtle().getEstimatorCount()+"");
                         break;
                 }
                 break;
-            case SIGNAL_WIFI:
+            case App.SIGNAL_WIFI:
                 switch (data) {
-                    case DATA_RSSI:
+                    case App.DATA_RSSI:
                         wifiRssiCountView.setText(controller.getWifi().getRssiCount() + "");
                         break;
-                    case DATA_WINDOW:
+                    case App.DATA_WINDOW:
                         wifiWindowCountView.setText(controller.getWifi().getWindowCount() + "");
                         break;
-                    case DATA_ESTIMATOR:
+                    case App.DATA_ESTIMATOR:
                         wifiEstimatorCountView.setText(controller.getWifi().getEstimatorCount()+"");
                         break;
                 }
                 break;
-            case SIGNAL_WIFI5G:
+            case App.SIGNAL_WIFI5G:
                 switch (data) {
-                    case DATA_RSSI:
+                    case App.DATA_RSSI:
                         wifi5gRssiCountView.setText(controller.getWifi5g().getRssiCount() + "");
                         break;
-                    case DATA_WINDOW:
+                    case App.DATA_WINDOW:
                         wifi5gWindowCountView.setText(controller.getWifi5g().getWindowCount() + "");
                         break;
-                    case DATA_ESTIMATOR:
+                    case App.DATA_ESTIMATOR:
                         wifi5gEstimatorCountView.setText(controller.getWifi5g().getEstimatorCount()+"");
                         break;
                 }

@@ -1,5 +1,6 @@
 package com.jifalops.wsnlocalize.file;
 
+import com.jifalops.toolbox.file.AbsTextReaderWriter;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 
 import java.io.File;
@@ -9,7 +10,7 @@ import java.util.List;
 /**
  *
  */
-public class RssiReaderWriter extends TextReaderWriter {
+public class RssiReaderWriter extends AbsTextReaderWriter {
     public interface RssiCallbacks {
         void onRssiRecordsRead(RssiReaderWriter rw, List<RssiRecord> records);
         void onRssiRecordsWritten(RssiReaderWriter rw, int recordsWritten);
@@ -17,7 +18,7 @@ public class RssiReaderWriter extends TextReaderWriter {
 
     final IoCallbacks ioCallbacks = new IoCallbacks() {
         @Override
-        public void onReadCompleted(TextReaderWriter rw, List<String> lines) {
+        public void onReadCompleted(AbsTextReaderWriter rw, List<String> lines) {
             final List<RssiRecord> records = new ArrayList<>();
             for (String line : lines) {
                 try {
@@ -29,7 +30,7 @@ public class RssiReaderWriter extends TextReaderWriter {
             callbacks.onRssiRecordsRead(RssiReaderWriter.this, records);
         }
         @Override
-        public void onWriteCompleted(TextReaderWriter rw, final int linesWritten) {
+        public void onWriteCompleted(AbsTextReaderWriter rw, final int linesWritten) {
             callbacks.onRssiRecordsWritten(RssiReaderWriter.this, linesWritten);
         }
     };

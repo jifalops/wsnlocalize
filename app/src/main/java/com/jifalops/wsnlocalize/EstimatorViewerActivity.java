@@ -11,8 +11,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jifalops.toolbox.neuralnet.TrainingResults;
 import com.jifalops.wsnlocalize.data.Estimator;
-import com.jifalops.wsnlocalize.neuralnet.TrainingResults;
 import com.jifalops.wsnlocalize.signal.EstimatorHelper;
 
 import java.util.ArrayList;

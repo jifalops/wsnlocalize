@@ -2,21 +2,21 @@ package com.jifalops.wsnlocalize.signal;
 
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.jifalops.toolbox.Arrays;
+import com.jifalops.toolbox.ResettingList;
+import com.jifalops.toolbox.file.NumberReaderWriter;
+import com.jifalops.toolbox.neuralnet.TrainingResults;
 import com.jifalops.wsnlocalize.App;
 import com.jifalops.wsnlocalize.data.Estimator;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.file.EstimatorReaderWriter;
-import com.jifalops.wsnlocalize.file.NumberReaderWriter;
 import com.jifalops.wsnlocalize.file.RssiReaderWriter;
 import com.jifalops.wsnlocalize.file.WindowReaderWriter;
-import com.jifalops.wsnlocalize.neuralnet.TrainingResults;
 import com.jifalops.wsnlocalize.request.AbsRequest;
 import com.jifalops.wsnlocalize.request.EstimatorRequest;
 import com.jifalops.wsnlocalize.request.RssiRequest;
 import com.jifalops.wsnlocalize.request.WindowRequest;
-import com.jifalops.wsnlocalize.util.Arrays;
-import com.jifalops.wsnlocalize.util.ResettingList;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -58,11 +58,11 @@ public class RssiWindowTrainingDataManager {
     private double[][] toTrain;
 
 
-    RssiWindowTrainingDataManager(String signalType, File dir, ResettingList.Limits rssiWindowLimits,
-                                  ResettingList.Limits windowTrainingLimits, Callbacks callbacks) {
+    RssiWindowTrainingDataManager(String signalType, File dir, ResettingList.Trigger rssiWindowTrigger,
+                                  ResettingList.Trigger windowTrainingTrigger, Callbacks callbacks) {
         this.signalType = signalType;
         MyCallbacks myCallbacks = new MyCallbacks();
-        trainer = new Trainer(rssiWindowLimits, windowTrainingLimits, myCallbacks);
+        trainer = new Trainer(rssiWindowTrigger, windowTrainingTrigger, myCallbacks);
         rssiRW = new RssiReaderWriter(new File(dir,
                 App.getFileName(signalType, App.DATA_RSSI)), myCallbacks);
         windowRW = new WindowReaderWriter(new File(dir,
@@ -140,7 +140,7 @@ public class RssiWindowTrainingDataManager {
             final List<RssiRecord> sending = new ArrayList<>(rssi);
             final int toSend = sending.size();
             rssi.clear();
-            App.getInstance().sendRequest(new RssiRequest(signalType, rssi,
+            App.sendRequest(new RssiRequest(signalType, rssi,
                     new Response.Listener<AbsRequest.MyResponse>() {
                         @Override
                         public void onResponse(AbsRequest.MyResponse response) {
@@ -155,13 +155,13 @@ public class RssiWindowTrainingDataManager {
                             }
                         }
                     }, new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError volleyError) {
-                            rssi.addAll(sending);
-                            callbacks.onSentFailure(signalType, App.DATA_RSSI, toSend,
-                                    volleyError.toString());
-                        }
-                    }));
+                @Override
+                public void onErrorResponse(VolleyError volleyError) {
+                    rssi.addAll(sending);
+                    callbacks.onSentFailure(signalType, App.DATA_RSSI, toSend,
+                            volleyError.toString());
+                }
+            }));
         }
         if (windows.size() > 0) {
             final List<WindowRecord> sending = new ArrayList<>(windows);

@@ -16,14 +16,14 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jifalops.toolbox.ResettingList;
+import com.jifalops.toolbox.wifi.WifiScanner;
 import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
 import com.jifalops.wsnlocalize.data.Estimator;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.file.EstimatorReaderWriter;
-import com.jifalops.wsnlocalize.util.ResettingList;
-import com.jifalops.wsnlocalize.wifi.WifiScanner;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -301,11 +301,11 @@ public class DistanceEstimationActivity extends Activity {
             devices.add(device);
             adapter.notifyDataSetChanged();
             final Device finalDevice = device;
-            ResettingList.Limits limits;
-            if (App.SIGNAL_BT.equals(signal)) limits = App.btWindowTrigger;
-            else if (App.SIGNAL_BTLE.equals(signal)) limits = App.btleWindowTrigger;
-            else limits = App.wifiWindowTrigger;
-            windowers.put(device, new ResettingList<>(limits,
+            ResettingList.Trigger trigger;
+            if (App.SIGNAL_BT.equals(signal)) trigger = App.btWindowTrigger;
+            else if (App.SIGNAL_BTLE.equals(signal)) trigger = App.btleWindowTrigger;
+            else trigger = App.wifiWindowTrigger;
+            windowers.put(device, new ResettingList<>(trigger,
                     new ResettingList.LimitsCallback<RssiRecord>() {
                 @Override
                 public void onLimitsReached(List<RssiRecord> list, long time) {
