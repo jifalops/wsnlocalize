@@ -38,7 +38,7 @@ public class RssiHelper {
         wifiRW = new RssiReaderWriter(App.getFile(App.SIGNAL_WIFI, App.DATA_RSSI));
         wifi5gRW = new RssiReaderWriter(App.getFile(App.SIGNAL_WIFI5G, App.DATA_RSSI));
 
-        btRW.readRssi(new AbsTextReaderWriter.TypedReadListener<RssiRecord>() {
+        if (!btRW.readRssi(new AbsTextReaderWriter.TypedReadListener<RssiRecord>() {
             @Override
             public void onReadSucceeded(List<RssiRecord> list, int typingExceptions) {
                 bt.addAll(list);
@@ -53,9 +53,9 @@ public class RssiHelper {
             public void onReadFailed(IOException e) {
                 Log.e(TAG, "Failed to read BT rssi.", e);
             }
-        });
+        })) btLoaded = true;
 
-        btleRW.readRssi(new AbsTextReaderWriter.TypedReadListener<RssiRecord>() {
+        if (!btleRW.readRssi(new AbsTextReaderWriter.TypedReadListener<RssiRecord>() {
             @Override
             public void onReadSucceeded(List<RssiRecord> list, int typingExceptions) {
                 btle.addAll(list);
@@ -70,9 +70,9 @@ public class RssiHelper {
             public void onReadFailed(IOException e) {
                 Log.e(TAG, "Failed to read BTLE rssi.", e);
             }
-        });
+        })) btleLoaded = true;
 
-        wifiRW.readRssi(new AbsTextReaderWriter.TypedReadListener<RssiRecord>() {
+        if(!wifiRW.readRssi(new AbsTextReaderWriter.TypedReadListener<RssiRecord>() {
             @Override
             public void onReadSucceeded(List<RssiRecord> list, int typingExceptions) {
                 wifi.addAll(list);
@@ -87,9 +87,9 @@ public class RssiHelper {
             public void onReadFailed(IOException e) {
                 Log.e(TAG, "Failed to read WiFi rssi.", e);
             }
-        });
+        })) wifiLoaded = true;
 
-        wifi5gRW.readRssi(new AbsTextReaderWriter.TypedReadListener<RssiRecord>() {
+        if(!wifi5gRW.readRssi(new AbsTextReaderWriter.TypedReadListener<RssiRecord>() {
             @Override
             public void onReadSucceeded(List<RssiRecord> list, int typingExceptions) {
                 wifi5g.addAll(list);
@@ -104,7 +104,9 @@ public class RssiHelper {
             public void onReadFailed(IOException e) {
                 Log.e(TAG, "Failed to read WiFi5G rssi.", e);
             }
-        });
+        })) wifi5gLoaded = true;
+
+        checkIfAllLoaded();
     }
 
     void checkIfAllLoaded() {

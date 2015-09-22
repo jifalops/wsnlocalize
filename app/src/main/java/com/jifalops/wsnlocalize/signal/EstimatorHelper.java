@@ -40,7 +40,7 @@ public class EstimatorHelper {
         wifiRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_WIFI, dataType));
         wifi5gRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_WIFI5G, dataType));
 
-        btRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
+        if (!btRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
             @Override
             public void onReadSucceeded(List<DistanceEstimator> list, int typingExceptions) {
                 bt.addAll(list);
@@ -55,9 +55,9 @@ public class EstimatorHelper {
             public void onReadFailed(IOException e) {
                 Log.e(TAG, "Failed to read BT estimators.", e);
             }
-        });
+        })) btLoaded = true;
 
-        btleRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
+        if (!btleRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
             @Override
             public void onReadSucceeded(List<DistanceEstimator> list, int typingExceptions) {
                 btle.addAll(list);
@@ -72,9 +72,9 @@ public class EstimatorHelper {
             public void onReadFailed(IOException e) {
                 Log.e(TAG, "Failed to read BTLE estimators.", e);
             }
-        });
+        })) btleLoaded = true;
 
-        wifiRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
+        if (!wifiRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
             @Override
             public void onReadSucceeded(List<DistanceEstimator> list, int typingExceptions) {
                 wifi.addAll(list);
@@ -89,9 +89,9 @@ public class EstimatorHelper {
             public void onReadFailed(IOException e) {
                 Log.e(TAG, "Failed to read WiFi estimators.", e);
             }
-        });
+        })) wifiLoaded = true;
 
-        wifi5gRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
+        if (!wifi5gRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
             @Override
             public void onReadSucceeded(List<DistanceEstimator> list, int typingExceptions) {
                 wifi5g.addAll(list);
@@ -106,7 +106,8 @@ public class EstimatorHelper {
             public void onReadFailed(IOException e) {
                 Log.e(TAG, "Failed to read WiFi5G estimators.", e);
             }
-        });
+        })) wifi5gLoaded = true;
+        checkIfAllLoaded();
     }
 
     void checkIfAllLoaded() {

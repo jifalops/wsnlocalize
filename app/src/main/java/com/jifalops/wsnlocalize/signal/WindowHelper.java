@@ -39,7 +39,7 @@ public class WindowHelper {
         wifiRW = new WindowReaderWriter(App.getFile(App.SIGNAL_WIFI, App.DATA_WINDOW));
         wifi5gRW = new WindowReaderWriter(App.getFile(App.SIGNAL_WIFI5G, App.DATA_WINDOW));
 
-        btRW.readRecords(new AbsTextReaderWriter.TypedReadListener<WindowRecord>() {
+        if(!btRW.readRecords(new AbsTextReaderWriter.TypedReadListener<WindowRecord>() {
             @Override
             public void onReadSucceeded(List<WindowRecord> list, int typingExceptions) {
                 bt.addAll(list);
@@ -54,9 +54,9 @@ public class WindowHelper {
             public void onReadFailed(IOException e) {
                 Log.e(TAG, "Failed to read BT windows.", e);
             }
-        });
+        })) btLoaded = true;
 
-        btleRW.readRecords(new AbsTextReaderWriter.TypedReadListener<WindowRecord>() {
+        if (!btleRW.readRecords(new AbsTextReaderWriter.TypedReadListener<WindowRecord>() {
             @Override
             public void onReadSucceeded(List<WindowRecord> list, int typingExceptions) {
                 btle.addAll(list);
@@ -71,9 +71,9 @@ public class WindowHelper {
             public void onReadFailed(IOException e) {
                 Log.e(TAG, "Failed to read BTLE windows.", e);
             }
-        });
+        })) btleLoaded = true;
 
-        wifiRW.readRecords(new AbsTextReaderWriter.TypedReadListener<WindowRecord>() {
+        if (!wifiRW.readRecords(new AbsTextReaderWriter.TypedReadListener<WindowRecord>() {
             @Override
             public void onReadSucceeded(List<WindowRecord> list, int typingExceptions) {
                 wifi.addAll(list);
@@ -88,9 +88,9 @@ public class WindowHelper {
             public void onReadFailed(IOException e) {
                 Log.e(TAG, "Failed to read WiFi windows.", e);
             }
-        });
+        })) wifiLoaded = true;
 
-        wifi5gRW.readRecords(new AbsTextReaderWriter.TypedReadListener<WindowRecord>() {
+        if (!wifi5gRW.readRecords(new AbsTextReaderWriter.TypedReadListener<WindowRecord>() {
             @Override
             public void onReadSucceeded(List<WindowRecord> list, int typingExceptions) {
                 wifi5g.addAll(list);
@@ -105,7 +105,8 @@ public class WindowHelper {
             public void onReadFailed(IOException e) {
                 Log.e(TAG, "Failed to read WiFi5G windows.", e);
             }
-        });
+        })) wifi5gLoaded = true;
+        checkIfAllLoaded();
     }
 
     void checkIfAllLoaded() {

@@ -38,7 +38,7 @@ public class SampleHelper {
         wifiRW = new NumberReaderWriter(App.getFile(App.SIGNAL_WIFI, App.DATA_SAMPLES));
         wifi5gRW = new NumberReaderWriter(App.getFile(App.SIGNAL_WIFI5G, App.DATA_SAMPLES));
 
-        btRW.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+        if(!btRW.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
             @Override
             public void onReadSucceeded(List<double[]> list, int typingExceptions) {
                 bt.addAll(list);
@@ -53,9 +53,9 @@ public class SampleHelper {
             public void onReadFailed(IOException e) {
                 Log.e(TAG, "Failed to read BT samples.", e);
             }
-        });
+        })) btLoaded = true;
 
-        btleRW.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+        if (!btleRW.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
             @Override
             public void onReadSucceeded(List<double[]> list, int typingExceptions) {
                 btle.addAll(list);
@@ -70,9 +70,9 @@ public class SampleHelper {
             public void onReadFailed(IOException e) {
                 Log.e(TAG, "Failed to read BTLE samples.", e);
             }
-        });
+        })) btleLoaded = true;
 
-        wifiRW.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+        if(!wifiRW.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
             @Override
             public void onReadSucceeded(List<double[]> list, int typingExceptions) {
                 wifi.addAll(list);
@@ -87,9 +87,9 @@ public class SampleHelper {
             public void onReadFailed(IOException e) {
                 Log.e(TAG, "Failed to read WiFi samples.", e);
             }
-        });
+        })) wifiLoaded = true;
 
-        wifi5gRW.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+        if (!wifi5gRW.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
             @Override
             public void onReadSucceeded(List<double[]> list, int typingExceptions) {
                 wifi5g.addAll(list);
@@ -104,7 +104,8 @@ public class SampleHelper {
             public void onReadFailed(IOException e) {
                 Log.e(TAG, "Failed to read WiFi5G samples.", e);
             }
-        });
+        })) wifi5gLoaded = true;
+        checkIfAllLoaded();
     }
 
     void checkIfAllLoaded() {
