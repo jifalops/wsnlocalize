@@ -20,7 +20,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
-        <service android:name="com.jifalops.toolbox.app.ServiceThreadApplication$LocalService" />
+        <service android:name=".toolbox.ServiceThreadApplication$LocalService" />
         <activity
             android:name=".MainActivity"
             android:label="@string/app_name" >
@@ -40,10 +40,10 @@
             android:name=".bluetooth.BtLeBeaconDemoActivity"
             android:label="BT-LE Beacon Demo"/>
         <activity
-            android:name="com.jifalops.toolbox.wifi.WifiScannerDemoActivity"
+            android:name=".toolbox.wifi.WifiScannerDemoActivity"
             android:label="WiFi Scanner Demo"/>
         <activity
-            android:name="com.jifalops.toolbox.nsd.NsdDemoActivity"
+            android:name=".toolbox.nsd.NsdDemoActivity"
             android:label="NSD Demo"/>
         <activity
             android:name=".SampleCollectionActivity"

@@ -1,12 +1,12 @@
 package com.jifalops.wsnlocalize.signal;
 
-import com.jifalops.toolbox.neuralnet.Estimator;
-import com.jifalops.toolbox.neuralnet.MlpWeightMetrics;
-import com.jifalops.toolbox.neuralnet.TerminationConditions;
-import com.jifalops.toolbox.neuralnet.Trainer;
-import com.jifalops.toolbox.util.SimpleLog;
 import com.jifalops.wsnlocalize.data.DistanceEstimator;
 import com.jifalops.wsnlocalize.data.WindowRecord;
+import com.jifalops.wsnlocalize.toolbox.neuralnet.Estimator;
+import com.jifalops.wsnlocalize.toolbox.neuralnet.MlpWeightMetrics;
+import com.jifalops.wsnlocalize.toolbox.neuralnet.TerminationConditions;
+import com.jifalops.wsnlocalize.toolbox.neuralnet.Trainer;
+import com.jifalops.wsnlocalize.toolbox.util.SimpleLog;
 
 import java.util.ArrayList;
 import java.util.List;

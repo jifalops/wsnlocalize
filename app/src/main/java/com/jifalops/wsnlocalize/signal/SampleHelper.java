@@ -2,9 +2,9 @@ package com.jifalops.wsnlocalize.signal;
 
 import android.util.Log;
 
-import com.jifalops.toolbox.file.AbsTextReaderWriter;
-import com.jifalops.toolbox.file.NumberReaderWriter;
 import com.jifalops.wsnlocalize.App;
+import com.jifalops.wsnlocalize.toolbox.file.AbsTextReaderWriter;
+import com.jifalops.wsnlocalize.toolbox.file.NumberReaderWriter;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,10 +33,10 @@ public class SampleHelper {
     public SampleHelper(SamplesCallback onLoadFinished) {
         callback = onLoadFinished;
 
-        btRW = new NumberReaderWriter(App.getFile(App.SIGNAL_BT, App.DATA_ESTIMATOR));
-        btleRW = new NumberReaderWriter(App.getFile(App.SIGNAL_BTLE, App.DATA_ESTIMATOR));
-        wifiRW = new NumberReaderWriter(App.getFile(App.SIGNAL_WIFI, App.DATA_ESTIMATOR));
-        wifi5gRW = new NumberReaderWriter(App.getFile(App.SIGNAL_WIFI5G, App.DATA_ESTIMATOR));
+        btRW = new NumberReaderWriter(App.getFile(App.SIGNAL_BT, App.DATA_SAMPLES));
+        btleRW = new NumberReaderWriter(App.getFile(App.SIGNAL_BTLE, App.DATA_SAMPLES));
+        wifiRW = new NumberReaderWriter(App.getFile(App.SIGNAL_WIFI, App.DATA_SAMPLES));
+        wifi5gRW = new NumberReaderWriter(App.getFile(App.SIGNAL_WIFI5G, App.DATA_SAMPLES));
 
         btRW.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
             @Override

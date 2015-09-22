@@ -15,10 +15,10 @@ import android.widget.CompoundButton;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.jifalops.toolbox.app.ServiceThreadApplication;
-import com.jifalops.toolbox.util.SimpleLog;
 import com.jifalops.wsnlocalize.signal.RssiSampler;
 import com.jifalops.wsnlocalize.signal.SampleTrainer;
+import com.jifalops.wsnlocalize.toolbox.ServiceThreadApplication;
+import com.jifalops.wsnlocalize.toolbox.util.SimpleLog;
 
 import java.util.List;
 
@@ -26,6 +26,7 @@ import java.util.List;
  *
  */
 public class EstimatorTrainingActivity extends Activity {
+    static final String TAG = EstimatorTrainingActivity.class.getSimpleName();
     static final String CONTROLLER = EstimatorTrainingActivity.class.getName() + ".controller";
 
     TextView eventLogView,
@@ -57,7 +58,7 @@ public class EstimatorTrainingActivity extends Activity {
 
         autoScroll((ScrollView) findViewById(R.id.eventScrollView), eventLogView);
 
-        prefs = getSharedPreferences("sampleTraining", MODE_PRIVATE);
+        prefs = getSharedPreferences(TAG, MODE_PRIVATE);
 
         sampleTrainer = SampleTrainer.getInstance();
 
@@ -203,7 +204,7 @@ public class EstimatorTrainingActivity extends Activity {
 //        wifi5gEstimatorCountView.setText(controller.getWifi5g().getEstimatorCount() + "");
     }
 
-    void loadDevicesAndEvents() {
+    void loadEvents() {
         eventLogView.setText("Events:\n");
         List<SimpleLog.LogItem> items =  sampleTrainer.getLog().getByImportance(logLevel, true);
         for (SimpleLog.LogItem item : items) {
@@ -212,10 +213,10 @@ public class EstimatorTrainingActivity extends Activity {
     }
 
     void setupControls() {
-        sampleTrainer.setShouldUseBt(prefs.getBoolean("btEnabled", true));
-        sampleTrainer.setShouldUseBtle(prefs.getBoolean("btleEnabled", true));
-        sampleTrainer.setShouldUseWifi(prefs.getBoolean("wifiEnabled", true));
-        sampleTrainer.setShouldUseWifi5g(prefs.getBoolean("wifi5gEnabled", true));
+        btCheckBox.setEnabled(sampleTrainer.getHasBt());
+        btleCheckBox.setEnabled(sampleTrainer.getHasBtle());
+        wifiCheckBox.setEnabled(sampleTrainer.getHasWifi());
+        wifi5gCheckBox.setEnabled(sampleTrainer.getHasWifi5g());
 
         btCheckBox.setOnCheckedChangeListener(null);
         btCheckBox.setChecked(sampleTrainer.getShouldUseBt());
@@ -257,7 +258,7 @@ public class EstimatorTrainingActivity extends Activity {
         sampleTrainer.registerListener(trainingListener);
         logLevel = prefs.getInt("logLevel", RssiSampler.LOG_INFORMATIVE);
         updateSendCounts();
-        loadDevicesAndEvents();
+        loadEvents();
         setupControls();
     }
 
@@ -265,11 +266,7 @@ public class EstimatorTrainingActivity extends Activity {
     protected void onPause() {
         super.onPause();
         prefs.edit()
-                .putInt("logLevel", logLevel)
-                .putBoolean("btEnabled", sampleTrainer.getShouldUseBt())
-                .putBoolean("btleEnabled", sampleTrainer.getShouldUseBtle())
-                .putBoolean("wifiEnabled", sampleTrainer.getShouldUseWifi())
-                .putBoolean("wifi5gEnabled", sampleTrainer.getShouldUseWifi5g()).apply();
+                .putInt("logLevel", logLevel).apply();;
         sampleTrainer.unregisterListener(trainingListener);
     }
 
@@ -288,7 +285,7 @@ public class EstimatorTrainingActivity extends Activity {
 
         @Override
         public void onSamplesLoaded() {
-
+            setupControls();
         }
 
         @Override

@@ -21,11 +21,13 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         layout = (LinearLayout) findViewById(R.id.linearLayout);
-        addToLayout("Sample Collector", "Collect samples and do neural network training",
+        addToLayout("Collect samples", "A sample is several RSSI within certain limits",
                 SampleCollectionActivity.class);
-        addToLayout("Sample Viewer", "View samples and summaries",
-                SampleViewerActivity.class);
-        addToLayout("Distance Estimation", "Estimate distances from the most recent training results",
+        addToLayout("View samples", SampleViewerActivity.class);
+        addToLayout("Train estimators", "Using neural networks and the current set of samples",
+                EstimatorTrainingActivity.class);
+        addToLayout("View estimators", EstimatorViewerActivity.class);
+        addToLayout("Estimate distances", "Use the best training results",
                 DistanceEstimationActivity.class);
         addToLayout("Demos", "Examples of app components",
                 DemoActivity.class);

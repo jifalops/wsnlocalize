@@ -2,10 +2,10 @@ package com.jifalops.wsnlocalize.signal;
 
 import android.util.Log;
 
-import com.jifalops.toolbox.file.AbsTextReaderWriter;
 import com.jifalops.wsnlocalize.App;
 import com.jifalops.wsnlocalize.data.DistanceEstimator;
 import com.jifalops.wsnlocalize.file.EstimatorReaderWriter;
+import com.jifalops.wsnlocalize.toolbox.file.AbsTextReaderWriter;
 
 import java.io.IOException;
 import java.util.ArrayList;

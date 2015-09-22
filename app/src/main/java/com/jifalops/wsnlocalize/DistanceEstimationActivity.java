@@ -16,13 +16,13 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jifalops.toolbox.util.ResettingList;
-import com.jifalops.toolbox.wifi.WifiScanner;
 import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.signal.BestDistanceEstimator;
+import com.jifalops.wsnlocalize.toolbox.util.ResettingList;
+import com.jifalops.wsnlocalize.toolbox.wifi.WifiScanner;
 
 import java.util.ArrayList;
 import java.util.HashMap;

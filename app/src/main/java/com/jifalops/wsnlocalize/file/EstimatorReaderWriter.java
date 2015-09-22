@@ -1,8 +1,8 @@
 package com.jifalops.wsnlocalize.file;
 
-import com.jifalops.toolbox.file.AbsTextReaderWriter;
-import com.jifalops.toolbox.util.Lists;
 import com.jifalops.wsnlocalize.data.DistanceEstimator;
+import com.jifalops.wsnlocalize.toolbox.file.AbsTextReaderWriter;
+import com.jifalops.wsnlocalize.toolbox.util.Lists;
 
 import java.io.File;
 import java.io.IOException;

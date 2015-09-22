@@ -1,7 +1,7 @@
 package com.jifalops.wsnlocalize.data;
 
-import com.jifalops.toolbox.util.Arrays;
-import com.jifalops.toolbox.util.Stats;
+import com.jifalops.wsnlocalize.toolbox.util.Arrays;
+import com.jifalops.wsnlocalize.toolbox.util.Stats;
 
 import java.util.ArrayList;
 import java.util.HashMap;

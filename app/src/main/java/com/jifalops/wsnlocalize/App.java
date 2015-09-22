@@ -15,12 +15,12 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.Volley;
-import com.jifalops.toolbox.app.ServiceThreadApplication;
-import com.jifalops.toolbox.bluetooth.BtHelper;
-import com.jifalops.toolbox.util.ResettingList;
-import com.jifalops.toolbox.wifi.WifiHelper;
 import com.jifalops.wsnlocalize.request.AbsRequest;
 import com.jifalops.wsnlocalize.request.MacRequest;
+import com.jifalops.wsnlocalize.toolbox.ServiceThreadApplication;
+import com.jifalops.wsnlocalize.toolbox.bluetooth.BtHelper;
+import com.jifalops.wsnlocalize.toolbox.util.ResettingList;
+import com.jifalops.wsnlocalize.toolbox.wifi.WifiHelper;
 
 import java.io.File;
 import java.util.ArrayList;

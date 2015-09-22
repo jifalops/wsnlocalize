@@ -5,14 +5,14 @@ import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
 
-import com.jifalops.toolbox.util.ResettingList;
-import com.jifalops.toolbox.util.SimpleLog;
-import com.jifalops.toolbox.wifi.WifiScanner;
 import com.jifalops.wsnlocalize.App;
 import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
+import com.jifalops.wsnlocalize.toolbox.util.ResettingList;
+import com.jifalops.wsnlocalize.toolbox.util.SimpleLog;
+import com.jifalops.wsnlocalize.toolbox.wifi.WifiScanner;
 
 import java.util.ArrayList;
 import java.util.List;

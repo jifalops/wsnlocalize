@@ -22,10 +22,10 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jifalops.toolbox.app.ServiceThreadApplication;
-import com.jifalops.toolbox.util.SimpleLog;
 import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.signal.RssiSampler;
+import com.jifalops.wsnlocalize.toolbox.ServiceThreadApplication;
+import com.jifalops.wsnlocalize.toolbox.util.SimpleLog;
 
 import java.util.ArrayList;
 import java.util.List;

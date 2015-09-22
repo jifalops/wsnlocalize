@@ -51,6 +51,7 @@ public class EstimatorViewerActivity extends Activity {
                 EstimatorViewerActivity.this.btle = helper.getBtle();
                 EstimatorViewerActivity.this.wifi = helper.getWifi();
                 EstimatorViewerActivity.this.wifi5g = helper.getWifi5g();
+                showEstimators(ALL);
             }
         });
     }

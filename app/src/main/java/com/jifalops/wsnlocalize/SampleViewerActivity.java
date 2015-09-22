@@ -12,12 +12,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jifalops.toolbox.file.NumberReaderWriter;
-import com.jifalops.toolbox.util.Arrays;
-import com.jifalops.toolbox.util.Stats;
 import com.jifalops.wsnlocalize.data.WindowRecord;
+import com.jifalops.wsnlocalize.signal.SampleHelper;
+import com.jifalops.wsnlocalize.toolbox.util.Arrays;
+import com.jifalops.wsnlocalize.toolbox.util.Stats;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -31,12 +30,12 @@ public class SampleViewerActivity extends Activity {
     static final String[] GROUPS = new String[] {
             "All", "WiFi 2.4GHz", "WiFi 5GHz", "Bluetooth", "Bluetooth LE"};
 
-    double[][] bt = null, btle = null, wifi = null, wifi5g = null;
-    boolean btLoaded, btleLoaded, wifiLoaded, wifi5gLoaded;
+    final List<double[]> bt = new ArrayList<>(), btle = new ArrayList<>(),
+            wifi = new ArrayList<>(), wifi5g = new ArrayList<>();
 
     GridLayout summary;
     ListView distSummariesView, samplesView;
-
+    SampleHelper helper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,72 +46,16 @@ public class SampleViewerActivity extends Activity {
         distSummariesView = (ListView) findViewById(R.id.distanceSummary);
         samplesView = (ListView) findViewById(R.id.samples);
 
-        new NumberReaderWriter(new File(App.getDataDir(SampleViewerActivity.this),
-                App.getFileName(App.SIGNAL_BT, App.DATA_SAMPLES)),
-                new NumberReaderWriter.NumberCallbacks() {
-                    @Override
-                    public void onNumbersRead(NumberReaderWriter rw, double[][] numbers) {
-                        bt = numbers;
-                        btLoaded = true;
-                        checkIfAllLoaded();
-                    }
-
-                    @Override
-                    public void onNumbersWritten(NumberReaderWriter rw, int recordsWritten) {
-
-                    }
-                }).readNumbers();
-        new NumberReaderWriter(new File(App.getDataDir(SampleViewerActivity.this),
-                App.getFileName(App.SIGNAL_BTLE, App.DATA_SAMPLES)),
-                new NumberReaderWriter.NumberCallbacks() {
-                    @Override
-                    public void onNumbersRead(NumberReaderWriter rw, double[][] numbers) {
-                        btle = numbers;
-                        btleLoaded = true;
-                        checkIfAllLoaded();
-                    }
-
-                    @Override
-                    public void onNumbersWritten(NumberReaderWriter rw, int recordsWritten) {
-
-                    }
-                }).readNumbers();
-        new NumberReaderWriter(new File(App.getDataDir(SampleViewerActivity.this),
-                App.getFileName(App.SIGNAL_WIFI, App.DATA_SAMPLES)),
-                new NumberReaderWriter.NumberCallbacks() {
-                    @Override
-                    public void onNumbersRead(NumberReaderWriter rw, double[][] numbers) {
-                        wifi = numbers;
-                        wifiLoaded = true;
-                        checkIfAllLoaded();
-                    }
-
-                    @Override
-                    public void onNumbersWritten(NumberReaderWriter rw, int recordsWritten) {
-
-                    }
-                }).readNumbers();
-        new NumberReaderWriter(new File(App.getDataDir(SampleViewerActivity.this),
-                App.getFileName(App.SIGNAL_WIFI5G, App.DATA_SAMPLES)),
-                new NumberReaderWriter.NumberCallbacks() {
-                    @Override
-                    public void onNumbersRead(NumberReaderWriter rw, double[][] numbers) {
-                        wifi5g = numbers;
-                        wifi5gLoaded = true;
-                        checkIfAllLoaded();
-                    }
-
-                    @Override
-                    public void onNumbersWritten(NumberReaderWriter rw, int recordsWritten) {
-
-                    }
-                }).readNumbers();
-    }
-
-    void checkIfAllLoaded() {
-        if (btLoaded && btleLoaded && wifiLoaded && wifi5gLoaded) {
-            showSamples(ALL);
-        }
+        helper = new SampleHelper(new SampleHelper.SamplesCallback() {
+            @Override
+            public void onSamplesLoaded() {
+                bt.addAll(helper.getBt());
+                btle.addAll(helper.getBtle());
+                wifi.addAll(helper.getWifi());
+                wifi5g.addAll(helper.getWifi5g());
+                showSamples(ALL);
+            }
+        });
     }
 
     @Override
@@ -145,48 +88,39 @@ public class SampleViewerActivity extends Activity {
     }
 
     void showSamples(int index) {
-        double[][] samples = null;
+        final List<double[]> samples = new ArrayList<>();
         String title;
         switch (index) {
             case WIFI:
-                samples = wifi;
+                samples.addAll(wifi);
                 title = GROUPS[WIFI];
                 break;
             case WIFI5G:
-                samples = wifi5g;
+                samples.addAll(wifi5g);
                 title = GROUPS[WIFI5G];
                 break;
             case BT:
-                samples = bt;
+                samples.addAll(bt);
                 title = GROUPS[BT];
                 break;
             case BTLE:
-                samples = btle;
+                samples.addAll(btle);
                 title = GROUPS[BTLE];
                 break;
             default:
                 title = GROUPS[ALL];
-                if (wifi != null) samples = wifi;
-                if (wifi5g != null) {
-                    samples = samples == null ? wifi5g : Arrays.concat(samples, wifi5g);
-                }
-                if (bt != null) {
-                    samples = samples == null ? bt : Arrays.concat(samples, bt);
-                }
-                if (btle != null) {
-                    samples = samples == null ? btle : Arrays.concat(samples, btle);
-                }
+                samples.addAll(bt);
+                samples.addAll(btle);
+                samples.addAll(wifi);
+                samples.addAll(wifi5g);
         }
 
-        if (samples == null) {
+        if (samples.size() == 0) {
             Toast.makeText(this, "No samples to show", Toast.LENGTH_SHORT).show();
             return;
         }
 
         setTitle(title + " Samples");
-
-        final double[][] finalSamples = samples;
-
 
         fillSampleView(summary, new SamplesSummary(samples));
 
@@ -204,13 +138,13 @@ public class SampleViewerActivity extends Activity {
         });
 
 
-        samplesView.setAdapter(new ArrayAdapter<double[]>(this, R.layout.listitem_sample, finalSamples) {
+        samplesView.setAdapter(new ArrayAdapter<double[]>(this, R.layout.listitem_sample, samples) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 if (convertView == null) {
                     convertView = getLayoutInflater().inflate(R.layout.listitem_sample, parent, false);
                 }
-                fillSampleView(convertView, finalSamples[position]);
+                fillSampleView(convertView, samples.get(position));
                 return convertView;
             }
         });
@@ -322,9 +256,9 @@ public class SampleViewerActivity extends Activity {
         final double dist, avgrssicount, avgdevices,
                 rmean, rmedian, rstddev, millis, tmean, tmedian, tstddev;
         final int count, rmin, rmax, rrange, tmin, tmax, trange;
-        SamplesSummary(double[][] samples) {
-            count = samples.length;
-            double[][] cols = Arrays.transpose(samples);
+        SamplesSummary(List<double[]> samples) {
+            count = samples.size();
+            double[][] cols = Arrays.transpose(samples.toArray(new double[count][]));
             avgrssicount = Stats.mean(cols[0]);
             rmin = (int) Stats.min(cols[1]);
             rmax = (int) Stats.max(cols[2]);
@@ -345,7 +279,7 @@ public class SampleViewerActivity extends Activity {
     }
 
 
-    List<SamplesSummary> makeDistanceSummaries(double[][] samples) {
+    List<SamplesSummary> makeDistanceSummaries(List<double[]> samples) {
         TreeMap<Double, List<double[]>> distances = new TreeMap<>();
         List<SamplesSummary> summaries;
         List<double[]> list;
@@ -361,7 +295,7 @@ public class SampleViewerActivity extends Activity {
         }
         summaries = new ArrayList<>(distances.size());
         for (List<double[]> s : distances.values()) {
-            summaries.add(new SamplesSummary(s.toArray(new double[s.size()][])));
+            summaries.add(new SamplesSummary(s));
         }
         return summaries;
     }

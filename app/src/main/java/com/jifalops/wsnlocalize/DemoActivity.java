@@ -9,10 +9,10 @@ import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.jifalops.toolbox.nsd.NsdDemoActivity;
-import com.jifalops.toolbox.wifi.WifiScannerDemoActivity;
 import com.jifalops.wsnlocalize.bluetooth.BtBeaconDemoActivity;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeaconDemoActivity;
+import com.jifalops.wsnlocalize.toolbox.nsd.NsdDemoActivity;
+import com.jifalops.wsnlocalize.toolbox.wifi.WifiScannerDemoActivity;
 
 /**
  *
