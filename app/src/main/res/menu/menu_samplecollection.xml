@@ -27,11 +27,7 @@
         android:title="Clear data to send..."
         android:orderInCategory="20"
         app:showAsAction="never" />
-    <item android:id="@+id/action_clearEstimators"
-        android:title="Clear estimators..."
-        android:orderInCategory="30"
-        app:showAsAction="never" />
-    <item android:id="@+id/action_clearTraining"
+    <item android:id="@+id/action_clearSamples"
         android:title="Clear training data..."
         android:orderInCategory="40"
         app:showAsAction="never" />
