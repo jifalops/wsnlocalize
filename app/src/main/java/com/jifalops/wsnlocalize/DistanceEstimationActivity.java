@@ -5,8 +5,10 @@ import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.ScanResult;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -34,6 +36,8 @@ import java.util.Map;
  *
  */
 public class DistanceEstimationActivity extends Activity {
+    static final String TAG = DistanceEstimationActivity.class.getSimpleName();
+
     static final int REQUEST_BT_ENABLE = 1;
     static final int REQUEST_BT_DISCOVERABLE = 2;
 
@@ -44,6 +48,8 @@ public class DistanceEstimationActivity extends Activity {
             this.mac = mac;
             this.name = name;
             this.signal = signal;
+            estimate = new BestDistanceEstimator.Estimate(0,0);
+            previous = new BestDistanceEstimator.Estimate(0,0);
         }
     }
 
@@ -89,12 +95,16 @@ public class DistanceEstimationActivity extends Activity {
     BtLeBeacon btle;
     WifiScanner wifi;
 
-    BestDistanceEstimator estimator;
+    BestDistanceEstimator estimator, bestEstimator, toSendEstimator;
 
     List<Device> devices = new ArrayList<>();
     Map<Device, ResettingList<RssiRecord>> windowers = new HashMap<>();
 
     CheckBox btCheckbox, btleCheckbox, wifiCheckbox, wifi5gCheckbox;
+
+    boolean useBest;
+
+    SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,9 +118,14 @@ public class DistanceEstimationActivity extends Activity {
         btle = BtLeBeacon.getInstance(this);
         wifi = new WifiScanner(this);
 
-
+        prefs = getSharedPreferences(TAG, MODE_PRIVATE);
+        useBest = prefs.getBoolean("best", useBest);
 
         btCheckbox = (CheckBox) findViewById(R.id.btCheckBox);
+        btleCheckbox = (CheckBox) findViewById(R.id.btleCheckBox);
+        wifiCheckbox = (CheckBox) findViewById(R.id.wifiCheckBox);
+        wifi5gCheckbox = (CheckBox) findViewById(R.id.wifi5gCheckBox);
+
         btCheckbox.setOnCheckedChangeListener(
                 new CompoundButton.OnCheckedChangeListener() {
                     @Override
@@ -121,7 +136,6 @@ public class DistanceEstimationActivity extends Activity {
                             bt.stopBeaconing(DistanceEstimationActivity.this, REQUEST_BT_DISCOVERABLE);
                     }
                 });
-        btleCheckbox = (CheckBox) findViewById(R.id.btleCheckBox);
         btleCheckbox.setOnCheckedChangeListener(
                 new CompoundButton.OnCheckedChangeListener() {
                     @Override
@@ -131,7 +145,6 @@ public class DistanceEstimationActivity extends Activity {
                         else btle.stopBeaconing();
                     }
                 });
-        wifiCheckbox = (CheckBox) findViewById(R.id.wifiCheckBox);
         wifiCheckbox.setOnCheckedChangeListener(
                 new CompoundButton.OnCheckedChangeListener() {
                     @Override
@@ -142,7 +155,6 @@ public class DistanceEstimationActivity extends Activity {
                         }
                     }
                 });
-        wifi5gCheckbox = (CheckBox) findViewById(R.id.wifi5gCheckBox);
         wifi5gCheckbox.setOnCheckedChangeListener(
                 new CompoundButton.OnCheckedChangeListener() {
                     @Override
@@ -154,29 +166,47 @@ public class DistanceEstimationActivity extends Activity {
                     }
                 });
 
-        estimator = new BestDistanceEstimator(new BestDistanceEstimator.OnReadyListener() {
+        bestEstimator = new BestDistanceEstimator(true, new BestDistanceEstimator.OnReadyListener() {
             @Override
             public void onReady() {
-                if (estimator.getBtSize() > 0) {
-                    btCheckbox.setEnabled(true);
-                }
-                if (estimator.getBtleSize() > 0) {
-                    btleCheckbox.setEnabled(true);
-                }
-                if (estimator.getWifiSize() > 0) {
-                    wifiCheckbox.setEnabled(true);
-                }
-                if (estimator.getWifi5gSize() > 0) {
-                    wifi5gCheckbox.setEnabled(true);
-                }
-                if (!btCheckbox.isEnabled() && !btleCheckbox.isEnabled() &&
-                        !wifiCheckbox.isEnabled() && !wifi5gCheckbox.isEnabled()) {
-                    Toast.makeText(DistanceEstimationActivity.this,
-                            "No estimators available; need to train first.", Toast.LENGTH_LONG).show();
-                    finish();
+                setupControls();
+                if (useBest) {
+                    if (!btCheckbox.isEnabled() && !btleCheckbox.isEnabled() &&
+                            !wifiCheckbox.isEnabled() && !wifi5gCheckbox.isEnabled()) {
+                        Toast.makeText(DistanceEstimationActivity.this,
+                                "No estimators available; need to train first or load different estimators.",
+                                Toast.LENGTH_LONG).show();
+                    }
                 }
             }
         });
+
+        toSendEstimator = new BestDistanceEstimator(false, new BestDistanceEstimator.OnReadyListener() {
+            @Override
+            public void onReady() {
+                setupControls();
+                if (!useBest) {
+                    if (!btCheckbox.isEnabled() && !btleCheckbox.isEnabled() &&
+                            !wifiCheckbox.isEnabled() && !wifi5gCheckbox.isEnabled()) {
+                        Toast.makeText(DistanceEstimationActivity.this,
+                                "No estimators available; need to train first or load different estimators.",
+                                Toast.LENGTH_LONG).show();
+                    }
+                }
+            }
+        });
+    }
+
+    void setupControls() {
+        estimator = useBest ? bestEstimator : toSendEstimator;
+        btCheckbox.setEnabled(estimator.getBtSize() > 0);
+        btleCheckbox.setEnabled(estimator.getBtleSize() > 0);
+        wifiCheckbox.setEnabled(estimator.getWifiSize() > 0);
+        wifi5gCheckbox.setEnabled(estimator.getWifi5gSize() > 0);
+        btCheckbox.setChecked(false);
+        btleCheckbox.setChecked(false);
+        wifiCheckbox.setChecked(false);
+        wifi5gCheckbox.setChecked(false);
     }
 
     @Override
@@ -205,6 +235,7 @@ public class DistanceEstimationActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        setupControls();
         bt.registerListener(btBeaconListener);
         btle.registerListener(btLeBeaconListener);
         wifi.registerListener(wifiScanListener);
@@ -213,18 +244,39 @@ public class DistanceEstimationActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        prefs.edit().putBoolean("best", useBest).apply();
         bt.unregisterListener(btBeaconListener);
         btle.unregisterListener(btLeBeaconListener);
         wifi.unregisterListener(wifiScanListener);
         for (ResettingList list: windowers.values()) {
             list.reset();
         }
+        btCheckbox.setChecked(false);
+        btleCheckbox.setChecked(false);
+        wifiCheckbox.setChecked(false);
+        wifi5gCheckbox.setChecked(false);
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_distanceestimator, menu);
         return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.findItem(R.id.useBest).setChecked(useBest);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.useBest) {
+            useBest = !useBest;
+            setupControls();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     void reportSignal(String mac, String name, final String signal, int rssi, int freq) {

@@ -53,7 +53,7 @@ public class RssiSamplingActivity extends Activity {
     CheckBox btCheckBox, btleCheckBox, wifiCheckBox, wifi5gCheckBox;
 
     SharedPreferences prefs;
-    int logLevel;
+    int logLevel = RssiSampler.LOG_INFORMATIVE;
 
     ServiceThreadApplication.LocalService service;
     RssiSampler rssiSampler;
@@ -161,8 +161,11 @@ public class RssiSamplingActivity extends Activity {
             }
         });
 
-        prefs = getSharedPreferences(TAG, MODE_PRIVATE);
         rssiSampler = RssiSampler.getInstance(this);
+
+        prefs = getSharedPreferences(TAG, MODE_PRIVATE);
+        logLevel = prefs.getInt("logLevel", logLevel);
+
 
         App.getInstance().bindLocalService(new Runnable() {
             @Override
@@ -380,7 +383,6 @@ public class RssiSamplingActivity extends Activity {
     protected void onResume() {
         super.onResume();
         rssiSampler.registerListener(samplerListener);
-        logLevel = prefs.getInt("logLevel", RssiSampler.LOG_INFORMATIVE);
         updateSendCounts();
         loadDevicesAndEvents();
         setupControls();

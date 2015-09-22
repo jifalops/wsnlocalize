@@ -51,19 +51,21 @@ public class SampleViewerActivity extends Activity {
         distSummariesView = (ListView) findViewById(R.id.distanceSummary);
         samplesView = (ListView) findViewById(R.id.samples);
 
+        prefs = getSharedPreferences(TAG, MODE_PRIVATE);
+        group = prefs.getInt("group", group);
+
         helper = new SampleHelper(new SampleHelper.SamplesCallback() {
             @Override
             public void onSamplesLoaded() {
                 showSamples();
             }
         });
-        prefs = getSharedPreferences(TAG, MODE_PRIVATE);
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        group = prefs.getInt("group", group);
     }
 
     @Override

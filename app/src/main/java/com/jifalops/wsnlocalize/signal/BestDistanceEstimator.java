@@ -23,8 +23,8 @@ public class BestDistanceEstimator {
 
     final EstimatorHelper helper;
 
-    public BestDistanceEstimator(final OnReadyListener callback) {
-        helper = new EstimatorHelper(true, new EstimatorHelper.EstimatorsCallback() {
+    public BestDistanceEstimator(boolean best, final OnReadyListener callback) {
+        helper = new EstimatorHelper(best, new EstimatorHelper.EstimatorsCallback() {
             @Override
             public void onEstimatorsLoaded() {
                 callback.onReady();

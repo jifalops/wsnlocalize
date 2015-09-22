@@ -59,6 +59,7 @@ public class EstimatorTrainingActivity extends Activity {
         autoScroll((ScrollView) findViewById(R.id.eventScrollView), eventLogView);
 
         prefs = getSharedPreferences(TAG, MODE_PRIVATE);
+        logLevel = prefs.getInt("logLevel", RssiSampler.LOG_INFORMATIVE);
 
         sampleTrainer = SampleTrainer.getInstance();
 
@@ -250,7 +251,7 @@ public class EstimatorTrainingActivity extends Activity {
     protected void onResume() {
         super.onResume();
         sampleTrainer.registerListener(trainingListener);
-        logLevel = prefs.getInt("logLevel", RssiSampler.LOG_INFORMATIVE);
+
         updateSendCounts();
         loadEvents();
         setupControls();

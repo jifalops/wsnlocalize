@@ -49,16 +49,22 @@ public class EstimatorViewerActivity extends Activity {
         summary = findViewById(R.id.estimatorAverages);
         estimatorsView = (ListView) findViewById(R.id.estimators);
         prefs = getSharedPreferences(TAG, MODE_PRIVATE);
+        best = prefs.getBoolean("best", best);
+        group = prefs.getInt("group", group);
         toSendHelper = new EstimatorHelper(false, new EstimatorHelper.EstimatorsCallback() {
             @Override
             public void onEstimatorsLoaded() {
-                if (!best) showEstimators();
+                if (!best && !showEstimators()) {
+                    Toast.makeText(EstimatorViewerActivity.this, "No estimators to show", Toast.LENGTH_SHORT).show();
+                }
             }
         });
         bestHelper = new EstimatorHelper(true, new EstimatorHelper.EstimatorsCallback() {
             @Override
             public void onEstimatorsLoaded() {
-                if (best) showEstimators();
+                if (best && !showEstimators()) {
+                    Toast.makeText(EstimatorViewerActivity.this, "No estimators to show", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -66,8 +72,6 @@ public class EstimatorViewerActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        best = prefs.getBoolean("best", best);
-        group = prefs.getInt("group", group);
         showEstimators();
     }
 
@@ -118,7 +122,7 @@ public class EstimatorViewerActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    void showEstimators() {
+    boolean showEstimators() {
         if (best) {
             helper = bestHelper;
         } else {
@@ -149,11 +153,10 @@ public class EstimatorViewerActivity extends Activity {
         }
 
         if (estimators.size() == 0) {
-            Toast.makeText(this, "No estimators to show", Toast.LENGTH_SHORT).show();
-            return;
+            return false;
         }
 
-        setTitle(title + " Estimators");
+        setTitle(title + (best ? " best " : " ") + "estimators");
 
         countView.setText(estimators.size() + "");
 
@@ -184,6 +187,7 @@ public class EstimatorViewerActivity extends Activity {
                 return convertView;
             }
         });
+        return true;
     }
 
     static class Holder {
