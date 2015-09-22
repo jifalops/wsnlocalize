@@ -1,6 +1,7 @@
 package com.jifalops.wsnlocalize;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,16 +27,20 @@ import java.util.TreeMap;
  *
  */
 public class SampleViewerActivity extends Activity {
+    static final String TAG = SampleViewerActivity.class.getSimpleName();
     static final int ALL = 0, WIFI = 1, WIFI5G = 2, BT = 3, BTLE = 4;
     static final String[] GROUPS = new String[] {
             "All", "WiFi 2.4GHz", "WiFi 5GHz", "Bluetooth", "Bluetooth LE"};
 
-    final List<double[]> bt = new ArrayList<>(), btle = new ArrayList<>(),
-            wifi = new ArrayList<>(), wifi5g = new ArrayList<>();
+//    final List<double[]> bt = new ArrayList<>(), btle = new ArrayList<>(),
+//            wifi = new ArrayList<>(), wifi5g = new ArrayList<>();
 
     GridLayout summary;
     ListView distSummariesView, samplesView;
     SampleHelper helper;
+
+    SharedPreferences prefs;
+    int group = ALL;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,13 +54,22 @@ public class SampleViewerActivity extends Activity {
         helper = new SampleHelper(new SampleHelper.SamplesCallback() {
             @Override
             public void onSamplesLoaded() {
-                bt.addAll(helper.getBt());
-                btle.addAll(helper.getBtle());
-                wifi.addAll(helper.getWifi());
-                wifi5g.addAll(helper.getWifi5g());
-                showSamples(ALL);
+                showSamples();
             }
         });
+        prefs = getSharedPreferences(TAG, MODE_PRIVATE);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        group = prefs.getInt("group", group);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        prefs.edit().putInt("group", group).apply();
     }
 
     @Override
@@ -69,50 +83,48 @@ public class SampleViewerActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.sampleAll:
-                showSamples(ALL);
-                return true;
+                group = ALL;
+                break;
             case R.id.sampleWifi:
-                showSamples(WIFI);
-                return true;
+                group = WIFI;
+                break;
             case R.id.sampleWifi5g:
-                showSamples(WIFI5G);
-                return true;
+                group = WIFI5G;
+                break;
             case R.id.sampleBt:
-                showSamples(BT);
-                return true;
+                group = BT;
+                break;
             case R.id.sampleBtle:
-                showSamples(BTLE);
-                return true;
+                group = BTLE;
+                break;
         }
+        showSamples();
         return super.onOptionsItemSelected(item);
     }
 
-    void showSamples(int index) {
+    void showSamples() {
         final List<double[]> samples = new ArrayList<>();
         String title;
-        switch (index) {
+        switch (group) {
             case WIFI:
-                samples.addAll(wifi);
+                samples.addAll(helper.getWifi());
                 title = GROUPS[WIFI];
                 break;
             case WIFI5G:
-                samples.addAll(wifi5g);
+                samples.addAll(helper.getWifi5g());
                 title = GROUPS[WIFI5G];
                 break;
             case BT:
-                samples.addAll(bt);
+                samples.addAll(helper.getBt());
                 title = GROUPS[BT];
                 break;
             case BTLE:
-                samples.addAll(btle);
+                samples.addAll(helper.getBtle());
                 title = GROUPS[BTLE];
                 break;
             default:
                 title = GROUPS[ALL];
-                samples.addAll(bt);
-                samples.addAll(btle);
-                samples.addAll(wifi);
-                samples.addAll(wifi5g);
+                samples.addAll(helper.getAll());
         }
 
         if (samples.size() == 0) {
