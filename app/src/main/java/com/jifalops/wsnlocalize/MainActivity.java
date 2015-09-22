@@ -22,7 +22,7 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         layout = (LinearLayout) findViewById(R.id.linearLayout);
         addToLayout("Collect samples", "A sample is several RSSI within certain limits",
-                SampleCollectionActivity.class);
+                RssiSamplingActivity.class);
         addToLayout("View samples", SampleViewerActivity.class);
         addToLayout("Train estimators", "Using neural networks and the current set of samples",
                 EstimatorTrainingActivity.class);
