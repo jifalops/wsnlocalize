@@ -1,6 +1,7 @@
 package com.jifalops.wsnlocalize.signal;
 
 import com.jifalops.wsnlocalize.data.DistanceEstimator;
+import com.jifalops.wsnlocalize.toolbox.util.Stats;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,11 +62,12 @@ public class BestDistanceEstimator {
     }
 
     private double estimate(List<DistanceEstimator> list, double[] sample) {
-        if (list.size() == 0) return 0;
-        double estimate = 0;
-        for (DistanceEstimator e : list) {
-            estimate += e.estimate(sample);
+        int len = list.size();
+        if (len == 0) return 0;
+        double[] estimates = new double[len];
+        for (int i = 0; i < len; ++i) {
+            estimates[i] = list.get(i).estimate(sample);
         }
-        return estimate / list.size();
+        return Stats.median(estimates);
     }
 }
