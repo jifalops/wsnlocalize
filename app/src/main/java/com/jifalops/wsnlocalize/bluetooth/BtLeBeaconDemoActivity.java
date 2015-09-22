@@ -2,18 +2,11 @@ package com.jifalops.wsnlocalize.bluetooth;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothManager;
-import android.bluetooth.le.AdvertiseCallback;
-import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
-import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.ParcelUuid;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.Menu;
@@ -24,10 +17,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jifalops.wsnlocalize.R;
-import com.jifalops.wsnlocalize.util.Calc;
 
 import java.util.List;
-import java.util.UUID;
 
 @TargetApi(Build.VERSION_CODES.LOLLIPOP)
 public class BtLeBeaconDemoActivity extends Activity {
@@ -149,7 +140,13 @@ public class BtLeBeaconDemoActivity extends Activity {
             String id = result.getDevice() != null ? result.getDevice().getAddress() : "unknown";
             int tx = result.getScanRecord() != null ? result.getScanRecord().getTxPowerLevel() : 0;
             textView.append("TX: " + tx + " RX: " + result.getRssi() + " from " + id + " (" +
-                    String.format("%1.1f", Calc.freeSpacePathLoss(result.getRssi(), 2400)) + "m).\n");
+                    String.format("%1.1f", freeSpacePathLoss(result.getRssi(), 2400)) + "m).\n");
+        }
+
+        /** @return The distance in meters. */
+        public  float freeSpacePathLoss(float levelInDb, float freqInMHz)    {
+            double exp = (27.55 - (20 * Math.log10(freqInMHz)) + Math.abs(levelInDb)) / 20.0;
+            return (float) Math.pow(10.0, exp);
         }
     };
 }

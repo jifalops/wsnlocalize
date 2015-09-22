@@ -14,7 +14,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jifalops.wsnlocalize.R;
-import com.jifalops.wsnlocalize.util.Calc;
 
 
 public class BtBeaconDemoActivity extends Activity {
@@ -94,7 +93,13 @@ public class BtBeaconDemoActivity extends Activity {
         @Override
         public void onDeviceFound(BluetoothDevice device, short rssi) {
             textView.append("Received " + rssi + "dBm from " + device.getAddress() + " (" +
-                    String.format("%1.1f", Calc.freeSpacePathLoss(rssi, 2400)) + "m).\n");
+                    String.format("%1.1f", freeSpacePathLoss(rssi, 2400)) + "m).\n");
+        }
+
+        /** @return The distance in meters. */
+        public  float freeSpacePathLoss(float levelInDb, float freqInMHz)    {
+            double exp = (27.55 - (20 * Math.log10(freqInMHz)) + Math.abs(levelInDb)) / 20.0;
+            return (float) Math.pow(10.0, exp);
         }
 
         @Override
