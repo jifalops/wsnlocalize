@@ -1,0 +1,34 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
+    <item android:id="@+id/action_persist"
+        android:title="Persist"
+        android:orderInCategory="10"
+        android:checkable="true"
+        app:showAsAction="always" />
+    <item android:title="Set log level"
+        android:orderInCategory="15"
+        app:showAsAction="ifRoom">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item android:id="@+id/logImportant"
+                    android:title="Important"
+                    android:checkable="true" />
+                <item android:id="@+id/logInformative"
+                    android:title="Informative"
+                    android:checkable="true" />
+                <item android:id="@+id/logAll"
+                    android:title="All"
+                    android:checkable="true" />
+            </group>
+        </menu>
+    </item>
+    <item android:id="@+id/action_clearSend"
+        android:title="Clear data to send..."
+        android:orderInCategory="20"
+        app:showAsAction="never" />
+    <item android:id="@+id/action_clearEstimators"
+        android:title="Clear estimators..."
+        android:orderInCategory="40"
+        app:showAsAction="never" />
+</menu>

@@ -159,7 +159,7 @@ public class EstimatorTrainingActivity extends Activity {
                         }
                     }).show();
                 return true;
-            case R.id.action_clearTraining:
+            case R.id.action_clearSamples:
                 new AlertDialog.Builder(this)
                     .setMessage("Clear all training samples (not recommended)?")
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {

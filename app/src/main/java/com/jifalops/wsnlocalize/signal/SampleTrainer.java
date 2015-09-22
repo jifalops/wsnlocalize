@@ -93,10 +93,10 @@ public class SampleTrainer {
 
     public void clearTrainingSamples() {
         //TODO not available for now (would be bad accident)
-//        bt.clearTrainingSamples();
-//        btle.clearTrainingSamples();
-//        wifi.clearTrainingSamples();
-//        wifi5g.clearTrainingSamples();
+//        bt.clearSamples();
+//        btle.clearSamples();
+//        wifi.clearSamples();
+//        wifi5g.clearSamples();
     }
 
     void trainBt() {

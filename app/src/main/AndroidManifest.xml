@@ -46,7 +46,7 @@
             android:name=".toolbox.nsd.NsdDemoActivity"
             android:label="NSD Demo"/>
         <activity
-            android:name=".SampleCollectionActivity"
+            android:name=".RssiSamplingActivity"
             android:label="Sample Collection"
             android:configChanges="orientation"
             android:screenOrientation="portrait"
