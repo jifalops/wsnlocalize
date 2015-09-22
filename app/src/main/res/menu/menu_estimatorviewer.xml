@@ -1,6 +1,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".EstimatorViewerActivity">
+    <item android:id="@+id/estimatorsBest"
+        android:title="Best Estimators"
+        android:checkable="true"
+        android:checked="true"/>
     <item android:id="@+id/estimatorAll"
         android:title="All" />
     <item android:id="@+id/estimatorWifi"

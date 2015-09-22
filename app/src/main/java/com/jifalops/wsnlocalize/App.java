@@ -41,6 +41,7 @@ public class App extends ServiceThreadApplication {
     public static final String DATA_RSSI = "rssi";
     public static final String DATA_WINDOW = "windows";
     public static final String DATA_ESTIMATOR = "estimator";
+    public static final String DATA_BEST_ESTIMATOR = "best-estimator";
     public static final String DATA_SAMPLES = "samples";
 
     public static final ResettingList.Trigger btWindowTrigger   = new ResettingList.Trigger(3, 10_000, 5, 120_000);
@@ -149,7 +150,7 @@ public class App extends ServiceThreadApplication {
 
     public static String getFileName(String signalType, String dataType) {
         String ext = ".csv";
-        if (DATA_ESTIMATOR.equals(dataType)) ext = ".json";
+        if (DATA_ESTIMATOR.equals(dataType) || DATA_BEST_ESTIMATOR.equals(dataType)) ext = ".json";
         return signalType + "-" + dataType + ext;
     }
 

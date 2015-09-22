@@ -1,6 +1,7 @@
 package com.jifalops.wsnlocalize;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -23,16 +24,19 @@ import java.util.Locale;
  *
  */
 public class EstimatorViewerActivity extends Activity {
+    static final String TAG = EstimatorViewerActivity.class.getSimpleName();
     static final int ALL = 0, WIFI = 1, WIFI5G = 2, BT = 3, BTLE = 4;
     static final String[] GROUPS = new String[] {
             "All", "WiFi 2.4GHz", "WiFi 5GHz", "Bluetooth", "Bluetooth LE"};
 
-    List<DistanceEstimator> bt = null, btle = null, wifi = null, wifi5g = null;
-
     TextView countView, goodCountView, goodSamplesCountView;
     View summary;
     ListView estimatorsView;
-    EstimatorHelper helper;
+    EstimatorHelper helper, toSendHelper, bestHelper;
+    boolean best = true;
+    int group = ALL;
+
+    SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,16 +48,35 @@ public class EstimatorViewerActivity extends Activity {
         goodSamplesCountView = (TextView) v.findViewById(R.id.countGoodMaxSamples);
         summary = findViewById(R.id.estimatorAverages);
         estimatorsView = (ListView) findViewById(R.id.estimators);
-        helper = new EstimatorHelper(new EstimatorHelper.EstimatorsCallback() {
+        prefs = getSharedPreferences(TAG, MODE_PRIVATE);
+        toSendHelper = new EstimatorHelper(false, new EstimatorHelper.EstimatorsCallback() {
             @Override
             public void onEstimatorsLoaded() {
-                EstimatorViewerActivity.this.bt = helper.getBt();
-                EstimatorViewerActivity.this.btle = helper.getBtle();
-                EstimatorViewerActivity.this.wifi = helper.getWifi();
-                EstimatorViewerActivity.this.wifi5g = helper.getWifi5g();
-                showEstimators(ALL);
+                if (!best) showEstimators();
             }
         });
+        bestHelper = new EstimatorHelper(true, new EstimatorHelper.EstimatorsCallback() {
+            @Override
+            public void onEstimatorsLoaded() {
+                if (best) showEstimators();
+            }
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        best = prefs.getBoolean("best", best);
+        group = prefs.getInt("group", group);
+        showEstimators();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        prefs.edit()
+                .putBoolean("best", best)
+                .putInt("group", group).apply();
     }
 
     @Override
@@ -64,53 +87,65 @@ public class EstimatorViewerActivity extends Activity {
     }
 
     @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        menu.findItem(R.id.estimatorsBest).setChecked(best);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
+            case R.id.estimatorsBest:
+                best = !best;
+                break;
             case R.id.estimatorAll:
-                showEstimators(ALL);
-                return true;
+                group = ALL;
+                break;
             case R.id.estimatorWifi:
-                showEstimators(WIFI);
-                return true;
+                group = WIFI;
+                break;
             case R.id.estimatorWifi5g:
-                showEstimators(WIFI5G);
-                return true;
+                group = WIFI5G;
+                break;
             case R.id.estimatorBt:
-                showEstimators(BT);
-                return true;
+                group = BT;
+                break;
             case R.id.estimatorBtle:
-                showEstimators(BTLE);
-                return true;
+                group = BTLE;
+                break;
         }
+        showEstimators(); // for all above
         return super.onOptionsItemSelected(item);
     }
 
-    void showEstimators(int index) {
+    void showEstimators() {
+        if (best) {
+            helper = bestHelper;
+        } else {
+            helper = toSendHelper;
+        }
         final List<DistanceEstimator> estimators = new ArrayList<>();
         String title;
-        switch (index) {
+        switch (group) {
             case WIFI:
-                estimators.addAll(wifi);
+                estimators.addAll(helper.getWifi());
                 title = GROUPS[WIFI];
                 break;
             case WIFI5G:
-                estimators.addAll(wifi5g);
+                estimators.addAll(helper.getWifi5g());
                 title = GROUPS[WIFI5G];
                 break;
             case BT:
-                estimators.addAll(bt);
+                estimators.addAll(helper.getBt());
                 title = GROUPS[BT];
                 break;
             case BTLE:
-                estimators.addAll(btle);
+                estimators.addAll(helper.getBtle());
                 title = GROUPS[BTLE];
                 break;
             default:
                 title = GROUPS[ALL];
-                if (wifi != null) estimators.addAll(wifi);
-                if (wifi5g != null) estimators.addAll(wifi5g);
-                if (bt != null) estimators.addAll(bt);
-                if (btle != null) estimators.addAll(btle);
+                estimators.addAll(helper.getAll());
         }
 
         if (estimators.size() == 0) {

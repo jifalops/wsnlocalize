@@ -159,16 +159,6 @@ public class EstimatorTrainingActivity extends Activity {
                         }
                     }).show();
                 return true;
-            case R.id.action_clearSamples:
-                new AlertDialog.Builder(this)
-                    .setMessage("Clear all training samples (not recommended)?")
-                    .setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            sampleTrainer.clearTrainingSamples();
-                        }
-                    }).show();
-                return true;
             case R.id.logImportant:
                 logLevel = RssiSampler.LOG_IMPORTANT;
                 return true;
@@ -190,18 +180,22 @@ public class EstimatorTrainingActivity extends Activity {
     }
 
     void updateSendCounts() {
-//        btRssiCountView.setText(controller.getBt().getRssiCount() + "");
-//        btWindowCountView.setText(controller.getBt().getWindowCount() + "");
-//        btEstimatorCountView.setText(controller.getBt().getEstimatorCount() + "");
-//        btleRssiCountView.setText(controller.getBtle().getRssiCount() + "");
-//        btleWindowCountView.setText(controller.getBtle().getWindowCount() + "");
-//        btleEstimatorCountView.setText(controller.getBtle().getEstimatorCount() + "");
-//        wifiRssiCountView.setText(controller.getWifi().getRssiCount() + "");
-//        wifiWindowCountView.setText(controller.getWifi().getWindowCount() + "");
-//        wifiEstimatorCountView.setText(controller.getWifi().getEstimatorCount() + "");
-//        wifi5gRssiCountView.setText(controller.getWifi5g().getRssiCount() + "");
-//        wifi5gWindowCountView.setText(controller.getWifi5g().getWindowCount() + "");
-//        wifi5gEstimatorCountView.setText(controller.getWifi5g().getEstimatorCount() + "");
+        updateCountView(App.SIGNAL_BT);
+        updateCountView(App.SIGNAL_BTLE);
+        updateCountView(App.SIGNAL_WIFI);
+        updateCountView(App.SIGNAL_WIFI5G);
+    }
+
+    void updateCountView(String signal) {
+        int count = sampleTrainer.getCount(signal);
+        TextView tv = null;
+        switch (signal) {
+            case App.SIGNAL_BT:     tv = btEstimatorCountView; break;
+            case App.SIGNAL_BTLE:   tv = btleEstimatorCountView; break;
+            case App.SIGNAL_WIFI:   tv = wifiEstimatorCountView; break;
+            case App.SIGNAL_WIFI5G: tv = wifi5gEstimatorCountView; break;
+        }
+        if (tv != null) tv.setText(count + "");
     }
 
     void loadEvents() {
@@ -290,7 +284,22 @@ public class EstimatorTrainingActivity extends Activity {
 
         @Override
         public void onEstimatesLoaded() {
+            updateSendCounts();
+        }
 
+        @Override
+        public void onSentSuccess(String signal, String dataType, int count) {
+            updateCountView(signal);
+        }
+
+        @Override
+        public void onSentFailure(String signal, String dataType, int count, int respCode, String resp, String result) {
+            updateCountView(signal);
+        }
+
+        @Override
+        public void onSentFailure(String signal, String dataType, int count, String volleyError) {
+            updateCountView(signal);
         }
     };
 }

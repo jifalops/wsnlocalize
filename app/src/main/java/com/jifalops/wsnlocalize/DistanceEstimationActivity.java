@@ -39,7 +39,7 @@ public class DistanceEstimationActivity extends Activity {
 
     static class Device {
         final String mac, name, signal;
-        double estimate, previous;
+        BestDistanceEstimator.Estimate estimate, previous;
         Device(String mac, String name, String signal) {
             this.mac = mac;
             this.name = name;
@@ -69,8 +69,11 @@ public class DistanceEstimationActivity extends Activity {
             }
             holder.name.setText(device.name);
             holder.desc.setText(device.signal + ", " + device.mac);
-            holder.estimate.setText(String.format(Locale.US, "%.1fm", device.estimate));
-            holder.change.setText(String.format(Locale.US, "%+.1fm", device.estimate - device.previous));
+            holder.estimate.setText(String.format(Locale.US, "%.1fm (%.1fm)",
+                    device.estimate.mean, device.estimate.median));
+            holder.change.setText(String.format(Locale.US, "%+.1fm (%+.1fm)",
+                    device.estimate.mean - device.previous.mean,
+                    device.estimate.median - device.previous.median));
             convertView.setTag(holder);
             return convertView;
         }
@@ -245,7 +248,7 @@ public class DistanceEstimationActivity extends Activity {
                     new ResettingList.LimitsCallback<RssiRecord>() {
                 @Override
                 public void onLimitsReached(List<RssiRecord> list, long time) {
-                    double estimate = 0;
+                    BestDistanceEstimator.Estimate estimate = null;
                     double[] sample = new WindowRecord(list).toSample();
                     if (App.SIGNAL_BT.equals(signal)) {
                         estimate = estimator.estimateBt(sample);

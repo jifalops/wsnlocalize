@@ -31,13 +31,14 @@ public class EstimatorHelper {
     boolean btLoaded, btleLoaded, wifiLoaded, wifi5gLoaded;
     EstimatorsCallback callback;
 
-    public EstimatorHelper(EstimatorsCallback onLoadFinished) {
+    public EstimatorHelper(boolean best, EstimatorsCallback onLoadFinished) {
         callback = onLoadFinished;
 
-        btRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_BT, App.DATA_ESTIMATOR));
-        btleRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_BTLE, App.DATA_ESTIMATOR));
-        wifiRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_WIFI, App.DATA_ESTIMATOR));
-        wifi5gRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_WIFI5G, App.DATA_ESTIMATOR));
+        String dataType = best ? App.DATA_BEST_ESTIMATOR : App.DATA_ESTIMATOR;
+        btRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_BT, dataType));
+        btleRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_BTLE, dataType));
+        wifiRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_WIFI, dataType));
+        wifi5gRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_WIFI5G, dataType));
 
         btRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
             @Override

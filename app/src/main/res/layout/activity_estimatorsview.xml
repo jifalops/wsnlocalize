@@ -14,7 +14,7 @@
         android:id="@+id/estimatorAverages"
         layout="@layout/listitem_estimator"/>
     <TextView
-        android:text="Estimators by Samples, Error"
+        android:text="Estimators by error"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#666" />
