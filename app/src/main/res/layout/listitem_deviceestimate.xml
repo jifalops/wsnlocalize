@@ -2,7 +2,7 @@
 <GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:columnCount="2">
+    android:columnCount="3">
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -13,19 +13,53 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:textAppearance="?android:textAppearanceSmall"
+        android:text="wifi5g"
+        android:layout_columnWeight="1"
+        android:id="@+id/signal"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:textAppearanceSmall"
+        android:text="00:00:00:00:00:00"
+        android:id="@+id/mac"/>
+    <TextView android:text="Neural Net"/>
+    <TextView android:text="Formula 1"/>
+    <TextView android:text="Log Curve"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:textAppearance="?android:textAppearanceMedium"
         android:text="0m"
-        android:id="@+id/estimate"/>
+        android:id="@+id/nnEstimate"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:textAppearanceMedium"
+        android:text="0m"
+        android:id="@+id/f1Estimate"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:textAppearanceMedium"
+        android:text="0m"
+        android:id="@+id/logEstimate"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:textAppearanceSmall"
-        android:text="Method, 00:00:00:00:00:00"
-        android:id="@+id/details"/>
+        android:text="+0m"
+        android:id="@+id/nnChange"/>
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:textAppearanceSmall"
-        android:text="-0m"
-        android:id="@+id/change"/>
+        android:text="+0m"
+        android:id="@+id/f1Change"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:textAppearanceSmall"
+        android:text="+0m"
+        android:id="@+id/logChange"/>
 </GridLayout>

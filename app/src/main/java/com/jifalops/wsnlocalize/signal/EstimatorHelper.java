@@ -30,9 +30,11 @@ public class EstimatorHelper {
     final EstimatorReaderWriter btRW, btleRW, wifiRW, wifi5gRW;
     boolean btLoaded, btleLoaded, wifiLoaded, wifi5gLoaded;
     EstimatorsCallback callback;
+    final boolean maxSamplesOnly;
 
-    public EstimatorHelper(boolean best, EstimatorsCallback onLoadFinished) {
+    public EstimatorHelper(boolean best, final boolean maxSamplesOnly, EstimatorsCallback onLoadFinished) {
         callback = onLoadFinished;
+        this.maxSamplesOnly = maxSamplesOnly;
 
         String dataType = best ? App.DATA_BEST_ESTIMATOR : App.DATA_ESTIMATOR;
         btRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_BT, dataType));
@@ -43,7 +45,7 @@ public class EstimatorHelper {
         if (!btRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
             @Override
             public void onReadSucceeded(List<DistanceEstimator> list, int typingExceptions) {
-                bt.addAll(list);
+                add(list, bt);
                 btLoaded = true;
                 if (typingExceptions > 0) {
                     Log.e(TAG, typingExceptions + " BT estimators are corrupted.");
@@ -60,7 +62,7 @@ public class EstimatorHelper {
         if (!btleRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
             @Override
             public void onReadSucceeded(List<DistanceEstimator> list, int typingExceptions) {
-                btle.addAll(list);
+                add(list, btle);
                 btleLoaded = true;
                 if (typingExceptions > 0) {
                     Log.e(TAG, typingExceptions + " BTLE estimators are corrupted.");
@@ -77,7 +79,7 @@ public class EstimatorHelper {
         if (!wifiRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
             @Override
             public void onReadSucceeded(List<DistanceEstimator> list, int typingExceptions) {
-                wifi.addAll(list);
+                add(list, wifi);
                 wifiLoaded = true;
                 if (typingExceptions > 0) {
                     Log.e(TAG, typingExceptions + " WiFi estimators are corrupted.");
@@ -94,7 +96,7 @@ public class EstimatorHelper {
         if (!wifi5gRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
             @Override
             public void onReadSucceeded(List<DistanceEstimator> list, int typingExceptions) {
-                wifi5g.addAll(list);
+                add(list, wifi5g);
                 wifi5gLoaded = true;
                 if (typingExceptions > 0) {
                     Log.e(TAG, typingExceptions + " WiFi5G estimators are corrupted.");
@@ -110,7 +112,21 @@ public class EstimatorHelper {
         checkIfAllLoaded();
     }
 
-    void checkIfAllLoaded() {
+    private void add(List<DistanceEstimator> from, List<DistanceEstimator> to) {
+        if (maxSamplesOnly) {
+            int max = 0;
+            for (DistanceEstimator de : from) {
+                if (de.results.samples > max) max = de.results.samples;
+            }
+            for (DistanceEstimator de : from) {
+                if (de.results.samples == max) to.add(de);
+            }
+        } else {
+            to.addAll(from);
+        }
+    }
+
+    private void checkIfAllLoaded() {
         if (btLoaded && btleLoaded && wifiLoaded && wifi5gLoaded) {
             callback.onEstimatorsLoaded();
         }

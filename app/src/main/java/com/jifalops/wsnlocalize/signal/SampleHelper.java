@@ -108,7 +108,7 @@ public class SampleHelper {
         checkIfAllLoaded();
     }
 
-    void checkIfAllLoaded() {
+    private void checkIfAllLoaded() {
         if (btLoaded && btleLoaded && wifiLoaded && wifi5gLoaded) {
             callback.onSamplesLoaded();
         }

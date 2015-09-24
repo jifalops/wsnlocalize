@@ -51,7 +51,7 @@ public class EstimatorViewerActivity extends Activity {
         prefs = getSharedPreferences(TAG, MODE_PRIVATE);
         best = prefs.getBoolean("best", best);
         group = prefs.getInt("group", group);
-        toSendHelper = new EstimatorHelper(false, new EstimatorHelper.EstimatorsCallback() {
+        toSendHelper = new EstimatorHelper(false, true, new EstimatorHelper.EstimatorsCallback() {
             @Override
             public void onEstimatorsLoaded() {
                 if (!best && !showEstimators()) {
@@ -59,7 +59,7 @@ public class EstimatorViewerActivity extends Activity {
                 }
             }
         });
-        bestHelper = new EstimatorHelper(true, new EstimatorHelper.EstimatorsCallback() {
+        bestHelper = new EstimatorHelper(true, true, new EstimatorHelper.EstimatorsCallback() {
             @Override
             public void onEstimatorsLoaded() {
                 if (best && !showEstimators()) {

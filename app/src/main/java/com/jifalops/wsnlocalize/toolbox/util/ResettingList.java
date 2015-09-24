@@ -26,8 +26,8 @@ public class ResettingList<T> {
      * or either maximum ({@link #maxCount}, {@link #maxTime}) have been reached.
      */
     public static class Trigger {
-        private final int minCount, maxCount;
-        private final long minTime, maxTime;
+        public final int minCount, maxCount;
+        public final long minTime, maxTime;
 
         public Trigger(int minCount, long minTimeMillis, int maxCount, long maxTimeMillis) {
             this.minCount = minCount;

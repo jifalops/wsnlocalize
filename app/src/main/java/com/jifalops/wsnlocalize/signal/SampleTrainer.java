@@ -44,7 +44,7 @@ public class SampleTrainer {
         return instance;
     }
     private SampleTrainer() {
-        estimatorHelper = new EstimatorHelper(false, new EstimatorHelper.EstimatorsCallback() {
+        estimatorHelper = new EstimatorHelper(false, true, new EstimatorHelper.EstimatorsCallback() {
             @Override
             public void onEstimatorsLoaded() {
                 addEvent(LOG_IMPORTANT, String.format(Locale.US,
@@ -55,7 +55,7 @@ public class SampleTrainer {
             }
         });
 
-        bestEstimatorHelper = new EstimatorHelper(true, new EstimatorHelper.EstimatorsCallback() {
+        bestEstimatorHelper = new EstimatorHelper(true, true, new EstimatorHelper.EstimatorsCallback() {
             @Override
             public void onEstimatorsLoaded() {
                 addEvent(LOG_IMPORTANT, String.format(Locale.US,

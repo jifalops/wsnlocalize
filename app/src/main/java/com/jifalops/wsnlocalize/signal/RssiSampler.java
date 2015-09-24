@@ -17,10 +17,13 @@ import com.jifalops.wsnlocalize.file.WindowReaderWriter;
 import com.jifalops.wsnlocalize.request.AbsRequest;
 import com.jifalops.wsnlocalize.request.RssiRequest;
 import com.jifalops.wsnlocalize.request.WindowRequest;
+import com.jifalops.wsnlocalize.toolbox.file.AbsTextReaderWriter;
 import com.jifalops.wsnlocalize.toolbox.util.ResettingList;
 import com.jifalops.wsnlocalize.toolbox.util.SimpleLog;
 import com.jifalops.wsnlocalize.toolbox.wifi.WifiScanner;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -190,6 +193,10 @@ public class RssiSampler {
     }
 
     public void clearSamples() {
+        sampleHelper.btRW.backup(null);
+        sampleHelper.btleRW.backup(null);
+        sampleHelper.wifiRW.backup(null);
+        sampleHelper.wifi5gRW.backup(null);
         sampleHelper.btRW.truncate();
         sampleHelper.btleRW.truncate();
         sampleHelper.wifiRW.truncate();
@@ -446,6 +453,142 @@ public class RssiSampler {
                 break;
         }
         return 0;
+    }
+
+    public int trimLongSamples() {
+        int btCount = 0, btleCount = 0, wifiCount = 0, wifi5gCount = 0,
+                succeeded = 0, failed = 0;
+        final List<double[]> bt = new ArrayList<>();
+        final List<double[]> btle = new ArrayList<>();
+        final List<double[]> wifi = new ArrayList<>();
+        final List<double[]> wifi5g = new ArrayList<>();
+
+        for (double[] s : sampleHelper.getBt()) {
+            if (s[7] <= App.btWindowTrigger.maxTime * 1.5) {
+                bt.add(s);
+            } else {
+                ++btCount;
+            }
+        }
+        for (double[] s : sampleHelper.getBtle()) {
+            if (s[7] <= App.btleWindowTrigger.maxTime * 1.5) {
+                btle.add(s);
+            } else {
+                ++btleCount;
+            }
+        }
+        for (double[] s : sampleHelper.getWifi()) {
+            if (s[7] <= App.wifiWindowTrigger.maxTime * 1.5) {
+                wifi.add(s);
+            } else {
+                ++wifiCount;
+            }
+        }
+        for (double[] s : sampleHelper.getWifi5g()) {
+            if (s[7] <= App.wifiWindowTrigger.maxTime * 1.5) {
+                wifi5g.add(s);
+            } else {
+                ++wifi5gCount;
+            }
+        }
+
+        if (btCount > 0) {
+            sampleHelper.btRW.backup(new AbsTextReaderWriter.CopyListener() {
+                @Override
+                public void onCopySucceeded(File from, File to) {
+                    sampleHelper.btRW.writeNumbers(bt, false, new AbsTextReaderWriter.WriteListener() {
+                        @Override
+                        public void onWriteSucceed(int linesWritten) {
+
+                        }
+
+                        @Override
+                        public void onWriteFailed(IOException e) {
+
+                        }
+                    });
+                }
+
+                @Override
+                public void onCopyFailed(IOException e) {
+
+                }
+            });
+        }
+
+        if (btleCount > 0) {
+            sampleHelper.btleRW.backup(new AbsTextReaderWriter.CopyListener() {
+                @Override
+                public void onCopySucceeded(File from, File to) {
+                    sampleHelper.btleRW.writeNumbers(btle, false, new AbsTextReaderWriter.WriteListener() {
+                        @Override
+                        public void onWriteSucceed(int linesWritten) {
+
+                        }
+
+                        @Override
+                        public void onWriteFailed(IOException e) {
+
+                        }
+                    });
+                }
+
+                @Override
+                public void onCopyFailed(IOException e) {
+
+                }
+            });
+        }
+
+        if (wifiCount > 0) {
+            sampleHelper.wifiRW.backup(new AbsTextReaderWriter.CopyListener() {
+                @Override
+                public void onCopySucceeded(File from, File to) {
+                    sampleHelper.wifiRW.writeNumbers(wifi, false, new AbsTextReaderWriter.WriteListener() {
+                        @Override
+                        public void onWriteSucceed(int linesWritten) {
+
+                        }
+
+                        @Override
+                        public void onWriteFailed(IOException e) {
+
+                        }
+                    });
+                }
+
+                @Override
+                public void onCopyFailed(IOException e) {
+
+                }
+            });
+        }
+
+        if (wifi5gCount > 0) {
+            sampleHelper.wifi5gRW.backup(new AbsTextReaderWriter.CopyListener() {
+                @Override
+                public void onCopySucceeded(File from, File to) {
+                    sampleHelper.wifi5gRW.writeNumbers(wifi5g, false, new AbsTextReaderWriter.WriteListener() {
+                        @Override
+                        public void onWriteSucceed(int linesWritten) {
+
+                        }
+
+                        @Override
+                        public void onWriteFailed(IOException e) {
+
+                        }
+                    });
+                }
+
+                @Override
+                public void onCopyFailed(IOException e) {
+
+                }
+            });
+        }
+
+        return btCount + btleCount + wifiCount + wifi5gCount;
     }
     
     

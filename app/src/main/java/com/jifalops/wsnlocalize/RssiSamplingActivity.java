@@ -280,6 +280,18 @@ public class RssiSamplingActivity extends Activity {
                         }
                     }).show();
                 return true;
+            case R.id.action_trimSamples:
+                new AlertDialog.Builder(this)
+                        .setMessage("Trim samples that took longer than allowed?")
+                        .setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                int count = rssiSampler.trimLongSamples();
+                                Toast.makeText(RssiSamplingActivity.this,
+                                        "Trimmed " + count + " samples.", Toast.LENGTH_LONG).show();
+                            }
+                        }).show();
+                return true;
             case R.id.logImportant:
                 logLevel = RssiSampler.LOG_IMPORTANT;
                 return true;

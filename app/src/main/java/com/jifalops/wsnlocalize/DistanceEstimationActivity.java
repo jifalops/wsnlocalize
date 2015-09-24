@@ -43,13 +43,21 @@ public class DistanceEstimationActivity extends Activity {
 
     static class Device {
         final String mac, name, signal;
-        BestDistanceEstimator.Estimate estimate, previous;
+        BestDistanceEstimator.Estimate
+                nnEstimate, nnPrevious,
+                f1Estimate, f1Previous,
+                logEstimate, logPrevious;
+        double actual = 0;
         Device(String mac, String name, String signal) {
             this.mac = mac;
             this.name = name;
             this.signal = signal;
-            estimate = new BestDistanceEstimator.Estimate(0,0);
-            previous = new BestDistanceEstimator.Estimate(0,0);
+            nnEstimate = new BestDistanceEstimator.Estimate(0,0);
+            nnPrevious = new BestDistanceEstimator.Estimate(0,0);
+            f1Estimate = new BestDistanceEstimator.Estimate(0,0);
+            f1Previous = new BestDistanceEstimator.Estimate(0,0);
+            logEstimate = new BestDistanceEstimator.Estimate(0,0);
+            logPrevious = new BestDistanceEstimator.Estimate(0,0);
         }
     }
 
@@ -69,24 +77,41 @@ public class DistanceEstimationActivity extends Activity {
             if (holder == null) {
                 holder = new Holder();
                 holder.name = (TextView) convertView.findViewById(R.id.name);
-                holder.desc = (TextView) convertView.findViewById(R.id.details);
-                holder.estimate = (TextView) convertView.findViewById(R.id.estimate);
-                holder.change = (TextView) convertView.findViewById(R.id.change);
+                holder.signal = (TextView) convertView.findViewById(R.id.signal);
+                holder.mac = (TextView) convertView.findViewById(R.id.mac);
+                holder.nnEstimate = (TextView) convertView.findViewById(R.id.nnEstimate);
+                holder.nnChange = (TextView) convertView.findViewById(R.id.nnChange);
+                holder.f1Estimate = (TextView) convertView.findViewById(R.id.f1Estimate);
+                holder.f1Change = (TextView) convertView.findViewById(R.id.f1Change);
+                holder.logEstimate = (TextView) convertView.findViewById(R.id.logEstimate);
+                holder.logChange = (TextView) convertView.findViewById(R.id.logChange);
             }
             holder.name.setText(device.name);
-            holder.desc.setText(device.signal + ", " + device.mac);
-            holder.estimate.setText(String.format(Locale.US, "%.1fm (%.1fm)",
-                    device.estimate.mean, device.estimate.median));
-            holder.change.setText(String.format(Locale.US, "%+.1fm (%+.1fm)",
-                    device.estimate.mean - device.previous.mean,
-                    device.estimate.median - device.previous.median));
+            holder.signal.setText(device.signal);
+            holder.mac.setText(device.mac);
+            holder.nnEstimate.setText(formatEstimate(device.nnEstimate));
+            holder.nnChange.setText(formatChange(device.nnEstimate, device.nnPrevious));
+            holder.f1Estimate.setText(formatEstimate(device.f1Estimate));
+            holder.f1Change.setText(formatChange(device.f1Estimate, device.f1Previous));
+            holder.logEstimate.setText(formatEstimate(device.logEstimate));
+            holder.logChange.setText(formatChange(device.logEstimate, device.logPrevious));
             convertView.setTag(holder);
             return convertView;
         }
     }
 
+    String formatEstimate(BestDistanceEstimator.Estimate e) {
+        return String.format(Locale.US, "%.1f (%.1f)", e.mean, e.median);
+    }
+    String formatChange(BestDistanceEstimator.Estimate e, BestDistanceEstimator.Estimate p) {
+        return String.format(Locale.US, "%+.1f (%+.1f)", e.mean - p.mean, e.median - p.median);
+    }
+
     static class Holder {
-        TextView name, desc, estimate, change;
+        TextView name, signal, mac,
+                nnEstimate, nnChange,
+                f1Estimate, f1Change,
+                logEstimate, logChange;
     }
 
     DeviceAdapter adapter;
@@ -166,7 +191,7 @@ public class DistanceEstimationActivity extends Activity {
                     }
                 });
 
-        bestEstimator = new BestDistanceEstimator(true, new BestDistanceEstimator.OnReadyListener() {
+        bestEstimator = new BestDistanceEstimator(true, true, new BestDistanceEstimator.OnReadyListener() {
             @Override
             public void onReady() {
                 setupControls();
@@ -181,7 +206,7 @@ public class DistanceEstimationActivity extends Activity {
             }
         });
 
-        toSendEstimator = new BestDistanceEstimator(false, new BestDistanceEstimator.OnReadyListener() {
+        toSendEstimator = new BestDistanceEstimator(false, true, new BestDistanceEstimator.OnReadyListener() {
             @Override
             public void onReady() {
                 setupControls();
@@ -300,19 +325,30 @@ public class DistanceEstimationActivity extends Activity {
                     new ResettingList.LimitsCallback<RssiRecord>() {
                 @Override
                 public void onLimitsReached(List<RssiRecord> list, long time) {
-                    BestDistanceEstimator.Estimate estimate = null;
-                    double[] sample = new WindowRecord(list).toSample();
+                    BestDistanceEstimator.Estimate nnEstimate = null;
+                    WindowRecord w = new WindowRecord(list);
+                    double[] sample = w.toSample();
                     if (App.SIGNAL_BT.equals(signal)) {
-                        estimate = estimator.estimateBt(sample);
+                        nnEstimate = estimator.estimateBt(sample);
                     } else if (App.SIGNAL_BTLE.equals(signal)) {
-                        estimate = estimator.estimateBtle(sample);
+                        nnEstimate = estimator.estimateBtle(sample);
                     } else if (App.SIGNAL_WIFI.equals(signal)) {
-                        estimate = estimator.estimateWifi(sample);
+                        nnEstimate = estimator.estimateWifi(sample);
                     } else if (App.SIGNAL_WIFI5G.equals(signal)) {
-                        estimate = estimator.estimateWifi5g(sample);
+                        nnEstimate = estimator.estimateWifi5g(sample);
                     }
-                    finalDevice.previous = finalDevice.estimate;
-                    finalDevice.estimate = estimate;
+                    finalDevice.nnPrevious = finalDevice.nnEstimate;
+                    finalDevice.nnEstimate = nnEstimate;
+                    BestDistanceEstimator.Estimate f1Estimate = new BestDistanceEstimator.Estimate(
+                            freeSpacePathLoss(w.rss.mean, list.get(0).freq),
+                            freeSpacePathLoss(w.rss.median, list.get(0).freq));
+                    finalDevice.f1Previous = finalDevice.f1Estimate;
+                    finalDevice.f1Estimate = f1Estimate;
+                    BestDistanceEstimator.Estimate logEstimate = new BestDistanceEstimator.Estimate(
+                            estimateLog(finalDevice.signal, w.rss.mean),
+                            estimateLog(finalDevice.signal, w.rss.median));
+                    finalDevice.logPrevious = finalDevice.logEstimate;
+                    finalDevice.logEstimate = logEstimate;
                     adapter.notifyDataSetChanged();
                 }
             }));
@@ -394,4 +430,17 @@ public class DistanceEstimationActivity extends Activity {
             }
         }
     };
+
+
+    double estimateLog(String signal, double rssi) {
+        int divisor = 50;
+        if (App.SIGNAL_BT.equals(signal) || App.SIGNAL_BTLE.equals(signal)) divisor = 100;
+        return Math.pow(10, (-rssi - 1) / divisor);
+//        10^((-x-1)/50)
+    }
+
+    double freeSpacePathLoss(double levelInDb, double freqInMHz)    {
+        double exp = (27.55 - (20 * Math.log10(freqInMHz)) + Math.abs(levelInDb)) / 20.0;
+        return Math.pow(10.0, exp);
+    }
 }
