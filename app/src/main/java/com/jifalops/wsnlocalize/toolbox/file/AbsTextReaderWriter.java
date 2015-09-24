@@ -2,6 +2,7 @@ package com.jifalops.wsnlocalize.toolbox.file;
 
 import android.os.AsyncTask;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -35,6 +36,10 @@ public abstract class AbsTextReaderWriter {
     public interface WriteListener {
         void onWriteSucceed(int linesWritten);
         void onWriteFailed(IOException e);
+    }
+    public interface CopyListener {
+        void onCopySucceeded(File from, File to);
+        void onCopyFailed(IOException e);
     }
 
     protected final File file;
@@ -132,6 +137,36 @@ public abstract class AbsTextReaderWriter {
                     callback.onWriteSucceed(count);
                 } else {
                     callback.onWriteFailed(ioe);
+                }
+            }
+        }.execute();
+    }
+
+    public void backup(@Nullable final CopyListener callback) {
+        final File f = new File(file.getParentFile(), file.getName() + ".bak");
+        new AsyncTask<Void, Void, Void>() {
+            IOException ioe;
+            @Override
+            protected Void doInBackground(Void... params) {
+
+                synchronized (file) {
+                    try {
+                        Files.copy(file, f);
+                    } catch (IOException e) {
+                        ioe = e;
+                    }
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                if (callback != null) {
+                    if (ioe == null) {
+                        callback.onCopySucceeded(file, f);
+                    } else {
+                        callback.onCopyFailed(ioe);
+                    }
                 }
             }
         }.execute();
