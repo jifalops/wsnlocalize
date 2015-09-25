@@ -1,10 +1,5 @@
 package com.jifalops.wsnlocalize.data;
 
-import android.text.TextUtils;
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
 /**
  *
  */
