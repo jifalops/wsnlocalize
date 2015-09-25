@@ -77,14 +77,8 @@ public class RssiSampler {
         btleBeacon = BtLeBeacon.getInstance(ctx);
         wifiScanner = new WifiScanner(ctx);
 
-        rssiHelper = new RssiHelper(new RssiHelper.RssiCallback() {
-            @Override
-            public void onRssiLoaded() {
-                addEvent(LOG_IMPORTANT, "RSSI Loaded from disk.");
-                rssiLoaded = true;
-                checkIfLoadComplete();
-            }
-        });
+        rssiHelper = App.getRssiHelper();
+        rssiLoaded = true;
 
         windowHelper = new WindowHelper(new WindowHelper.WindowCallback() {
             @Override

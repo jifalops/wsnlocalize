@@ -17,6 +17,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.Volley;
 import com.jifalops.wsnlocalize.request.AbsRequest;
 import com.jifalops.wsnlocalize.request.MacRequest;
+import com.jifalops.wsnlocalize.signal.RssiHelper;
 import com.jifalops.wsnlocalize.toolbox.ServiceThreadApplication;
 import com.jifalops.wsnlocalize.toolbox.bluetooth.BtHelper;
 import com.jifalops.wsnlocalize.toolbox.util.ResettingList;
@@ -61,6 +62,7 @@ public class App extends ServiceThreadApplication {
 
     private String wifiMac, btMac;
     private boolean debug;
+    private RssiHelper rssiHelper;
 
     @Override
     public void onCreate() {
@@ -69,9 +71,10 @@ public class App extends ServiceThreadApplication {
         requestQueue = Volley.newRequestQueue(this);
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
         debug = prefs.getBoolean("debug", false);
-        initWifiMac();
-        initBtMac();
-        tryDeviceRequest();
+//        initWifiMac();
+//        initBtMac();
+//        tryDeviceRequest();
+        rssiHelper = new RssiHelper(null);
     }
 
     private void initWifiMac() {
@@ -171,4 +174,6 @@ public class App extends ServiceThreadApplication {
         instance.debug = debug;
         instance.prefs.edit().putBoolean("debug", debug).apply();
     }
+
+    public static RssiHelper getRssiHelper() { return instance.rssiHelper; }
 }

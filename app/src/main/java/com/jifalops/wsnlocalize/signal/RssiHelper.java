@@ -1,14 +1,15 @@
 package com.jifalops.wsnlocalize.signal;
 
+import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.jifalops.wsnlocalize.App;
 import com.jifalops.wsnlocalize.data.Rssi;
+import com.jifalops.wsnlocalize.data.RssiList;
 import com.jifalops.wsnlocalize.file.RssiReaderWriter;
 import com.jifalops.wsnlocalize.toolbox.file.AbsTextReaderWriter;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,16 +22,16 @@ public class RssiHelper {
         void onRssiLoaded();
     }
 
-    final List<Rssi>
-            bt = new ArrayList<>(),
-            btle = new ArrayList<>(),
-            wifi = new ArrayList<>(),
-            wifi5g = new ArrayList<>();
+    final RssiList
+            bt = new RssiList(),
+            btle = new RssiList(),
+            wifi = new RssiList(),
+            wifi5g = new RssiList();
     final RssiReaderWriter btRW, btleRW, wifiRW, wifi5gRW;
-    boolean btLoaded, btleLoaded, wifiLoaded, wifi5gLoaded;
+    boolean allLoaded, btLoaded, btleLoaded, wifiLoaded, wifi5gLoaded;
     RssiCallback callback;
 
-    public RssiHelper(RssiCallback onLoadFinished) {
+    public RssiHelper(@Nullable RssiCallback onLoadFinished) {
         callback = onLoadFinished;
 
         btRW = new RssiReaderWriter(App.getFile(App.SIGNAL_BT, App.DATA_RSSI));
@@ -109,18 +110,21 @@ public class RssiHelper {
         checkIfAllLoaded();
     }
 
-    void checkIfAllLoaded() {
+    private void checkIfAllLoaded() {
         if (btLoaded && btleLoaded && wifiLoaded && wifi5gLoaded) {
-            callback.onRssiLoaded();
+            allLoaded = true;
+            if (callback != null) callback.onRssiLoaded();
         }
     }
 
-    public List<Rssi> getBt() { return bt; }
-    public List<Rssi> getBtle() { return btle; }
-    public List<Rssi> getWifi() { return wifi; }
-    public List<Rssi> getWifi5g() { return wifi5g; }
-    public List<Rssi> getAll() {
-        List<Rssi> list = new ArrayList<>();
+    public boolean isLoaded() { return allLoaded; }
+
+    public RssiList getBt() { return bt; }
+    public RssiList getBtle() { return btle; }
+    public RssiList getWifi() { return wifi; }
+    public RssiList getWifi5g() { return wifi5g; }
+    public RssiList getAll() {
+        RssiList list = new RssiList();
         list.addAll(bt);
         list.addAll(btle);
         list.addAll(wifi);

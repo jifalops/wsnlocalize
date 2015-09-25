@@ -50,31 +50,26 @@
             android:label="Sample Collection"
             android:configChanges="orientation"
             android:screenOrientation="portrait"
-            android:launchMode="singleInstance" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".SampleViewerActivity"
-            android:label="@string/activity_sampleviewer"
-            android:configChanges="orientation"
-            android:screenOrientation="portrait"
-            android:launchMode="singleInstance" />
+            android:label="@string/activity_sampleviewer" />
         <activity
             android:name=".EstimatorTrainingActivity"
             android:label="Estimator Training"
             android:configChanges="orientation"
             android:screenOrientation="portrait"
-            android:launchMode="singleInstance" />
+            android:launchMode="singleTask" />
         <activity
             android:name=".EstimatorViewerActivity"
-            android:label="Estimators Viewer"
-            android:configChanges="orientation"
-            android:screenOrientation="portrait"
-            android:launchMode="singleInstance" />
+            android:label="Estimators Viewer" />
         <activity
             android:name=".DistanceEstimationActivity"
-            android:label="Distance Estimator (mean, median)m"
-            android:configChanges="orientation"
-            android:screenOrientation="portrait"
-            android:launchMode="singleInstance" />
+            android:label="Distance Estimator (mean, median)m"/>
+
+        <activity
+            android:name=".SampleCreatorActivity"
+            android:label="Create samples" />
     </application>
 
 </manifest>

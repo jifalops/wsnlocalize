@@ -23,6 +23,8 @@ public class MainActivity extends Activity {
         layout = (LinearLayout) findViewById(R.id.linearLayout);
         addToLayout("Collect samples", "A sample is several RSSI within certain limits",
                 RssiSamplingActivity.class);
+        addToLayout("Create samples", "from raw data using limits",
+                SampleCreatorActivity.class);
         addToLayout("View samples", SampleViewerActivity.class);
         addToLayout("Train estimators", "Using neural networks and the current set of samples",
                 EstimatorTrainingActivity.class);
