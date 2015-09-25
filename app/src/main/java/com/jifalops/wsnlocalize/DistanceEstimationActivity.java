@@ -20,7 +20,7 @@ import android.widget.Toast;
 
 import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
-import com.jifalops.wsnlocalize.data.RssiRecord;
+import com.jifalops.wsnlocalize.data.Rssi;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.signal.BestDistanceEstimator;
 import com.jifalops.wsnlocalize.toolbox.util.ResettingList;
@@ -123,7 +123,7 @@ public class DistanceEstimationActivity extends Activity {
     BestDistanceEstimator estimator, bestEstimator, toSendEstimator;
 
     List<Device> devices = new ArrayList<>();
-    Map<Device, ResettingList<RssiRecord>> windowers = new HashMap<>();
+    Map<Device, ResettingList<Rssi>> windowers = new HashMap<>();
 
     CheckBox btCheckbox, btleCheckbox, wifiCheckbox, wifi5gCheckbox;
 
@@ -322,9 +322,9 @@ public class DistanceEstimationActivity extends Activity {
             else if (App.SIGNAL_BTLE.equals(signal)) trigger = App.btleWindowTrigger;
             else trigger = App.wifiWindowTrigger;
             windowers.put(device, new ResettingList<>(trigger,
-                    new ResettingList.LimitsCallback<RssiRecord>() {
+                    new ResettingList.LimitsCallback<Rssi>() {
                 @Override
-                public void onLimitsReached(List<RssiRecord> list, long time) {
+                public void onLimitsReached(List<Rssi> list, long time) {
                     BestDistanceEstimator.Estimate nnEstimate = null;
                     WindowRecord w = new WindowRecord(list);
                     double[] sample = w.toSample();
@@ -354,7 +354,7 @@ public class DistanceEstimationActivity extends Activity {
             }));
         }
 
-        windowers.get(device).add(new RssiRecord(mac, rssi, freq,
+        windowers.get(device).add(new Rssi(mac, rssi, freq,
                 System.currentTimeMillis(), 0));
 
     }

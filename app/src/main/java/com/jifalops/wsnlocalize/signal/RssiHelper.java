@@ -3,7 +3,7 @@ package com.jifalops.wsnlocalize.signal;
 import android.util.Log;
 
 import com.jifalops.wsnlocalize.App;
-import com.jifalops.wsnlocalize.data.RssiRecord;
+import com.jifalops.wsnlocalize.data.Rssi;
 import com.jifalops.wsnlocalize.file.RssiReaderWriter;
 import com.jifalops.wsnlocalize.toolbox.file.AbsTextReaderWriter;
 
@@ -21,7 +21,7 @@ public class RssiHelper {
         void onRssiLoaded();
     }
 
-    final List<RssiRecord>
+    final List<Rssi>
             bt = new ArrayList<>(),
             btle = new ArrayList<>(),
             wifi = new ArrayList<>(),
@@ -38,9 +38,9 @@ public class RssiHelper {
         wifiRW = new RssiReaderWriter(App.getFile(App.SIGNAL_WIFI, App.DATA_RSSI));
         wifi5gRW = new RssiReaderWriter(App.getFile(App.SIGNAL_WIFI5G, App.DATA_RSSI));
 
-        if (!btRW.readRssi(new AbsTextReaderWriter.TypedReadListener<RssiRecord>() {
+        if (!btRW.readRssi(new AbsTextReaderWriter.TypedReadListener<Rssi>() {
             @Override
-            public void onReadSucceeded(List<RssiRecord> list, int typingExceptions) {
+            public void onReadSucceeded(List<Rssi> list, int typingExceptions) {
                 bt.addAll(list);
                 btLoaded = true;
                 if (typingExceptions > 0) {
@@ -55,9 +55,9 @@ public class RssiHelper {
             }
         })) btLoaded = true;
 
-        if (!btleRW.readRssi(new AbsTextReaderWriter.TypedReadListener<RssiRecord>() {
+        if (!btleRW.readRssi(new AbsTextReaderWriter.TypedReadListener<Rssi>() {
             @Override
-            public void onReadSucceeded(List<RssiRecord> list, int typingExceptions) {
+            public void onReadSucceeded(List<Rssi> list, int typingExceptions) {
                 btle.addAll(list);
                 btleLoaded = true;
                 if (typingExceptions > 0) {
@@ -72,9 +72,9 @@ public class RssiHelper {
             }
         })) btleLoaded = true;
 
-        if(!wifiRW.readRssi(new AbsTextReaderWriter.TypedReadListener<RssiRecord>() {
+        if(!wifiRW.readRssi(new AbsTextReaderWriter.TypedReadListener<Rssi>() {
             @Override
-            public void onReadSucceeded(List<RssiRecord> list, int typingExceptions) {
+            public void onReadSucceeded(List<Rssi> list, int typingExceptions) {
                 wifi.addAll(list);
                 wifiLoaded = true;
                 if (typingExceptions > 0) {
@@ -89,9 +89,9 @@ public class RssiHelper {
             }
         })) wifiLoaded = true;
 
-        if(!wifi5gRW.readRssi(new AbsTextReaderWriter.TypedReadListener<RssiRecord>() {
+        if(!wifi5gRW.readRssi(new AbsTextReaderWriter.TypedReadListener<Rssi>() {
             @Override
-            public void onReadSucceeded(List<RssiRecord> list, int typingExceptions) {
+            public void onReadSucceeded(List<Rssi> list, int typingExceptions) {
                 wifi5g.addAll(list);
                 wifi5gLoaded = true;
                 if (typingExceptions > 0) {
@@ -115,12 +115,12 @@ public class RssiHelper {
         }
     }
 
-    public List<RssiRecord> getBt() { return bt; }
-    public List<RssiRecord> getBtle() { return btle; }
-    public List<RssiRecord> getWifi() { return wifi; }
-    public List<RssiRecord> getWifi5g() { return wifi5g; }
-    public List<RssiRecord> getAll() {
-        List<RssiRecord> list = new ArrayList<>();
+    public List<Rssi> getBt() { return bt; }
+    public List<Rssi> getBtle() { return btle; }
+    public List<Rssi> getWifi() { return wifi; }
+    public List<Rssi> getWifi5g() { return wifi5g; }
+    public List<Rssi> getAll() {
+        List<Rssi> list = new ArrayList<>();
         list.addAll(bt);
         list.addAll(btle);
         list.addAll(wifi);
@@ -128,7 +128,7 @@ public class RssiHelper {
         return list;
     }
 
-    public void addBt(List<RssiRecord> rssi) {
+    public void addBt(List<Rssi> rssi) {
         btRW.writeRecords(rssi, true, new AbsTextReaderWriter.WriteListener() {
             @Override
             public void onWriteSucceed(int linesWritten) {
@@ -142,7 +142,7 @@ public class RssiHelper {
         });
         bt.addAll(rssi);
     }
-    public void addBtle(List<RssiRecord> rssi) {
+    public void addBtle(List<Rssi> rssi) {
         btleRW.writeRecords(rssi, true, new AbsTextReaderWriter.WriteListener() {
             @Override
             public void onWriteSucceed(int linesWritten) {
@@ -156,7 +156,7 @@ public class RssiHelper {
         });
         btle.addAll(rssi);
     }
-    public void addWifi(List<RssiRecord> rssi) {
+    public void addWifi(List<Rssi> rssi) {
         wifiRW.writeRecords(rssi, true, new AbsTextReaderWriter.WriteListener() {
             @Override
             public void onWriteSucceed(int linesWritten) {
@@ -170,7 +170,7 @@ public class RssiHelper {
         });
         wifi.addAll(rssi);
     }
-    public void addWifi5g(List<RssiRecord> rssi) {
+    public void addWifi5g(List<Rssi> rssi) {
         wifi5gRW.writeRecords(rssi, true, new AbsTextReaderWriter.WriteListener() {
             @Override
             public void onWriteSucceed(int linesWritten) {

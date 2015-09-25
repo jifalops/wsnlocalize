@@ -2,7 +2,7 @@ package com.jifalops.wsnlocalize.request;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Response;
-import com.jifalops.wsnlocalize.data.RssiRecord;
+import com.jifalops.wsnlocalize.data.Rssi;
 
 import java.util.HashMap;
 import java.util.List;
@@ -13,9 +13,9 @@ import java.util.Map;
  */
 public class RssiRequest extends AbsRequest {
 
-    private final List<RssiRecord> records;
+    private final List<Rssi> records;
     private final String signalType;
-    public RssiRequest(String signalType, List<RssiRecord> records, Response.Listener<MyResponse>listener,
+    public RssiRequest(String signalType, List<Rssi> records, Response.Listener<MyResponse>listener,
                        Response.ErrorListener errorListener) {
         super(listener, errorListener);
         this.signalType = signalType;

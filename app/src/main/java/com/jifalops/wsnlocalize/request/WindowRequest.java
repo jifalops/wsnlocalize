@@ -2,7 +2,6 @@ package com.jifalops.wsnlocalize.request;
 
 import com.android.volley.AuthFailureError;
 import com.android.volley.Response;
-import com.jifalops.wsnlocalize.data.RssiRecord;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 
 import java.util.HashMap;

@@ -19,7 +19,7 @@ public class SampleList extends ArrayList<Sample> {
                 macList.sortByTime();
                 // Here we have a chronological list of rssi that came
                 // from a single device at a single distance.
-                for (RssiRecord r : macList) {
+                for (Rssi r : macList) {
                     sample.add(r);
                     if (limitsReached(sample, window)) {
                         add(new Sample(sample));
@@ -34,9 +34,9 @@ public class SampleList extends ArrayList<Sample> {
         }
     }
 
-    private boolean limitsReached(List<RssiRecord> rssi, Sample.Window window) {
+    private boolean limitsReached(List<Rssi> rssi, Sample.Window window) {
         int len = rssi.size();
-        if (len < 2) return false; // stats not possible on a single rssi.
-        return window.reached(len, rssi.get(len - 1).time - rssi.get(0).time);
+        // stats not possible on a single rssi.
+        return len >= 2 && window.reached(len, rssi.get(len - 1).time - rssi.get(0).time);
     }
 }

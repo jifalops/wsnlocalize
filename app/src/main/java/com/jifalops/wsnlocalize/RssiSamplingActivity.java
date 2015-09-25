@@ -22,7 +22,7 @@ import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jifalops.wsnlocalize.data.RssiRecord;
+import com.jifalops.wsnlocalize.data.Rssi;
 import com.jifalops.wsnlocalize.signal.RssiHelper;
 import com.jifalops.wsnlocalize.signal.RssiSampler;
 import com.jifalops.wsnlocalize.signal.SampleHelper;
@@ -437,7 +437,7 @@ public class RssiSamplingActivity extends Activity {
         }
 
         @Override
-        public void onRecordAdded(String signal, RssiSampler.Device device, RssiRecord r) {
+        public void onRecordAdded(String signal, RssiSampler.Device device, Rssi r) {
             updateCountView(signal, App.DATA_RSSI);
         }
 

@@ -1,6 +1,6 @@
 package com.jifalops.wsnlocalize.file;
 
-import com.jifalops.wsnlocalize.data.RssiRecord;
+import com.jifalops.wsnlocalize.data.Rssi;
 import com.jifalops.wsnlocalize.toolbox.file.AbsTextReaderWriter;
 import com.jifalops.wsnlocalize.toolbox.util.Lists;
 
@@ -18,15 +18,15 @@ public class RssiReaderWriter extends AbsTextReaderWriter {
         super(file);
     }
 
-    public boolean readRssi(final TypedReadListener<RssiRecord> callback) {
+    public boolean readRssi(final TypedReadListener<Rssi> callback) {
         return readLines(new ReadListener() {
             @Override
             public void onReadSucceeded(List<String> lines) {
                 int exceptions = 0;
-                final List<RssiRecord> records = new ArrayList<>();
+                final List<Rssi> records = new ArrayList<>();
                 for (String line : lines) {
                     try {
-                        records.add(new RssiRecord(line.split(",")));
+                        records.add(new Rssi(line.split(",")));
                     } catch (NumberFormatException e) {
                         ++exceptions;
                     }
@@ -41,7 +41,7 @@ public class RssiReaderWriter extends AbsTextReaderWriter {
         });
     }
 
-    public void writeRecords(List<RssiRecord> records, boolean append, WriteListener callback) {
+    public void writeRecords(List<Rssi> records, boolean append, WriteListener callback) {
         writeLines(Lists.toString(records), append, callback);
     }
 }

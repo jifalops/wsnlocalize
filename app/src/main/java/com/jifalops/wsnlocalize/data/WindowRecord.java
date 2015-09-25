@@ -75,12 +75,12 @@ public class WindowRecord {
     public final double distance;
     public double estimated = 0;
 
-    public WindowRecord(List<RssiRecord> records) {
+    public WindowRecord(List<Rssi> records) {
         distance = records.get(0).distance; // ok if known or unknown.
         int len = records.size();
         double[] rssi = new double[len];
         Map<String, List<Double>> deviceTimes = new HashMap<>();
-        RssiRecord record;
+        Rssi record;
         for (int i = 0; i < len; ++i) {
             record = records.get(i);
             rssi[i] = record.rssi;

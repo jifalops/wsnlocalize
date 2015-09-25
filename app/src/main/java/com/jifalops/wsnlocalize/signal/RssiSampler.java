@@ -10,7 +10,7 @@ import com.android.volley.VolleyError;
 import com.jifalops.wsnlocalize.App;
 import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
-import com.jifalops.wsnlocalize.data.RssiRecord;
+import com.jifalops.wsnlocalize.data.Rssi;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.file.RssiReaderWriter;
 import com.jifalops.wsnlocalize.file.WindowReaderWriter;
@@ -51,7 +51,7 @@ public class RssiSampler {
         }
     }
 
-    ResettingList<RssiRecord> bt, btle, wifi, wifi5g;
+    ResettingList<Rssi> bt, btle, wifi, wifi5g;
     RssiHelper rssiHelper;
     WindowHelper windowHelper;
     SampleHelper sampleHelper;
@@ -104,9 +104,9 @@ public class RssiSampler {
             }
         });
 
-        bt = new ResettingList<>(App.btWindowTrigger, new ResettingList.LimitsCallback<RssiRecord>() {
+        bt = new ResettingList<>(App.btWindowTrigger, new ResettingList.LimitsCallback<Rssi>() {
             @Override
-            public void onLimitsReached(List<RssiRecord> list, long time) {
+            public void onLimitsReached(List<Rssi> list, long time) {
                 rssiHelper.addBt(list);
                 WindowRecord w = new WindowRecord(list);
                 windowHelper.addBt(w);
@@ -117,9 +117,9 @@ public class RssiSampler {
                 for (SamplerListener l : listeners) l.onSampleAdded(App.SIGNAL_BT, sample);
             }
         });
-        btle = new ResettingList<>(App.btleWindowTrigger, new ResettingList.LimitsCallback<RssiRecord>() {
+        btle = new ResettingList<>(App.btleWindowTrigger, new ResettingList.LimitsCallback<Rssi>() {
             @Override
-            public void onLimitsReached(List<RssiRecord> list, long time) {
+            public void onLimitsReached(List<Rssi> list, long time) {
                 rssiHelper.addBtle(list);
                 WindowRecord w = new WindowRecord(list);
                 windowHelper.addBtle(w);
@@ -130,9 +130,9 @@ public class RssiSampler {
                 for (SamplerListener l : listeners) l.onSampleAdded(App.SIGNAL_BTLE, sample);
             }
         });
-        wifi = new ResettingList<>(App.wifiWindowTrigger, new ResettingList.LimitsCallback<RssiRecord>() {
+        wifi = new ResettingList<>(App.wifiWindowTrigger, new ResettingList.LimitsCallback<Rssi>() {
             @Override
-            public void onLimitsReached(List<RssiRecord> list, long time) {
+            public void onLimitsReached(List<Rssi> list, long time) {
                 rssiHelper.addWifi(list);
                 WindowRecord w = new WindowRecord(list);
                 windowHelper.addWifi(w);
@@ -143,9 +143,9 @@ public class RssiSampler {
                 for (SamplerListener l : listeners) l.onSampleAdded(App.SIGNAL_WIFI, sample);
             }
         });
-        wifi5g = new ResettingList<>(App.wifiWindowTrigger, new ResettingList.LimitsCallback<RssiRecord>() {
+        wifi5g = new ResettingList<>(App.wifiWindowTrigger, new ResettingList.LimitsCallback<Rssi>() {
             @Override
-            public void onLimitsReached(List<RssiRecord> list, long time) {
+            public void onLimitsReached(List<Rssi> list, long time) {
                 rssiHelper.addWifi5g(list);
                 WindowRecord w = new WindowRecord(list);
                 windowHelper.addWifi5g(w);
@@ -215,13 +215,13 @@ public class RssiSampler {
         addEvent(LOG_IMPORTANT, "RSSI and Windows sent.");
     }
 
-    private void send(final String signal, final List<RssiRecord> rssi, final List<WindowRecord> windows,
+    private void send(final String signal, final List<Rssi> rssi, final List<WindowRecord> windows,
             final RssiReaderWriter rssiRW, final WindowReaderWriter windowRW) {
 
         final int rssiSize = rssi.size(), windowSize = windows.size();
 
         if (rssiSize > 0) {
-            final List<RssiRecord> toSend = new ArrayList<>(rssi);
+            final List<Rssi> toSend = new ArrayList<>(rssi);
             rssi.clear();
             App.sendRequest(new RssiRequest(signal, toSend,
                     new Response.Listener<AbsRequest.MyResponse>() {
@@ -397,7 +397,7 @@ public class RssiSampler {
                         rssi + " dBm (" + freq + " MHz) at " +
                         distance + "m (" + signal + ").");
 //                String time = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss", Locale.US).format(new Date());
-                RssiRecord record = new RssiRecord(device.mac, rssi, freq,
+                Rssi record = new Rssi(device.mac, rssi, freq,
                         System.currentTimeMillis(), distance);
                 switch (signal) {
                     case App.SIGNAL_BT:
@@ -677,7 +677,7 @@ public class RssiSampler {
         void onMessageLogged(int level, String msg);
         void onDeviceFound(Device device);
         void onDataLoadedFromDisk(RssiHelper rssiHelper, WindowHelper windowHelper, SampleHelper sampleHelper);
-        void onRecordAdded(String signal, Device device, RssiRecord r);
+        void onRecordAdded(String signal, Device device, Rssi r);
         void onSampleAdded(String signal, double[] sample);
         void onSentSuccess(String signal, String dataType, int count);
         void onSentFailure(String signal, String dataType, int count, int respCode, String resp, String result);

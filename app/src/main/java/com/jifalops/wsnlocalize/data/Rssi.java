@@ -3,13 +3,13 @@ package com.jifalops.wsnlocalize.data;
 /**
  *
  */
-public class RssiRecord {
+public class Rssi {
     public final String mac;
     public final int rssi, freq;
     public final double distance;
     public final long time;
 
-    public RssiRecord(String mac, int rssi, int freq, long time, double distance) {
+    public Rssi(String mac, int rssi, int freq, long time, double distance) {
         this.mac = mac;
         this.rssi = rssi;
         this.freq = freq;
@@ -17,7 +17,7 @@ public class RssiRecord {
         this.time = time;
     }
 
-    public RssiRecord(String[] csv) {
+    public Rssi(String[] csv) {
         mac = csv[0];
         rssi = Integer.valueOf(csv[1]);
         freq = Integer.valueOf(csv[2]);

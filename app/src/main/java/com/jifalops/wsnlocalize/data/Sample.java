@@ -69,13 +69,13 @@ public class Sample {
     public final Elapsed elapsed;
     public final double distance;
 
-    public Sample(List<RssiRecord> records) {
+    public Sample(List<Rssi> records) {
         distance = records.get(0).distance; // ok if known or unknown.
 
         int len = records.size();
         double[] rssi = new double[len];
         double[] el = new double[len-1];
-        RssiRecord r;
+        Rssi r;
         for (int i = 0; i < len; ++i) {
             r = records.get(i);
             rssi[i] = r.rssi;
