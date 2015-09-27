@@ -22,123 +22,25 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
     </ScrollView>
-    <LinearLayout
+    <GridLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <CheckBox
-            android:id="@+id/btCheckBox"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:enabled="false"
-            android:text="BT"/>
-        <Space
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content" />
-        <CheckBox
-            android:id="@+id/btleCheckBox"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
+        android:columnCount="2">
+        <TextView
             android:layout_columnWeight="1"
-            android:enabled="false"
-            android:text="BT-LE"/>
-        <Space
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content" />
-        <CheckBox
-            android:id="@+id/wifiCheckBox"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:enabled="false"
-            android:text="WiFi"/>
-        <Space
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="wrap_content" />
-        <CheckBox
-            android:id="@+id/wifi5gCheckBox"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:enabled="false"
-            android:text="WiFi 5G"/>
-    </LinearLayout>
-    <android.widget.Space
-        android:layout_width="match_parent"
-        android:layout_height="8dp" />
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-        <GridLayout
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_gravity="center_vertical"
-            android:layout_height="wrap_content"
-            android:columnCount="4">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:textAppearanceSmall"
-                android:layout_columnWeight="1"
-                android:text="BT"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:textAppearanceSmall"
-                android:layout_columnWeight="1"
-                android:text="BTLE"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:textAppearanceSmall"
-                android:layout_columnWeight="1"
-                android:text="WIFI"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:textAppearanceSmall"
-                android:layout_columnWeight="1"
-                android:text="WIFI5G"/>
-            <TextView
-                android:id="@+id/btEstimatorCount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:textAppearanceSmall"
-                android:text="0"/>
-            <TextView
-                android:id="@+id/btleEstimatorCount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:textAppearanceSmall"
-                android:text="0"/>
-            <TextView
-                android:id="@+id/wifiEstimatorCount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:textAppearanceSmall"
-                android:text="0"/>
-            <TextView
-                android:id="@+id/wifi5gEstimatorCount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="?android:textAppearanceSmall"
-                android:text="0"/>
-        </GridLayout>
+            android:text="Keep results with error less than" />
         <Button
-            android:id="@+id/sendButton"
-            android:layout_gravity="center_vertical"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:id="@+id/trainButton"
+            android:layout_rowSpan="2"
             android:focusable="true"
             android:focusableInTouchMode="true"
-            android:text="Send">
+            android:text="Start Training">
             <requestFocus />
         </Button>
-    </LinearLayout>
+        <EditText android:id="@+id/errorLimit"
+            android:inputType="numberDecimal"
+            android:hint="0.01"
+            android:layout_gravity="center_horizontal"/>
+    </GridLayout>
 </LinearLayout>

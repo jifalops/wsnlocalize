@@ -1,5 +1,7 @@
 package com.jifalops.wsnlocalize.data;
 
+import com.jifalops.wsnlocalize.toolbox.util.KeyedList;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -77,19 +79,28 @@ public class RssiList extends ArrayList<Rssi> {
         return map;
     }
 
-    public Map<Integer, RssiList> splitByRssi() {
-        Map<Integer, RssiList> map = new HashMap<>();
-        RssiList list;
-        for (Rssi r : this) {
-            list = map.get(r.rssi);
-            if (list == null) {
-                list = new RssiList();
-                map.put(r.rssi, list);
+    public KeyedList<Integer, Rssi> splitByRssi() {
+        return new KeyedList<>(this, new KeyedList.KeyLookup<Integer, Rssi>() {
+            @Override
+            public Integer getKey(Rssi item) {
+                return item.rssi;
             }
-            list.add(r);
-        }
-        return map;
+        });
     }
+
+//    public Map<Integer, RssiList> splitByRssi() {
+//        Map<Integer, RssiList> map = new HashMap<>();
+//        RssiList list;
+//        for (Rssi r : this) {
+//            list = map.get(r.rssi);
+//            if (list == null) {
+//                list = new RssiList();
+//                map.put(r.rssi, list);
+//            }
+//            list.add(r);
+//        }
+//        return map;
+//    }
 
     public Map<Integer, RssiList> splitByFreq() {
         Map<Integer, RssiList> map = new HashMap<>();

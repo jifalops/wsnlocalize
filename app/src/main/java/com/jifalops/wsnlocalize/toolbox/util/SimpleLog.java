@@ -8,15 +8,15 @@ import java.util.List;
 /**
  * Maintains a list of messages. Each message is automatically timestamped with
  * {@link System#currentTimeMillis()} and can be tagged with an integer for the
- * importance of that message.
+ * priority of that message.
  */
 public class SimpleLog {
     public static class LogItem implements Comparable<LogItem> {
         public final long time = System.currentTimeMillis();
-        public final int importance;
+        public final int priority;
         public final String msg;
-        private LogItem(int importance, String msg) {
-            this.importance = importance;
+        private LogItem(int priority, String msg) {
+            this.priority = priority;
             this.msg = msg;
         }
 
@@ -35,8 +35,8 @@ public class SimpleLog {
     }
 
     public void add(String msg) { add(0, msg); }
-    public void add(int importance, String msg) {
-        log.add(new LogItem(importance, msg));
+    public void add(int priority, String msg) {
+        log.add(new LogItem(priority, msg));
     }
 
     public LogItem get(int index) {
@@ -47,15 +47,15 @@ public class SimpleLog {
         return log.iterator();
     }
 
-    public List<LogItem> getByImportance(int importance, boolean includeGreaterImportance) {
+    public List<LogItem> getBypriority(int priority, boolean includeGreaterpriority) {
         List<LogItem> list = new ArrayList<>();
-        if (includeGreaterImportance) {
+        if (includeGreaterpriority) {
             for (LogItem li : log) {
-                if (li.importance >= importance) list.add(li);
+                if (li.priority >= priority) list.add(li);
             }
         } else {
             for (LogItem li : log) {
-                if (li.importance == importance) list.add(li);
+                if (li.priority == priority) list.add(li);
             }
         }
         return list;

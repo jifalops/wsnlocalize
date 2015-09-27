@@ -1,6 +1,6 @@
 package com.jifalops.wsnlocalize.toolbox.file;
 
-import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.io.File;
 import java.util.List;
@@ -14,12 +14,12 @@ public class TextReaderWriter extends AbsTextReaderWriter {
         super(file);
     }
 
-    public boolean readLines(@NonNull ReadListener callback) {
+    public boolean readLines(@Nullable ReadListener callback) {
         return super.readLines(callback);
     }
 
     @Override
-    public void writeLines(List<String> lines, boolean append, @NonNull WriteListener callback) {
+    public void writeLines(List<String> lines, boolean append, @Nullable WriteListener callback) {
         super.writeLines(lines, append, callback);
     }
 }

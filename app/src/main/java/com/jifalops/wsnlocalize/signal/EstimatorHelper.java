@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- *
+ * @deprecated
  */
 public class EstimatorHelper {
     static final String TAG = EstimatorHelper.class.getSimpleName();

@@ -1,6 +1,6 @@
 package com.jifalops.wsnlocalize.toolbox.file;
 
-import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +16,7 @@ public class NumberReaderWriter extends AbsTextReaderWriter {
         super(file);
     }
 
-    public boolean readNumbers(@NonNull final TypedReadListener<double[]> callback) {
+    public boolean readNumbers(@Nullable final TypedReadListener<double[]> callback) {
         return readLines(new ReadListener() {
             @Override
             public void onReadSucceeded(List<String> lines) {
@@ -39,17 +39,17 @@ public class NumberReaderWriter extends AbsTextReaderWriter {
                         numbers.add(nums);
                     }
                 }
-                callback.onReadSucceeded(numbers, numExceptions);
+                if (callback != null) callback.onReadSucceeded(numbers, numExceptions);
             }
 
             @Override
             public void onReadFailed(IOException e) {
-                callback.onReadFailed(e);
+                if (callback != null) callback.onReadFailed(e);
             }
         });
     }
 
-    public void writeNumbers(@NonNull List<double[]> numbers, boolean append, @NonNull WriteListener callback) {
+    public void writeNumbers(List<double[]> numbers, boolean append, @Nullable WriteListener callback) {
         List<String> lines = new ArrayList<>();
         StringBuilder sb;
         int cols = numbers.get(0).length;

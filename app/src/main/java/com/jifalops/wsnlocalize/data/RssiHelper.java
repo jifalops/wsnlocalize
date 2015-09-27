@@ -1,11 +1,8 @@
-package com.jifalops.wsnlocalize.signal;
+package com.jifalops.wsnlocalize.data;
 
-import android.support.annotation.Nullable;
 import android.util.Log;
 
 import com.jifalops.wsnlocalize.App;
-import com.jifalops.wsnlocalize.data.Rssi;
-import com.jifalops.wsnlocalize.data.RssiList;
 import com.jifalops.wsnlocalize.file.RssiReaderWriter;
 import com.jifalops.wsnlocalize.toolbox.file.AbsTextReaderWriter;
 
@@ -18,8 +15,10 @@ import java.util.List;
 public class RssiHelper {
     static final String TAG = RssiHelper.class.getSimpleName();
 
-    public interface RssiCallback {
-        void onRssiLoaded();
+    private static RssiHelper instance;
+    public static RssiHelper getInstance() {
+        if (instance == null) instance = new RssiHelper();
+        return instance;
     }
 
     final RssiList
@@ -29,15 +28,12 @@ public class RssiHelper {
             wifi5g = new RssiList();
     final RssiReaderWriter btRW, btleRW, wifiRW, wifi5gRW;
     boolean allLoaded, btLoaded, btleLoaded, wifiLoaded, wifi5gLoaded;
-    RssiCallback callback;
 
-    public RssiHelper(@Nullable RssiCallback onLoadFinished) {
-        callback = onLoadFinished;
-
-        btRW = new RssiReaderWriter(App.getFile(App.SIGNAL_BT, App.DATA_RSSI));
-        btleRW = new RssiReaderWriter(App.getFile(App.SIGNAL_BTLE, App.DATA_RSSI));
-        wifiRW = new RssiReaderWriter(App.getFile(App.SIGNAL_WIFI, App.DATA_RSSI));
-        wifi5gRW = new RssiReaderWriter(App.getFile(App.SIGNAL_WIFI5G, App.DATA_RSSI));
+    private RssiHelper() {
+        btRW = new RssiReaderWriter(App.Files.getRssiFile(App.SIGNAL_BT));
+        btleRW = new RssiReaderWriter(App.Files.getRssiFile(App.SIGNAL_BTLE));
+        wifiRW = new RssiReaderWriter(App.Files.getRssiFile(App.SIGNAL_WIFI));
+        wifi5gRW = new RssiReaderWriter(App.Files.getRssiFile(App.SIGNAL_WIFI5G));
 
         if (!btRW.readRssi(new AbsTextReaderWriter.TypedReadListener<Rssi>() {
             @Override
@@ -113,7 +109,7 @@ public class RssiHelper {
     private void checkIfAllLoaded() {
         if (btLoaded && btleLoaded && wifiLoaded && wifi5gLoaded) {
             allLoaded = true;
-            if (callback != null) callback.onRssiLoaded();
+//            if (callback != null) callback.onRssiLoaded();
         }
     }
 

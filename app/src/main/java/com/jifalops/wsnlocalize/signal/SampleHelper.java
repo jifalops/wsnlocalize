@@ -12,7 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- *
+ * @deprecated
  */
 public class SampleHelper {
     static final String TAG = SampleHelper.class.getSimpleName();

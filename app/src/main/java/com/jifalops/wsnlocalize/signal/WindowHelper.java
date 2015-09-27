@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- *
+ * @deprecated
  */
 public class WindowHelper {
     static final String TAG = WindowHelper.class.getSimpleName();

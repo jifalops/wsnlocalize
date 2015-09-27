@@ -1,10 +1,8 @@
 package com.jifalops.wsnlocalize;
 
 import android.app.Activity;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -13,8 +11,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jifalops.wsnlocalize.data.WindowRecord;
-import com.jifalops.wsnlocalize.signal.SampleHelper;
+import com.jifalops.wsnlocalize.data.Sample;
+import com.jifalops.wsnlocalize.data.SampleList;
+import com.jifalops.wsnlocalize.data.SamplesHelper;
 import com.jifalops.wsnlocalize.toolbox.util.Arrays;
 import com.jifalops.wsnlocalize.toolbox.util.Stats;
 
@@ -26,41 +25,46 @@ import java.util.TreeMap;
 /**
  *
  */
-public class SampleViewerActivity extends Activity {
-    static final String TAG = SampleViewerActivity.class.getSimpleName();
-    static final int ALL = 0, WIFI = 1, WIFI5G = 2, BT = 3, BTLE = 4;
-    static final String[] GROUPS = new String[] {
-            "All", "WiFi 2.4GHz", "WiFi 5GHz", "Bluetooth", "Bluetooth LE"};
+public class SampleDetailViewerActivity extends Activity {
+    static final String TAG = SampleDetailViewerActivity.class.getSimpleName();
+//    static final int ALL = 0, WIFI = 1, WIFI5G = 2, BT = 3, BTLE = 4;
+//    static final String[] GROUPS = new String[] {
+//            "All", "WiFi 2.4GHz", "WiFi 5GHz", "Bluetooth", "Bluetooth LE"};
 
 //    final List<double[]> bt = new ArrayList<>(), btle = new ArrayList<>(),
 //            wifi = new ArrayList<>(), wifi5g = new ArrayList<>();
 
+    static final String EXTRA_SAMPLELIST_INDEX = "samplelist_index";
+
     GridLayout summary;
     ListView distSummariesView, samplesView;
-    SampleHelper helper;
+    SamplesHelper info;
+//    SampleHelper helper;
 
-    SharedPreferences prefs;
-    int group = ALL;
+//    SharedPreferences prefs;
+//    int group = ALL;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_samplesview);
+        setContentView(R.layout.activity_samples_detail);
 
         summary = (GridLayout) findViewById(R.id.overallSummary);
         distSummariesView = (ListView) findViewById(R.id.distanceSummary);
         samplesView = (ListView) findViewById(R.id.samples);
 
-        prefs = getSharedPreferences(TAG, MODE_PRIVATE);
-        group = prefs.getInt("group", group);
+//        prefs = getSharedPreferences(TAG, MODE_PRIVATE);
+//        group = prefs.getInt("group", group);
 
-        helper = new SampleHelper(new SampleHelper.SamplesCallback() {
-            @Override
-            public void onSamplesLoaded() {
-                showSamples();
-            }
-        });
-
+//        helper = new SampleHelper(new SampleHelper.SamplesCallback() {
+//            @Override
+//            public void onSamplesLoaded() {
+//                showSamples();
+//            }
+//        });
+        info = App.getSamplesInfo().get(
+                getIntent().getExtras().getInt(EXTRA_SAMPLELIST_INDEX, 0));
+        showSamples();
     }
 
     @Override
@@ -71,80 +75,33 @@ public class SampleViewerActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
-        prefs.edit().putInt("group", group).apply();
+//        prefs.edit().putInt("group", group).apply();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_sampleviewer, menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
 
         return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.sampleAll:
-                group = ALL;
-                break;
-            case R.id.sampleWifi:
-                group = WIFI;
-                break;
-            case R.id.sampleWifi5g:
-                group = WIFI5G;
-                break;
-            case R.id.sampleBt:
-                group = BT;
-                break;
-            case R.id.sampleBtle:
-                group = BTLE;
-                break;
-        }
-        showSamples();
-        return super.onOptionsItemSelected(item);
-    }
+
 
     void showSamples() {
-        final List<double[]> samples = new ArrayList<>();
-        String title;
-        switch (group) {
-            case WIFI:
-                samples.addAll(helper.getWifi());
-                title = GROUPS[WIFI];
-                break;
-            case WIFI5G:
-                samples.addAll(helper.getWifi5g());
-                title = GROUPS[WIFI5G];
-                break;
-            case BT:
-                samples.addAll(helper.getBt());
-                title = GROUPS[BT];
-                break;
-            case BTLE:
-                samples.addAll(helper.getBtle());
-                title = GROUPS[BTLE];
-                break;
-            default:
-                title = GROUPS[ALL];
-                samples.addAll(helper.getAll());
-        }
-
-        if (samples.size() == 0) {
+        if (info == null) {
             Toast.makeText(this, "No samples to show", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        setTitle(title + " Samples");
+        fillSampleView(summary, new SamplesSummary(info.samples));
 
-        fillSampleView(summary, new SamplesSummary(samples));
-
-        final List<SamplesSummary> distanceSummaries = makeDistanceSummaries(samples);
+        final List<SamplesSummary> distanceSummaries = makeDistanceSummaries(info.samples);
         distSummariesView.setAdapter(new ArrayAdapter<SamplesSummary>(this,
-                R.layout.listitem_sample, distanceSummaries) {
+                R.layout.listitem_sample_detail, distanceSummaries) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 if (convertView == null) {
-                    convertView = getLayoutInflater().inflate(R.layout.listitem_sample, parent, false);
+                    convertView = getLayoutInflater().inflate(R.layout.listitem_sample_detail, parent, false);
                 }
                 fillSampleView(convertView, distanceSummaries.get(position));
                 return convertView;
@@ -152,13 +109,13 @@ public class SampleViewerActivity extends Activity {
         });
 
 
-        samplesView.setAdapter(new ArrayAdapter<double[]>(this, R.layout.listitem_sample, samples) {
+        samplesView.setAdapter(new ArrayAdapter<Sample>(this, R.layout.listitem_sample_detail, info.samples) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 if (convertView == null) {
-                    convertView = getLayoutInflater().inflate(R.layout.listitem_sample, parent, false);
+                    convertView = getLayoutInflater().inflate(R.layout.listitem_sample_detail, parent, false);
                 }
-                fillSampleView(convertView, samples.get(position));
+                fillSampleView(convertView, info.samples.get(position).toArray());
                 return convertView;
             }
         });
@@ -270,9 +227,9 @@ public class SampleViewerActivity extends Activity {
         final double dist, avgrssicount, avgdevices,
                 rmean, rmedian, rstddev, millis, tmean, tmedian, tstddev;
         final int count, rmin, rmax, rrange, tmin, tmax, trange;
-        SamplesSummary(List<double[]> samples) {
+        SamplesSummary(SampleList samples) {
             count = samples.size();
-            double[][] cols = Arrays.transpose(samples.toArray(new double[count][]));
+            double[][] cols = Arrays.transpose(samples.toDoubleArray());
             avgrssicount = Stats.mean(cols[0]);
             rmin = (int) Stats.min(cols[1]);
             rmax = (int) Stats.max(cols[2]);
@@ -293,23 +250,11 @@ public class SampleViewerActivity extends Activity {
     }
 
 
-    List<SamplesSummary> makeDistanceSummaries(List<double[]> samples) {
-        TreeMap<Double, List<double[]>> distances = new TreeMap<>();
-        List<SamplesSummary> summaries;
-        List<double[]> list;
-        double dist;
-        for (double[] sample : samples) {
-            dist = sample[WindowRecord.ACTUAL_DISTANCE_INDEX];
-            list = distances.get(dist);
-            if (list == null) {
-                list = new ArrayList<>();
-                distances.put(dist, list);
-            }
-            list.add(sample);
-        }
-        summaries = new ArrayList<>(distances.size());
-        for (List<double[]> s : distances.values()) {
-            summaries.add(new SamplesSummary(s));
+    List<SamplesSummary> makeDistanceSummaries(SampleList samples) {
+        TreeMap<Double, SampleList> map = new TreeMap<>(samples.splitByDistance());
+        List<SamplesSummary> summaries = new ArrayList<>(map.size());
+        for (SampleList list : map.values()) {
+            summaries.add(new SamplesSummary(list));
         }
         return summaries;
     }

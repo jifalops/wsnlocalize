@@ -17,4 +17,12 @@ public class Lists {
         return strings;
     }
 
+    public static int[] toPrimitive(Integer[] ints) {
+        int len = ints.length;
+        int[] a = new int[len];
+        for (int i = 0; i < len; ++i) {
+            a[i] = ints[i];
+        }
+        return a;
+    }
 }

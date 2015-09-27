@@ -100,14 +100,14 @@ public class SampleTrainer {
     }
 
     public void clearPendingSendLists() {
-        estimatorHelper.btRW.truncate();
-        estimatorHelper.btleRW.truncate();
-        estimatorHelper.wifiRW.truncate();
-        estimatorHelper.wifi5gRW.truncate();
+        estimatorHelper.btRW.truncate(null);
+        estimatorHelper.btleRW.truncate(null);
+        estimatorHelper.wifiRW.truncate(null);
+        estimatorHelper.wifi5gRW.truncate(null);
     }
 
     public void clearEstimators() {
-        bestEstimatorHelper.btRW.truncate();
+        bestEstimatorHelper.btRW.truncate(null);
         bestEstimatorHelper.btleRW.truncate();
         bestEstimatorHelper.wifiRW.truncate();
         bestEstimatorHelper.wifi5gRW.truncate();

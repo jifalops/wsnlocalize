@@ -107,7 +107,7 @@ public class DistanceEstimationActivity extends Activity {
         return String.format(Locale.US, "%+.1f (%+.1f)", e.mean - p.mean, e.median - p.median);
     }
 
-    static class Holder {
+    private static class Holder {
         TextView name, signal, mac,
                 nnEstimate, nnChange,
                 f1Estimate, f1Change,

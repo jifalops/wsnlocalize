@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
+    android:columnCount="5">
+    <CheckBox
+        android:id="@+id/checkbox"
+        android:layout_rowSpan="4"
+        android:layout_gravity="center" />
+    <TextView
+        android:text="Signal"
+        android:layout_columnWeight="1"
+        android:layout_gravity="center_horizontal"/>
+    <TextView
+        android:text="RSSI"
+        android:layout_columnWeight="1"
+        android:layout_gravity="center_horizontal"/>
+    <TextView
+        android:text="Samples"
+        android:layout_columnWeight="1"
+        android:layout_gravity="center_horizontal"/>
+    <TextView
+        android:text="Distances"
+        android:layout_columnWeight="1"
+        android:layout_gravity="center_horizontal"/>
+    <TextView
+        android:id="@+id/signal"
+        android:text="x"
+        android:layout_gravity="center_horizontal"/>
+    <TextView
+        android:id="@+id/rssi"
+        android:text="0"
+        android:layout_gravity="center_horizontal"/>
+    <TextView
+        android:id="@+id/samples"
+        android:text="0"
+        android:layout_gravity="center_horizontal"/>
+    <TextView
+        android:id="@+id/distances"
+        android:text="0"
+        android:layout_gravity="center_horizontal"/>
+    
+    <TextView
+        android:text="Min Count"
+        android:textSize="10sp"
+        android:layout_gravity="center_horizontal"/>
+    <TextView
+        android:text="Min Time"
+        android:textSize="10sp"
+        android:layout_gravity="center_horizontal"/>
+    <TextView
+        android:text="Max Count"
+        android:textSize="10sp"
+        android:layout_gravity="center_horizontal"/>
+    <TextView
+        android:text="Max Time"
+        android:textSize="10sp"
+        android:layout_gravity="center_horizontal"/>
+    <TextView
+        android:id="@+id/minCount"
+        android:text="0"
+        android:textSize="10sp"
+        android:layout_gravity="center_horizontal"/>
+    <TextView
+        android:id="@+id/minTime"
+        android:text="0"
+        android:textSize="10sp"
+        android:layout_gravity="center_horizontal"/>
+    <TextView
+        android:id="@+id/maxCount"
+        android:text="0"
+        android:textSize="10sp"
+        android:layout_gravity="center_horizontal"/>
+    <TextView
+        android:id="@+id/maxTime"
+        android:text="0"
+        android:textSize="10sp"
+        android:layout_gravity="center_horizontal"/>
+</GridLayout>

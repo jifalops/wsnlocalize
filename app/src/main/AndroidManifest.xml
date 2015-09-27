@@ -52,8 +52,8 @@
             android:screenOrientation="portrait"
             android:launchMode="singleTask" />
         <activity
-            android:name=".SampleViewerActivity"
-            android:label="@string/activity_sampleviewer" />
+            android:name=".SampleDetailViewerActivity"
+            android:label="Sample Details" />
         <activity
             android:name=".EstimatorTrainingActivity"
             android:label="Estimator Training"
@@ -70,6 +70,9 @@
         <activity
             android:name=".SampleCreatorActivity"
             android:label="Create samples" />
+        <activity
+            android:name=".SampleOverviewActivity"
+            android:label="Sample Lists Overview" />
     </application>
 
 </manifest>

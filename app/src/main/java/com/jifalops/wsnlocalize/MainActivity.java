@@ -25,9 +25,9 @@ public class MainActivity extends Activity {
                 RssiSamplingActivity.class);
         addToLayout("Create samples", "from raw data using limits",
                 SampleCreatorActivity.class);
-        addToLayout("View samples", SampleViewerActivity.class);
-        addToLayout("Train estimators", "Using neural networks and the current set of samples",
-                EstimatorTrainingActivity.class);
+        addToLayout("View saved sample lists", SampleOverviewActivity.class);
+//        addToLayout("Train estimators", "Using neural networks and the current set of samples",
+//                EstimatorTrainingActivity.class);
         addToLayout("View estimators", EstimatorViewerActivity.class);
         addToLayout("Estimate distances", "Use the best training results",
                 DistanceEstimationActivity.class);

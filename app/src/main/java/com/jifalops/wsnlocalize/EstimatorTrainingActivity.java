@@ -15,7 +15,7 @@ import android.widget.CompoundButton;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.jifalops.wsnlocalize.signal.RssiSampler;
+import com.jifalops.wsnlocalize.signal.RssiCollector;
 import com.jifalops.wsnlocalize.signal.SampleTrainer;
 import com.jifalops.wsnlocalize.toolbox.ServiceThreadApplication;
 import com.jifalops.wsnlocalize.toolbox.util.SimpleLog;
@@ -28,6 +28,7 @@ import java.util.List;
 public class EstimatorTrainingActivity extends Activity {
     static final String TAG = EstimatorTrainingActivity.class.getSimpleName();
     static final String CONTROLLER = EstimatorTrainingActivity.class.getName() + ".controller";
+    static final String EXTRA_SAMPLEINFO_INDEXES = "sampleinfo_indexes";
 
     TextView eventLogView,
             btEstimatorCountView, btleEstimatorCountView,
@@ -39,6 +40,8 @@ public class EstimatorTrainingActivity extends Activity {
 
     ServiceThreadApplication.LocalService service;
     SampleTrainer sampleTrainer;
+
+
 
     SharedPreferences prefs;
 
@@ -59,7 +62,7 @@ public class EstimatorTrainingActivity extends Activity {
         autoScroll((ScrollView) findViewById(R.id.eventScrollView), eventLogView);
 
         prefs = getSharedPreferences(TAG, MODE_PRIVATE);
-        logLevel = prefs.getInt("logLevel", RssiSampler.LOG_INFORMATIVE);
+        logLevel = prefs.getInt("logLevel", RssiCollector.LOG_INFORMATIVE);
 
         sampleTrainer = SampleTrainer.getInstance();
 
@@ -117,11 +120,11 @@ public class EstimatorTrainingActivity extends Activity {
 //        SubMenu sub = menu.getItem(0);
         menu.findItem(R.id.action_persist).setChecked(service != null && service.isPersistent());
         menu.findItem(R.id.logImportant).setChecked(
-                logLevel == RssiSampler.LOG_IMPORTANT);
+                logLevel == RssiCollector.LOG_IMPORTANT);
         menu.findItem(R.id.logInformative).setChecked(
-                logLevel == RssiSampler.LOG_INFORMATIVE);
+                logLevel == RssiCollector.LOG_INFORMATIVE);
         menu.findItem(R.id.logAll).setChecked(
-                logLevel == RssiSampler.LOG_ALL);
+                logLevel == RssiCollector.LOG_ALL);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -161,13 +164,13 @@ public class EstimatorTrainingActivity extends Activity {
                     }).show();
                 return true;
             case R.id.logImportant:
-                logLevel = RssiSampler.LOG_IMPORTANT;
+                logLevel = RssiCollector.LOG_IMPORTANT;
                 return true;
             case R.id.logInformative:
-                logLevel = RssiSampler.LOG_INFORMATIVE;
+                logLevel = RssiCollector.LOG_INFORMATIVE;
                 return true;
             case R.id.logAll:
-                logLevel = RssiSampler.LOG_ALL;
+                logLevel = RssiCollector.LOG_ALL;
                 return true;
         }
         return super.onOptionsItemSelected(item);

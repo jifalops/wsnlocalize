@@ -101,6 +101,12 @@ public class Sample {
         elapsed = new Elapsed(csv);
     }
 
+    public Sample(double[] a) {
+        rss = new Rss((int)a[0], (int)a[1], (int)a[2], (int)a[3], a[4], a[5], a[6]);
+        elapsed = new Elapsed((long)a[7], (int)a[8], (int)a[9], (int)a[10], a[11], a[12], a[13]);
+        distance = a[14];
+    }
+
     @Override
     public String toString() {
         return rss.toString() +","+ elapsed.toString()
@@ -117,29 +123,4 @@ public class Sample {
         };
     }
 
-    /**
-     * {@link Window} has minimum and maximum counts and times.
-     * {@link #reached} can be used to check if both minimums ({@link #minCount}, {@link #minTime}),
-     * or either maximum ({@link #maxCount}, {@link #maxTime}) have been reached.
-     */
-    public static class Window {
-        public final int minCount, maxCount;
-        public final long minTime, maxTime;
-
-        public Window(int minCount, long minTimeMillis, int maxCount, long maxTimeMillis) {
-            this.minCount = minCount;
-            this.minTime = minTimeMillis;
-            this.maxCount = maxCount;
-            this.maxTime = maxTimeMillis;
-        }
-
-        /**
-         * @return true if both minimums have been met, or either maximum has been met.
-         */
-        public boolean reached(int count, long time) {
-            return (count >= minCount && time >= minTime)
-                    || count >= maxCount
-                    || time >= maxTime;
-        }
-    }
 }

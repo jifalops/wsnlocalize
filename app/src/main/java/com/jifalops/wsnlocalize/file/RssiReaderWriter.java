@@ -1,5 +1,7 @@
 package com.jifalops.wsnlocalize.file;
 
+import android.support.annotation.Nullable;
+
 import com.jifalops.wsnlocalize.data.Rssi;
 import com.jifalops.wsnlocalize.toolbox.file.AbsTextReaderWriter;
 import com.jifalops.wsnlocalize.toolbox.util.Lists;
@@ -18,7 +20,7 @@ public class RssiReaderWriter extends AbsTextReaderWriter {
         super(file);
     }
 
-    public boolean readRssi(final TypedReadListener<Rssi> callback) {
+    public boolean readRssi(@Nullable final TypedReadListener<Rssi> callback) {
         return readLines(new ReadListener() {
             @Override
             public void onReadSucceeded(List<String> lines) {
@@ -31,17 +33,17 @@ public class RssiReaderWriter extends AbsTextReaderWriter {
                         ++exceptions;
                     }
                 }
-                callback.onReadSucceeded(records, exceptions);
+                if (callback != null) callback.onReadSucceeded(records, exceptions);
             }
 
             @Override
             public void onReadFailed(IOException e) {
-                callback.onReadFailed(e);
+                if (callback != null) callback.onReadFailed(e);
             }
         });
     }
 
-    public void writeRecords(List<Rssi> records, boolean append, WriteListener callback) {
+    public void writeRecords(List<Rssi> records, boolean append, @Nullable WriteListener callback) {
         writeLines(Lists.toString(records), append, callback);
     }
 }

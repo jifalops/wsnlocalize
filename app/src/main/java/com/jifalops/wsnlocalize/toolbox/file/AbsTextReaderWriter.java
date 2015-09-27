@@ -4,6 +4,8 @@ import android.os.AsyncTask;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
+import com.jifalops.wsnlocalize.App;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -52,7 +54,7 @@ public abstract class AbsTextReaderWriter {
      * Read all lines from the file in a temporary thread.
      * @return true if a read is attempted (file exists).
      */
-    protected boolean readLines(@NonNull final ReadListener callback) {
+    protected boolean readLines(@Nullable final ReadListener callback) {
         if (file.exists()) {
             new AsyncTask<Void, Void, List<String>>() {
                 IOException ioe = null;
@@ -71,6 +73,7 @@ public abstract class AbsTextReaderWriter {
                             // ignored
                         } catch (IOException e) {
                             ioe = e;
+                            App.log().e("readLines error: " + e.getMessage());
                         } finally {
                             try {
                                 if (r != null) r.close();
@@ -84,10 +87,12 @@ public abstract class AbsTextReaderWriter {
 
                 @Override
                 protected void onPostExecute(List<String> lines) {
-                    if (ioe != null) {
-                        callback.onReadFailed(ioe);
-                    } else {
-                        callback.onReadSucceeded(lines);
+                    if (callback != null) {
+                        if (ioe != null) {
+                            callback.onReadFailed(ioe);
+                        } else {
+                            callback.onReadSucceeded(lines);
+                        }
                     }
                 }
             }.execute();
@@ -100,7 +105,7 @@ public abstract class AbsTextReaderWriter {
      * Write several lines to the file in a temporary thread.
      */
     protected void writeLines(final List<String> lines, final boolean append,
-                           @NonNull final WriteListener callback) {
+                           @Nullable final WriteListener callback) {
         new AsyncTask<Void, Void, Integer>() {
             IOException ioe = null;
             @Override
@@ -120,6 +125,7 @@ public abstract class AbsTextReaderWriter {
                         // ignored
                     } catch (IOException e) {
                         ioe = e;
+                        App.log().e("writeLines error: " + e.getMessage());
                     } finally {
                         try {
                             if (w != null) w.close();
@@ -133,10 +139,12 @@ public abstract class AbsTextReaderWriter {
 
             @Override
             protected void onPostExecute(Integer count) {
-                if (ioe == null) {
-                    callback.onWriteSucceed(count);
-                } else {
-                    callback.onWriteFailed(ioe);
+                if (callback != null) {
+                    if (ioe == null) {
+                        callback.onWriteSucceed(count);
+                    } else {
+                        callback.onWriteFailed(ioe);
+                    }
                 }
             }
         }.execute();
@@ -173,8 +181,9 @@ public abstract class AbsTextReaderWriter {
     }
 
     /** Note: {@link IOException}s are not propagated. */
-    public void truncate() {
+    public void truncate(@Nullable final WriteListener callback) {
         new AsyncTask<Void, Void, Void>() {
+            IOException ioe;
             @Override
             protected Void doInBackground(Void... params) {
                 BufferedWriter w = null;
@@ -183,15 +192,27 @@ public abstract class AbsTextReaderWriter {
                 } catch (FileNotFoundException e) {
                     // ignored
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    ioe = e;
+                    App.log().e("truncate error: " + e.getMessage());
                 } finally {
                     try {
                         if (w != null) w.close();
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        ioe = e;
                     }
                 }
                 return null;
+            }
+
+            @Override
+            protected void onPostExecute(Void aVoid) {
+                if (callback != null) {
+                    if (ioe == null) {
+                        callback.onWriteSucceed(0);
+                    } else {
+                        callback.onWriteFailed(ioe);
+                    }
+                }
             }
         }.execute();
     }

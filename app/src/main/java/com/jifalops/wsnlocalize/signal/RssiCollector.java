@@ -11,6 +11,7 @@ import com.jifalops.wsnlocalize.App;
 import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
 import com.jifalops.wsnlocalize.data.Rssi;
+import com.jifalops.wsnlocalize.data.RssiHelper;
 import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.file.RssiReaderWriter;
 import com.jifalops.wsnlocalize.file.WindowReaderWriter;
@@ -31,7 +32,7 @@ import java.util.Locale;
 /**
  *
  */
-public class RssiSampler {
+public class RssiCollector {
     public static final int LOG_IMPORTANT = 3;
     public static final int LOG_INFORMATIVE = 2;
     public static final int LOG_ALL = 1;
@@ -39,7 +40,7 @@ public class RssiSampler {
     public static class Device {
         public final int id;
         public final String mac, desc;
-        public boolean isDistanceKnown;
+        public double distance;
         public Device(int id, String mac, String desc) {
             this.id = id;
             this.mac = mac;
@@ -51,15 +52,12 @@ public class RssiSampler {
         }
     }
 
-    ResettingList<Rssi> bt, btle, wifi, wifi5g;
+    List<Rssi> bt, btle, wifi, wifi5g;
     RssiHelper rssiHelper;
-    WindowHelper windowHelper;
-    SampleHelper sampleHelper;
     boolean rssiLoaded, windowsLoaded, samplesLoaded,
             collectEnabled, shouldUseBt, shouldUseBtle, shouldUseWifi, shouldUseWifi5g;
 
     final List<Device> devices = new ArrayList<>();
-    double distance;
 
     final SimpleLog log = new SimpleLog();
 
@@ -67,12 +65,12 @@ public class RssiSampler {
     BtLeBeacon btleBeacon;
     WifiScanner wifiScanner;
 
-    private static RssiSampler instance;
-    public static RssiSampler getInstance(Context ctx) {
-        if (instance == null) instance = new RssiSampler(ctx.getApplicationContext());
+    private static RssiCollector instance;
+    public static RssiCollector getInstance(Context ctx) {
+        if (instance == null) instance = new RssiCollector(ctx.getApplicationContext());
         return instance;
     }
-    private RssiSampler(Context ctx) {
+    private RssiCollector(Context ctx) {
         btBeacon = BtBeacon.getInstance(ctx);
         btleBeacon = BtLeBeacon.getInstance(ctx);
         wifiScanner = new WifiScanner(ctx);

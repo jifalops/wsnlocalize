@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:orientation="vertical">
+    <GridLayout
+        android:columnCount="6"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <Space android:layout_columnWeight="1"/>
+        <TextView android:text="BT"
+            android:layout_columnWeight="1"
+            android:layout_gravity="center_horizontal"/>
+        <TextView android:text="BTLE"
+            android:layout_columnWeight="1"
+            android:layout_gravity="center_horizontal"/>
+        <TextView android:text="WIFI"
+            android:layout_columnWeight="1"
+            android:layout_gravity="center_horizontal"/>
+        <TextView android:text="WIFI5G"
+            android:layout_columnWeight="1"
+            android:layout_gravity="center_horizontal"/>
+        <TextView android:text="Total"
+            android:layout_columnWeight="1"
+            android:layout_gravity="center_horizontal"/>
+        
+        <TextView
+            android:text="Total RSSI"/>
+        <TextView android:id="@+id/btRssi"
+            android:layout_gravity="center_horizontal"
+            android:text="0"/>
+        <TextView android:id="@+id/btleRssi"
+            android:layout_gravity="center_horizontal"
+            android:text="0"/>
+        <TextView android:id="@+id/wifiRssi"
+            android:layout_gravity="center_horizontal"
+            android:text="0"/>
+        <TextView android:id="@+id/wifi5gRssi"
+            android:layout_gravity="center_horizontal"
+            android:text="0"/>
+        <TextView android:id="@+id/totalRssi"
+            android:layout_gravity="center_horizontal"
+            android:text="0"/>
+
+        <TextView
+            android:text="Sample Lists"/>
+        <TextView android:id="@+id/btSamples"
+            android:layout_gravity="center_horizontal"
+            android:text="0"/>
+        <TextView android:id="@+id/btleSamples"
+            android:layout_gravity="center_horizontal"
+            android:text="0"/>
+        <TextView android:id="@+id/wifiSamples"
+            android:layout_gravity="center_horizontal"
+            android:text="0"/>
+        <TextView android:id="@+id/wifi5gSamples"
+            android:layout_gravity="center_horizontal"
+            android:text="0"/>
+        <TextView android:id="@+id/totalSamples"
+            android:layout_gravity="center_horizontal"
+            android:text="0"/>
+    </GridLayout>
+    <ListView
+        android:id="@+id/samplesList"
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_weight="1"/>
+    <Button
+        android:id="@+id/trainButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:visibility="gone"
+        android:text="Train using selected samples"/>
+</LinearLayout>

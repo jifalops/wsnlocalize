@@ -7,59 +7,30 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_columnWeight="1"
-        android:textAppearance="?android:textAppearanceMedium"
         android:text="Name"
         android:id="@+id/name"/>
+    <TextView android:text="Distance (m)"
+        android:layout_gravity="center_horizontal"
+        android:layout_columnWeight="1"/>
+    <TextView android:text="Estimated (m)"
+        android:layout_gravity="center_horizontal"
+        android:layout_columnWeight="1"/>
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:textAppearanceSmall"
         android:text="wifi5g"
-        android:layout_columnWeight="1"
         android:id="@+id/signal"/>
+    <EditText android:id="@+id/actualDistance"
+        android:hint="0.0"
+        android:inputType="numberDecimal"
+        android:layout_gravity="center_horizontal"/>
+    <TextView android:id="@+id/estimatedDistance"
+        android:text="0.0"
+        android:layout_gravity="center_horizontal"/>
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:textAppearanceSmall"
         android:text="00:00:00:00:00:00"
         android:id="@+id/mac"/>
-    <TextView android:text="Neural Net"/>
-    <TextView android:text="Formula 1"/>
-    <TextView android:text="Log Curve"/>
+    <Space />
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:textAppearanceMedium"
-        android:text="0m"
-        android:id="@+id/nnEstimate"/>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:textAppearanceMedium"
-        android:text="0m"
-        android:id="@+id/f1Estimate"/>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:textAppearanceMedium"
-        android:text="0m"
-        android:id="@+id/logEstimate"/>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:textAppearanceSmall"
         android:text="+0m"
-        android:id="@+id/nnChange"/>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:textAppearanceSmall"
-        android:text="+0m"
-        android:id="@+id/f1Change"/>
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:textAppearanceSmall"
-        android:text="+0m"
-        android:id="@+id/logChange"/>
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/estimateChange"/>
 </GridLayout>

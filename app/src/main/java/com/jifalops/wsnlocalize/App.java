@@ -15,12 +15,14 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.Volley;
+import com.jifalops.wsnlocalize.data.EstimatorsHelper;
+import com.jifalops.wsnlocalize.data.RssiHelper;
+import com.jifalops.wsnlocalize.data.SamplesHelper;
 import com.jifalops.wsnlocalize.request.AbsRequest;
 import com.jifalops.wsnlocalize.request.MacRequest;
-import com.jifalops.wsnlocalize.signal.RssiHelper;
 import com.jifalops.wsnlocalize.toolbox.ServiceThreadApplication;
 import com.jifalops.wsnlocalize.toolbox.bluetooth.BtHelper;
-import com.jifalops.wsnlocalize.toolbox.util.ResettingList;
+import com.jifalops.wsnlocalize.toolbox.debug.DebugLog;
 import com.jifalops.wsnlocalize.toolbox.wifi.WifiHelper;
 
 import java.io.File;
@@ -40,17 +42,9 @@ public class App extends ServiceThreadApplication {
     public static final String SIGNAL_WIFI5G = "wifi5g";
 
     public static final String DATA_RSSI = "rssi";
-    public static final String DATA_WINDOW = "windows";
-    public static final String DATA_ESTIMATOR = "estimator";
-    public static final String DATA_BEST_ESTIMATOR = "best-estimator";
     public static final String DATA_SAMPLES = "samples";
+    public static final String DATA_ESTIMATOR = "estimator";
 
-    public static final ResettingList.Trigger btWindowTrigger   = new ResettingList.Trigger(3, 10_000, 5, 120_000);
-//    public static final ResettingList.Trigger btTrainTrigger    = new ResettingList.Trigger(2, 30_000, 10, 120_000);
-    public static final ResettingList.Trigger btleWindowTrigger = new ResettingList.Trigger(15, 5_000, 20, 30_000);
-//    public static final ResettingList.Trigger btleTrainTrigger  = new ResettingList.Trigger(3, 30_000, 10, 120_000);
-    public static final ResettingList.Trigger wifiWindowTrigger = new ResettingList.Trigger(5, 5_000, 20, 20_000);
-//    public static final ResettingList.Trigger wifiTrainTrigger  = new ResettingList.Trigger(3, 30_000, 10, 1200_000);
 
     private static App instance;
     public static App getInstance() {
@@ -61,8 +55,8 @@ public class App extends ServiceThreadApplication {
     private RequestQueue requestQueue;
 
     private String wifiMac, btMac;
-    private boolean debug;
-    private RssiHelper rssiHelper;
+
+    private DebugLog log;
 
     @Override
     public void onCreate() {
@@ -70,11 +64,16 @@ public class App extends ServiceThreadApplication {
         instance = this;
         requestQueue = Volley.newRequestQueue(this);
         prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        debug = prefs.getBoolean("debug", false);
+
 //        initWifiMac();
 //        initBtMac();
 //        tryDeviceRequest();
-        rssiHelper = new RssiHelper(null);
+        log = new DebugLog(this);
+
+        // Load data in files
+        RssiHelper.getInstance();
+        SamplesHelper.getInstance();
+        EstimatorsHelper.getInstance();
     }
 
     private void initWifiMac() {
@@ -151,29 +150,43 @@ public class App extends ServiceThreadApplication {
     }
 
 
-    public static String getFileName(String signalType, String dataType) {
-        String ext = ".csv";
-        if (DATA_ESTIMATOR.equals(dataType) || DATA_BEST_ESTIMATOR.equals(dataType)) ext = ".json";
-        return signalType + "-" + dataType + ext;
-    }
 
-    public static File getDataDir() {
-        return instance.getExternalFilesDir(null);
-    }
 
-    public static File getFile(String signalType, String dataType) {
-        return new File(getDataDir(), getFileName(signalType, dataType));
-    }
+    public static DebugLog log() { return instance.log; }
 
-    public static void showToast(CharSequence msg, boolean lengthLong) {
-        Toast.makeText(instance, msg, lengthLong ? Toast.LENGTH_LONG : Toast.LENGTH_SHORT).show();
-    }
+    /**
+     *
+     */
+    public static class Files {
+        private Files() {}
+        public static final String DIR_SAMPLES = "samples";
+        public static final String DIR_ESTIMATORS = "estimators";
+        public static final String EXT_RSSI = "csv";
+        public static final String EXT_SAMPLES = "csv";
+        public static final String EXT_ESTIMATORS = "json";
 
-    public static boolean debug() { return instance.debug; }
-    public static void setDebugMode(boolean debug) {
-        instance.debug = debug;
-        instance.prefs.edit().putBoolean("debug", debug).apply();
-    }
+        public static File getDataDir() {
+            return instance.getExternalFilesDir(null);
+        }
 
-    public static RssiHelper getRssiHelper() { return instance.rssiHelper; }
+        public static File getRssiFile(String signalType) {
+            return new File(getDataDir(), signalType + "-rssi.csv");
+        }
+
+        public static File getSamplesDir() {
+            File f = new File(getDataDir(), DIR_SAMPLES);
+            if (!f.exists()) {
+                if (!f.mkdirs()) instance.log.e("failed to make samples dir.");
+            }
+            return f;
+        }
+
+        public static File getEstimatorsDir() {
+            File f = new File(getDataDir(), DIR_ESTIMATORS);
+            if (!f.exists()) {
+                if (!f.mkdirs()) instance.log.e("failed to make estimators dir.");
+            }
+            return f;
+        }
+    }
 }

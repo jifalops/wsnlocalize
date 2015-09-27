@@ -23,8 +23,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jifalops.wsnlocalize.data.Rssi;
-import com.jifalops.wsnlocalize.signal.RssiHelper;
-import com.jifalops.wsnlocalize.signal.RssiSampler;
+import com.jifalops.wsnlocalize.data.RssiHelper;
+import com.jifalops.wsnlocalize.signal.RssiCollector;
 import com.jifalops.wsnlocalize.signal.SampleHelper;
 import com.jifalops.wsnlocalize.signal.WindowHelper;
 import com.jifalops.wsnlocalize.toolbox.ServiceThreadApplication;
@@ -53,10 +53,10 @@ public class RssiSamplingActivity extends Activity {
     CheckBox btCheckBox, btleCheckBox, wifiCheckBox, wifi5gCheckBox;
 
     SharedPreferences prefs;
-    int logLevel = RssiSampler.LOG_INFORMATIVE;
+    int logLevel = RssiCollector.LOG_INFORMATIVE;
 
     ServiceThreadApplication.LocalService service;
-    RssiSampler rssiSampler;
+    RssiCollector rssiCollector;
 
 
 
@@ -103,13 +103,13 @@ public class RssiSamplingActivity extends Activity {
                     public void onClick(DialogInterface dialog, int which) {
                         deviceIdView.setText("");
                         List<Integer> deviceIds = new ArrayList<>();
-                        rssiSampler.resetKnownDistances();
+                        rssiCollector.resetKnownDistances();
                         try {
                             String[] ids = input.getText().toString().split(",");
                             int id;
                             for (String s : ids) {
                                 id = Integer.valueOf(s);
-                                RssiSampler.Device d = rssiSampler.getDevice(id - 1);
+                                RssiCollector.Device d = rssiCollector.getDevice(id - 1);
                                 if (d != null) {
                                     d.isDistanceKnown = true;
                                     deviceIds.add(d.id);
@@ -148,20 +148,20 @@ public class RssiSamplingActivity extends Activity {
             @Override
             public void afterTextChanged(Editable s) {
                 try {
-                    rssiSampler.setDistance(Double.valueOf(s.toString()));
+                    rssiCollector.setDistance(Double.valueOf(s.toString()));
                 } catch (NumberFormatException e) {
-                    distanceView.setText(rssiSampler.getDistance() + "");
+                    distanceView.setText(rssiCollector.getDistance() + "");
                 }
             }
         });
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                rssiSampler.send();
+                rssiCollector.send();
             }
         });
 
-        rssiSampler = RssiSampler.getInstance(this);
+        rssiCollector = RssiCollector.getInstance(this);
 
         prefs = getSharedPreferences(TAG, MODE_PRIVATE);
         logLevel = prefs.getInt("logLevel", logLevel);
@@ -182,9 +182,9 @@ public class RssiSamplingActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         if (service != null && !service.isPersistent()) {
-            rssiSampler.setCollectEnabled(false);
-            rssiSampler.close();
-            rssiSampler = null;
+            rssiCollector.setCollectEnabled(false);
+            rssiCollector.close();
+            rssiCollector = null;
         }
         App.getInstance().unbindLocalService(null);
     }
@@ -237,11 +237,11 @@ public class RssiSamplingActivity extends Activity {
 //        SubMenu sub = menu.getItem(0);
         menu.findItem(R.id.action_persist).setChecked(service != null && service.isPersistent());
         menu.findItem(R.id.logImportant).setChecked(
-                logLevel == RssiSampler.LOG_IMPORTANT);
+                logLevel == RssiCollector.LOG_IMPORTANT);
         menu.findItem(R.id.logInformative).setChecked(
-                logLevel == RssiSampler.LOG_INFORMATIVE);
+                logLevel == RssiCollector.LOG_INFORMATIVE);
         menu.findItem(R.id.logAll).setChecked(
-                logLevel == RssiSampler.LOG_ALL);
+                logLevel == RssiCollector.LOG_ALL);
         return super.onPrepareOptionsMenu(menu);
     }
 
@@ -265,7 +265,7 @@ public class RssiSamplingActivity extends Activity {
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            rssiSampler.clearPendingSendLists();
+                            rssiCollector.clearPendingSendLists();
                             updateSendCounts();
                         }
                     }).show();
@@ -276,7 +276,7 @@ public class RssiSamplingActivity extends Activity {
                     .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            rssiSampler.clearSamples();
+                            rssiCollector.clearSamples();
                         }
                     }).show();
                 return true;
@@ -286,20 +286,20 @@ public class RssiSamplingActivity extends Activity {
                         .setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                int count = rssiSampler.trimLongSamples();
+                                int count = rssiCollector.trimLongSamples();
                                 Toast.makeText(RssiSamplingActivity.this,
                                         "Trimmed " + count + " samples.", Toast.LENGTH_LONG).show();
                             }
                         }).show();
                 return true;
             case R.id.logImportant:
-                logLevel = RssiSampler.LOG_IMPORTANT;
+                logLevel = RssiCollector.LOG_IMPORTANT;
                 return true;
             case R.id.logInformative:
-                logLevel = RssiSampler.LOG_INFORMATIVE;
+                logLevel = RssiCollector.LOG_INFORMATIVE;
                 return true;
             case R.id.logAll:
-                logLevel = RssiSampler.LOG_ALL;
+                logLevel = RssiCollector.LOG_ALL;
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -307,7 +307,7 @@ public class RssiSamplingActivity extends Activity {
 
     void setPersistent(boolean persist) {
         if (service == null) return;
-        Object obj = persist ? rssiSampler : null;
+        Object obj = persist ? rssiCollector : null;
         service.setPersistent(persist, getClass());
         service.setCachedObject(SAMPLER, obj);
     }
@@ -326,66 +326,66 @@ public class RssiSamplingActivity extends Activity {
     void loadDevicesAndEvents() {
         deviceLogView.setText("Devices:\n");
         eventLogView.setText("Events:\n");
-        for (RssiSampler.Device d : rssiSampler.getDevices()) {
+        for (RssiCollector.Device d : rssiCollector.getDevices()) {
             deviceLogView.append(d.toString() + "\n");
         }
-        List<SimpleLog.LogItem> items =  rssiSampler.getLog().getByImportance(logLevel, true);
+        List<SimpleLog.LogItem> items =  rssiCollector.getLog().getByImportance(logLevel, true);
         for (SimpleLog.LogItem item : items) {
             eventLogView.append(item.msg + "\n");
         }
     }
 
     void setupControls() {
-        rssiSampler.setShouldUseBt(prefs.getBoolean("btEnabled", true));
-        rssiSampler.setShouldUseBtle(prefs.getBoolean("btleEnabled", true));
-        rssiSampler.setShouldUseWifi(prefs.getBoolean("wifiEnabled", true));
-        rssiSampler.setShouldUseWifi5g(prefs.getBoolean("wifi5gEnabled", true));
+        rssiCollector.setShouldUseBt(prefs.getBoolean("btEnabled", true));
+        rssiCollector.setShouldUseBtle(prefs.getBoolean("btleEnabled", true));
+        rssiCollector.setShouldUseWifi(prefs.getBoolean("wifiEnabled", true));
+        rssiCollector.setShouldUseWifi5g(prefs.getBoolean("wifi5gEnabled", true));
 
         btCheckBox.setOnCheckedChangeListener(null);
-        btCheckBox.setChecked(rssiSampler.getShouldUseBt());
+        btCheckBox.setChecked(rssiCollector.getShouldUseBt());
         btCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                rssiSampler.setShouldUseBt(isChecked);
+                rssiCollector.setShouldUseBt(isChecked);
             }
         });
         btleCheckBox.setOnCheckedChangeListener(null);
-        btleCheckBox.setChecked(rssiSampler.getShouldUseBtle());
+        btleCheckBox.setChecked(rssiCollector.getShouldUseBtle());
         btleCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                rssiSampler.setShouldUseBtle(isChecked);
+                rssiCollector.setShouldUseBtle(isChecked);
             }
         });
         wifiCheckBox.setOnCheckedChangeListener(null);
-        wifiCheckBox.setChecked(rssiSampler.getShouldUseWifi());
+        wifiCheckBox.setChecked(rssiCollector.getShouldUseWifi());
         wifiCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                rssiSampler.setShouldUseWifi(isChecked);
+                rssiCollector.setShouldUseWifi(isChecked);
             }
         });
         wifi5gCheckBox.setOnCheckedChangeListener(null);
-        wifi5gCheckBox.setChecked(rssiSampler.getShouldUseWifi5g());
+        wifi5gCheckBox.setChecked(rssiCollector.getShouldUseWifi5g());
         wifi5gCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                rssiSampler.setShouldUseWifi5g(isChecked);
+                rssiCollector.setShouldUseWifi5g(isChecked);
             }
         });
 
         collectSwitch.setOnCheckedChangeListener(null);
-        collectSwitch.setChecked(rssiSampler.getCollectEnabled());
+        collectSwitch.setChecked(rssiCollector.getCollectEnabled());
         collectSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                rssiSampler.setCollectEnabled(isChecked);
+                rssiCollector.setCollectEnabled(isChecked);
             }
         });
 
-        distanceView.setText(rssiSampler.getDistance() + "");
+        distanceView.setText(rssiCollector.getDistance() + "");
         List<Integer> ids = new ArrayList<>();
-        for (RssiSampler.Device d : rssiSampler.getDevices()) {
+        for (RssiCollector.Device d : rssiCollector.getDevices()) {
             if (d.isDistanceKnown) ids.add(d.id);
         }
         if (ids.size() > 0) deviceIdView.setText(TextUtils.join(",", ids));
@@ -394,7 +394,7 @@ public class RssiSamplingActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        rssiSampler.registerListener(samplerListener);
+        rssiCollector.registerListener(samplerListener);
         updateSendCounts();
         loadDevicesAndEvents();
         setupControls();
@@ -405,14 +405,14 @@ public class RssiSamplingActivity extends Activity {
         super.onPause();
         prefs.edit()
                 .putInt("logLevel", logLevel)
-                .putBoolean("btEnabled", rssiSampler.getShouldUseBt())
-                .putBoolean("btleEnabled", rssiSampler.getShouldUseBtle())
-                .putBoolean("wifiEnabled", rssiSampler.getShouldUseWifi())
-                .putBoolean("wifi5gEnabled", rssiSampler.getShouldUseWifi5g()).apply();
-        rssiSampler.unregisterListener(samplerListener);
+                .putBoolean("btEnabled", rssiCollector.getShouldUseBt())
+                .putBoolean("btleEnabled", rssiCollector.getShouldUseBtle())
+                .putBoolean("wifiEnabled", rssiCollector.getShouldUseWifi())
+                .putBoolean("wifi5gEnabled", rssiCollector.getShouldUseWifi5g()).apply();
+        rssiCollector.unregisterListener(samplerListener);
     }
 
-    private final RssiSampler.SamplerListener samplerListener = new RssiSampler.SamplerListener() {
+    private final RssiCollector.SamplerListener samplerListener = new RssiCollector.SamplerListener() {
         @Override
         public void onMessageLogged(int level, final String msg) {
             if (level >= logLevel) {
@@ -426,7 +426,7 @@ public class RssiSamplingActivity extends Activity {
         }
 
         @Override
-        public void onDeviceFound(RssiSampler.Device device) {
+        public void onDeviceFound(RssiCollector.Device device) {
             deviceLogView.append(device.toString() + "\n");
         }
 
@@ -437,7 +437,7 @@ public class RssiSamplingActivity extends Activity {
         }
 
         @Override
-        public void onRecordAdded(String signal, RssiSampler.Device device, Rssi r) {
+        public void onRecordAdded(String signal, RssiCollector.Device device, Rssi r) {
             updateCountView(signal, App.DATA_RSSI);
         }
 
@@ -464,7 +464,7 @@ public class RssiSamplingActivity extends Activity {
     };
 
     void updateCountView(String signal, String data) {
-        int count = rssiSampler.getCount(signal, data);
+        int count = rssiCollector.getCount(signal, data);
         TextView tv = null;
         switch (signal) {
             case App.SIGNAL_BT:

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -13,12 +14,20 @@ public class SampleList extends ArrayList<Sample> {
 
     public SampleList() {}
 
-    public SampleList(RssiList rssi, Sample.Window window) {
+    public SampleList(List<double[]> samples) {
+        for (double[] s : samples) {
+            add(new Sample(s));
+        }
+    }
+
+    public SampleList(RssiList rssi, SampleWindow window) {
         Map<Double, RssiList> distances = rssi.splitByDistance();
         Map<String, RssiList> macs;
         RssiList sample = new RssiList();
+        // For each distance...
         for (RssiList distList : distances.values()) {
             macs = distList.splitByMac();
+            // For each MAC...
             for (RssiList macList : macs.values()) {
                 macList.sortByTime();
                 // Here we have a chronological list of rssi that came
@@ -38,10 +47,22 @@ public class SampleList extends ArrayList<Sample> {
         }
     }
 
-    private boolean limitsReached(RssiList rssi, Sample.Window window) {
+    private boolean limitsReached(RssiList rssi, SampleWindow window) {
         int len = rssi.size();
         // stats not possible on a single rssi.
         return len >= 2 && window.reached(len, rssi.get(len - 1).time - rssi.get(0).time);
+    }
+
+    public List<double[]> toDoubleList() {
+        List<double[]> list = new ArrayList<>(size());
+        for (Sample s : this) {
+            list.add(s.toArray());
+        }
+        return list;
+    }
+
+    public double[][] toDoubleArray() {
+        return toDoubleList().toArray(new double[size()][]);
     }
 
     public void sortByDistance() {

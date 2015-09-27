@@ -11,9 +11,11 @@ import android.widget.GridLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jifalops.wsnlocalize.data.Sample;
+import com.jifalops.wsnlocalize.data.RssiHelper;
 import com.jifalops.wsnlocalize.data.SampleList;
-import com.jifalops.wsnlocalize.signal.RssiHelper;
+import com.jifalops.wsnlocalize.data.SampleListSourceInfo;
+import com.jifalops.wsnlocalize.data.SampleWindow;
+import com.jifalops.wsnlocalize.data.SamplesHelper;
 
 import java.util.Locale;
 import java.util.Map;
@@ -25,17 +27,22 @@ import java.util.TreeMap;
 public class SampleCreatorActivity extends Activity {
     static final String TAG = SampleCreatorActivity.class.getSimpleName();
 
+    private static final SampleWindow defaultBtWindow = new SampleWindow(3, 10_000, 5, 120_000);
+    private static final SampleWindow defaultBtleWindow = new SampleWindow(15, 5_000, 20, 30_000);
+    private static final SampleWindow defaultWifiWindow = new SampleWindow(5, 5_000, 20, 20_000);
+
     EditText btMinCount, btMinTime, btMaxCount, btMaxTime,
             btleMinCount, btleMinTime, btleMaxCount, btleMaxTime,
             wifiMinCount, wifiMinTime, wifiMaxCount, wifiMaxTime,
             wifi5gMinCount, wifi5gMinTime, wifi5gMaxCount, wifi5gMaxTime;
     GridLayout samplesLayout;
 
-    Sample.Window btWindow, btleWindow, wifiWindow, wifi5gWindow;
+    SampleWindow btWindow, btleWindow, wifiWindow, wifi5gWindow;
 
     SharedPreferences prefs;
 
     RssiHelper rssiHelper;
+    SamplesHelper samplesHelper;
     
     SampleList btSamples, btleSamples, wifiSamples, wifi5gSamples;
 
@@ -44,8 +51,9 @@ public class SampleCreatorActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sample_creator);
 
-        if (App.getRssiHelper().isLoaded()) {
-            rssiHelper = App.getRssiHelper();
+        samplesHelper = SamplesHelper.getInstance();
+        rssiHelper = RssiHelper.getInstance();
+        if (rssiHelper.isLoaded()) {
             ((TextView) findViewById(R.id.btRssi)).setText(rssiHelper.getBt().size() + "");
             ((TextView) findViewById(R.id.btleRssi)).setText(rssiHelper.getBtle().size() + "");
             ((TextView) findViewById(R.id.wifiRssi)).setText(rssiHelper.getWifi().size() + "");
@@ -85,51 +93,51 @@ public class SampleCreatorActivity extends Activity {
     }
     
     private void loadWindows() {
-        btWindow = new Sample.Window(
-                prefs.getInt("btMinCount", App.btWindowTrigger.minCount),
-                prefs.getLong("btMinTime", App.btWindowTrigger.minTime),
-                prefs.getInt("btMaxCount", App.btWindowTrigger.maxCount),
-                prefs.getLong("btMaxTime", App.btWindowTrigger.maxTime));
+        btWindow = new SampleWindow(
+                prefs.getInt("btMinCount", defaultBtWindow.minCount),
+                prefs.getLong("btMinTime", defaultBtWindow.minTime),
+                prefs.getInt("btMaxCount", defaultBtWindow.maxCount),
+                prefs.getLong("btMaxTime", defaultBtWindow.maxTime));
 
-        btleWindow = new Sample.Window(
-                prefs.getInt("btleMinCount", App.btleWindowTrigger.minCount),
-                prefs.getLong("btleMinTime", App.btleWindowTrigger.minTime),
-                prefs.getInt("btleMaxCount", App.btleWindowTrigger.maxCount),
-                prefs.getLong("btleMaxTime", App.btleWindowTrigger.maxTime));
+        btleWindow = new SampleWindow(
+                prefs.getInt("btleMinCount", defaultBtleWindow.minCount),
+                prefs.getLong("btleMinTime", defaultBtleWindow.minTime),
+                prefs.getInt("btleMaxCount", defaultBtleWindow.maxCount),
+                prefs.getLong("btleMaxTime", defaultBtleWindow.maxTime));
 
-        wifiWindow = new Sample.Window(
-                prefs.getInt("wifiMinCount", App.wifiWindowTrigger.minCount),
-                prefs.getLong("wifiMinTime", App.wifiWindowTrigger.minTime),
-                prefs.getInt("wifiMaxCount", App.wifiWindowTrigger.maxCount),
-                prefs.getLong("wifiMaxTime", App.wifiWindowTrigger.maxTime));
+        wifiWindow = new SampleWindow(
+                prefs.getInt("wifiMinCount", defaultWifiWindow.minCount),
+                prefs.getLong("wifiMinTime", defaultWifiWindow.minTime),
+                prefs.getInt("wifiMaxCount", defaultWifiWindow.maxCount),
+                prefs.getLong("wifiMaxTime", defaultWifiWindow.maxTime));
 
-        wifi5gWindow = new Sample.Window(
-                prefs.getInt("wifi5gMinCount", App.wifiWindowTrigger.minCount),
-                prefs.getLong("wifi5gMinTime", App.wifiWindowTrigger.minTime),
-                prefs.getInt("wifi5gMaxCount", App.wifiWindowTrigger.maxCount),
-                prefs.getLong("wifi5gMaxTime", App.wifiWindowTrigger.maxTime));
+        wifi5gWindow = new SampleWindow(
+                prefs.getInt("wifi5gMinCount", defaultWifiWindow.minCount),
+                prefs.getLong("wifi5gMinTime", defaultWifiWindow.minTime),
+                prefs.getInt("wifi5gMaxCount", defaultWifiWindow.maxCount),
+                prefs.getLong("wifi5gMaxTime", defaultWifiWindow.maxTime));
     }
 
     private void updateWindows() {
-        btWindow = new Sample.Window(
+        btWindow = new SampleWindow(
                 Integer.valueOf(btMinCount.getText().toString()),
                 Long.valueOf(btMinTime.getText().toString()),
                 Integer.valueOf(btMaxCount.getText().toString()),
                 Long.valueOf(btMaxTime.getText().toString()));
 
-        btleWindow = new Sample.Window(
+        btleWindow = new SampleWindow(
                 Integer.valueOf(btleMinCount.getText().toString()),
                 Long.valueOf(btleMinTime.getText().toString()),
                 Integer.valueOf(btleMaxCount.getText().toString()),
                 Long.valueOf(btleMaxTime.getText().toString()));
 
-        wifiWindow = new Sample.Window(
+        wifiWindow = new SampleWindow(
                 Integer.valueOf(wifiMinCount.getText().toString()),
                 Long.valueOf(wifiMinTime.getText().toString()),
                 Integer.valueOf(wifiMaxCount.getText().toString()),
                 Long.valueOf(wifiMaxTime.getText().toString()));
 
-        wifi5gWindow = new Sample.Window(
+        wifi5gWindow = new SampleWindow(
                 Integer.valueOf(wifi5gMinCount.getText().toString()),
                 Long.valueOf(wifi5gMinTime.getText().toString()),
                 Integer.valueOf(wifi5gMaxCount.getText().toString()),
@@ -281,7 +289,22 @@ public class SampleCreatorActivity extends Activity {
     }
 
     public void saveSamples(View view) {
-
+        if (btSamples != null && btSamples.size() > 0) {
+            samplesHelper.save(new SampleListSourceInfo(App.SIGNAL_BT,
+                    rssiHelper.getBt().size(), btWindow, App.Files.EXT_SAMPLES), btSamples, null);
+        }
+        if (btleSamples != null && btleSamples.size() > 0) {
+            samplesHelper.save(new SampleListSourceInfo(App.SIGNAL_BTLE,
+                    rssiHelper.getBtle().size(), btleWindow, App.Files.EXT_SAMPLES), btleSamples, null);
+        }
+        if (wifiSamples != null && wifiSamples.size() > 0) {
+            samplesHelper.save(new SampleListSourceInfo(App.SIGNAL_WIFI,
+                    rssiHelper.getWifi().size(), wifiWindow, App.Files.EXT_SAMPLES), wifiSamples, null);
+        }
+        if (wifi5gSamples != null && wifi5gSamples.size() > 0) {
+            samplesHelper.save(new SampleListSourceInfo(App.SIGNAL_WIFI5G,
+                    rssiHelper.getWifi5g().size(), wifi5gWindow, App.Files.EXT_SAMPLES), wifi5gSamples, null);
+        }
     }
 
     @Override

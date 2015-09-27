@@ -11,7 +11,7 @@
         android:background="#666" />
     <include
         android:id="@+id/overallSummary"
-        layout="@layout/listitem_sample"/>
+        layout="@layout/listitem_sample_detail"/>
     <TextView
         android:text="Summaries by Distance"
         android:onClick="onDistanceSummariesClicked"
