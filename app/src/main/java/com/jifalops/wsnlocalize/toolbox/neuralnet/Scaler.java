@@ -13,17 +13,19 @@ import java.util.List;
  */
 public class Scaler {
     // When scaled
-    final int numInputs, inputMin = -1, inputMax = 1, outputMin = 0, outputMax = 1;
+    final int numInputs, numOutputs,
+            inputMin = -1, inputMax = 1, outputMin = 0, outputMax = 1;
 
     // Before scaling
     final double[] min, max;
 
 
     /** @param data used to set the min and max for each column. */
-    public Scaler(double[][] data, int numInputs) {
-        this.numInputs = numInputs;
+    public Scaler(double[][] data, int numOutputs) {
+        this.numOutputs = numOutputs;
         int rows = data.length;
         int cols = data[0].length;
+        numInputs = cols - numOutputs;
         min = new double[cols];
         max = new double[cols];
         for (int col = 0; col < cols; ++col) {
@@ -38,10 +40,11 @@ public class Scaler {
 
     public Scaler(String jsonObject) throws JSONException {
         JSONObject json = new JSONObject(jsonObject);
-        numInputs = json.getInt("numInputs");
+        numOutputs = json.getInt("numOutputs");
         JSONArray minj = json.getJSONArray("min");
         JSONArray maxj = json.getJSONArray("max");
         int len = minj.length();
+        numInputs = len - numOutputs;
         min = new double[len];
         max = new double[len];
         for (int i = 0; i < len; ++i) {
@@ -54,7 +57,7 @@ public class Scaler {
     public String toString() {
         JSONObject json = new JSONObject();
         try {
-            json.put("numInputs", numInputs);
+            json.put("numOutputs", numOutputs);
             JSONArray minj = new JSONArray();
             JSONArray maxj = new JSONArray();
             for (int i = 0; i < min.length; ++i) {
@@ -69,8 +72,8 @@ public class Scaler {
         return json.toString();
     }
 
-    public int getNumInputs() {
-        return numInputs;
+    public int getNumOutputs() {
+        return numOutputs;
     }
 
     public int getNumColumns() {

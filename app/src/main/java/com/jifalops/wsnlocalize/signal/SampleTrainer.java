@@ -8,10 +8,10 @@ import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.file.EstimatorReaderWriter;
 import com.jifalops.wsnlocalize.request.AbsRequest;
 import com.jifalops.wsnlocalize.request.EstimatorRequest;
-import com.jifalops.wsnlocalize.toolbox.neuralnet.Estimator;
 import com.jifalops.wsnlocalize.toolbox.neuralnet.MlpWeightMetrics;
 import com.jifalops.wsnlocalize.toolbox.neuralnet.TerminationConditions;
 import com.jifalops.wsnlocalize.toolbox.neuralnet.Trainer;
+import com.jifalops.wsnlocalize.toolbox.neuralnet.TrainingResults;
 import com.jifalops.wsnlocalize.toolbox.util.SimpleLog;
 
 import java.util.ArrayList;
@@ -159,16 +159,16 @@ public class SampleTrainer {
         if (bt == null || !shouldUseBt) return;
         bt.train(new Trainer.TrainerCallbacks() {
             @Override
-            public void onTrainingComplete(Estimator estimator) {
-                DistanceEstimator de = new DistanceEstimator(estimator, DistanceEstimator.BT_MAX);
+            public void onTrainingComplete(TrainingResults trainingResults) {
+                DistanceEstimator de = new DistanceEstimator(trainingResults, DistanceEstimator.BT_MAX);
                 estimatorHelper.addBt(de);
-                if (estimator.error < DistanceEstimator.GOOD_ERROR) {
+                if (trainingResults.error < DistanceEstimator.GOOD_ERROR) {
                     bestEstimatorHelper.addBt(de);
                 }
-                addEvent(estimator.error < DistanceEstimator.GOOD_ERROR
+                addEvent(trainingResults.error < DistanceEstimator.GOOD_ERROR
                                 ? LOG_IMPORTANT : LOG_INFORMATIVE,
                         String.format(Locale.US, "BT: err %.4f mean %.4f std %.4f gen %d",
-                                estimator.error, estimator.mean, estimator.stddev, estimator.generations));
+                                trainingResults.error, trainingResults.mean, trainingResults.stddev, trainingResults.numGenerations));
                 if (shouldUseBt) trainBt();
             }
         });
@@ -178,16 +178,16 @@ public class SampleTrainer {
         if (btle == null || !shouldUseBtle) return;
         btle.train(new Trainer.TrainerCallbacks() {
             @Override
-            public void onTrainingComplete(Estimator estimator) {
-                DistanceEstimator de = new DistanceEstimator(estimator, DistanceEstimator.BT_MAX);
+            public void onTrainingComplete(TrainingResults trainingResults) {
+                DistanceEstimator de = new DistanceEstimator(trainingResults, DistanceEstimator.BT_MAX);
                 estimatorHelper.addBtle(de);
-                if (estimator.error < DistanceEstimator.GOOD_ERROR) {
+                if (trainingResults.error < DistanceEstimator.GOOD_ERROR) {
                     bestEstimatorHelper.addBtle(de);
                 }
-                addEvent(estimator.error < DistanceEstimator.GOOD_ERROR
+                addEvent(trainingResults.error < DistanceEstimator.GOOD_ERROR
                                 ? LOG_IMPORTANT : LOG_INFORMATIVE,
                         String.format(Locale.US, "BTLE: err %.4f mean %.4f std %.4f gen %d",
-                                estimator.error, estimator.mean, estimator.stddev, estimator.generations));
+                                trainingResults.error, trainingResults.mean, trainingResults.stddev, trainingResults.numGenerations));
                 if (shouldUseBtle) trainBtle();
             }
         });
@@ -197,16 +197,16 @@ public class SampleTrainer {
         if (wifi == null || !shouldUseWifi) return;
         wifi.train(new Trainer.TrainerCallbacks() {
             @Override
-            public void onTrainingComplete(Estimator estimator) {
-                DistanceEstimator de = new DistanceEstimator(estimator, DistanceEstimator.WIFI_MAX);
+            public void onTrainingComplete(TrainingResults trainingResults) {
+                DistanceEstimator de = new DistanceEstimator(trainingResults, DistanceEstimator.WIFI_MAX);
                 estimatorHelper.addWifi(de);
-                if (estimator.error < DistanceEstimator.GOOD_ERROR) {
+                if (trainingResults.error < DistanceEstimator.GOOD_ERROR) {
                     bestEstimatorHelper.addWifi(de);
                 }
-                addEvent(estimator.error < DistanceEstimator.GOOD_ERROR
+                addEvent(trainingResults.error < DistanceEstimator.GOOD_ERROR
                                 ? LOG_IMPORTANT : LOG_INFORMATIVE,
                         String.format(Locale.US, "WIFI: err %.4f mean %.4f std %.4f gen %d",
-                                estimator.error, estimator.mean, estimator.stddev, estimator.generations));
+                                trainingResults.error, trainingResults.mean, trainingResults.stddev, trainingResults.numGenerations));
                 if (shouldUseWifi) trainWifi();
             }
         });
@@ -216,16 +216,16 @@ public class SampleTrainer {
         if (wifi5g == null || !shouldUseWifi5g) return;
         wifi5g.train(new Trainer.TrainerCallbacks() {
             @Override
-            public void onTrainingComplete(Estimator estimator) {
-                DistanceEstimator de = new DistanceEstimator(estimator, DistanceEstimator.WIFI_MAX);
+            public void onTrainingComplete(TrainingResults trainingResults) {
+                DistanceEstimator de = new DistanceEstimator(trainingResults, DistanceEstimator.WIFI_MAX);
                 estimatorHelper.addWifi5g(de);
-                if (estimator.error < DistanceEstimator.GOOD_ERROR) {
+                if (trainingResults.error < DistanceEstimator.GOOD_ERROR) {
                     bestEstimatorHelper.addWifi5g(de);
                 }
-                addEvent(estimator.error < DistanceEstimator.GOOD_ERROR
+                addEvent(trainingResults.error < DistanceEstimator.GOOD_ERROR
                                 ? LOG_IMPORTANT : LOG_INFORMATIVE,
                         String.format(Locale.US, "WIFI5G: err %.4f mean %.4f std %.4f gen %d",
-                                estimator.error, estimator.mean, estimator.stddev, estimator.generations));
+                                trainingResults.error, trainingResults.mean, trainingResults.stddev, trainingResults.numGenerations));
                 if (shouldUseWifi5g) trainWifi5g();
             }
         });

@@ -164,12 +164,12 @@ public class EstimatorViewerActivity extends Activity {
 
         int goodCount = 0, goodCountSamples = 0, maxSamples = 0;
         for (DistanceEstimator e : estimators) {
-            if (e.results.samples > maxSamples) maxSamples = e.results.samples;
+            if (e.results.numSamples > maxSamples) maxSamples = e.results.numSamples;
         }
         for (DistanceEstimator e : estimators) {
             if (e.results.error < DistanceEstimator.GOOD_ERROR) {
                 ++goodCount;
-                if (e.results.samples == maxSamples) ++goodCountSamples;
+                if (e.results.numSamples == maxSamples) ++goodCountSamples;
             }
         }
         goodCountView.setText(goodCount + "");
@@ -220,8 +220,8 @@ public class EstimatorViewerActivity extends Activity {
                 error += e.results.error;
                 mean += e.results.mean;
                 stddev += e.results.stddev;
-                samples += e.results.samples;
-                generations += e.results.generations;
+                samples += e.results.numSamples;
+                generations += e.results.numGenerations;
             }
             int size = estimators.size();
             error /= size;
@@ -234,8 +234,8 @@ public class EstimatorViewerActivity extends Activity {
             error = e.results.error;
             mean = e.results.mean;
             stddev = e.results.stddev;
-            samples = e.results.samples;
-            generations = e.results.generations;
+            samples = e.results.numSamples;
+            generations = e.results.numGenerations;
         }
     }
 }

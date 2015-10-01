@@ -7,7 +7,7 @@ import java.util.List;
 /**
  *
  */
-public class Sample {
+public class Sample implements com.jifalops.wsnlocalize.toolbox.neuralnet.Sample {
     public static class Rss {
         public final int count, min, max, range;
         public final double mean, median, stdDev;
@@ -113,6 +113,7 @@ public class Sample {
                 +","+ distance;
     }
 
+    @Override
     public double[] toArray() {
         return new double[] {
                 rss.count, rss.min, rss.max, rss.range,
@@ -121,6 +122,11 @@ public class Sample {
                 elapsed.mean, elapsed.median, elapsed.stdDev,
                 distance // output is last
         };
+    }
+
+    @Override
+    public int getOutputsCount() {
+        return 1;
     }
 
 }

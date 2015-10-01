@@ -36,7 +36,7 @@ public class EstimatorHelper {
         callback = onLoadFinished;
         this.maxSamplesOnly = maxSamplesOnly;
 
-        String dataType = best ? App.DATA_BEST_ESTIMATOR : App.DATA_ESTIMATOR;
+        String dataType = best ? App.DATA_BEST_ESTIMATOR : App.DATA_ESTIMATORS;
         btRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_BT, dataType));
         btleRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_BTLE, dataType));
         wifiRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_WIFI, dataType));
@@ -116,10 +116,10 @@ public class EstimatorHelper {
         if (maxSamplesOnly) {
             int max = 0;
             for (DistanceEstimator de : from) {
-                if (de.results.samples > max) max = de.results.samples;
+                if (de.results.numSamples > max) max = de.results.numSamples;
             }
             for (DistanceEstimator de : from) {
-                if (de.results.samples == max) to.add(de);
+                if (de.results.numSamples == max) to.add(de);
             }
         } else {
             to.addAll(from);

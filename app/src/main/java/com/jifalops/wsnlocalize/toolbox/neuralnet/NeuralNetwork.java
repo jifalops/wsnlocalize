@@ -2,6 +2,8 @@ package com.jifalops.wsnlocalize.toolbox.neuralnet;
 
 import com.jifalops.wsnlocalize.toolbox.util.Stats;
 
+import java.util.Collections;
+
 /**
  *
  */
@@ -35,23 +37,23 @@ public abstract class NeuralNetwork {
     protected abstract void onGenerationStarting(int index);
     protected abstract void trainSampleBySample(double[][] samples);
 
-    public Estimator trainSampleBySample(double[][] samples, TerminationConditions conditions) {
-        Scaler scaler = new Scaler(samples, weightMetrics.numInputs);
-        samples = scaler.scaleAndRandomize(samples);
+    public TrainingResults trainSampleBySample(SampleList samples, TerminationConditions conditions) {
+        samples = (SampleList) Collections.unmodifiableList(samples);
+        double[][] toTrain = samples.getScaler().scaleAndRandomize(samples.toDoubleArray());
         status = new TrainingStatus(weightMetrics, conditions);
         status.updateIfBest(population[0], 0, 1_000_000 - 1);
         double mean, stdDev;
         int generation = 0;
         do {
             onGenerationStarting(generation);
-            trainSampleBySample(samples);
+            trainSampleBySample(toTrain);
             mean = Stats.mean(errors);
             stdDev = Stats.stdDev(errors);
             generation++;
             callbacks.onGenerationFinished(generation, status.getBestError(), mean, stdDev);
         } while (!status.isComplete(generation, stdDev));
-        return new Estimator(status.getBest(), weightMetrics, status.getBestError(),
-                mean, stdDev, samples.length, generation, scaler);
+        return new TrainingResults(status.getBest(), weightMetrics, status.getBestError(),
+                mean, stdDev, toTrain.length, generation, samples.getScaler());
     }
 
 

@@ -1,7 +1,7 @@
 package com.jifalops.wsnlocalize.data;
 
 import com.jifalops.wsnlocalize.App;
-import com.jifalops.wsnlocalize.toolbox.neuralnet.Estimator;
+import com.jifalops.wsnlocalize.toolbox.neuralnet.TrainingResults;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -17,9 +17,9 @@ public class DistanceEstimator implements Comparable<DistanceEstimator> {
     public static final double WIFI_MAX = 110;
 
     public final double max;
-    public final Estimator results;
+    public final TrainingResults results;
 
-    public DistanceEstimator(Estimator results, double max) {
+    public DistanceEstimator(TrainingResults results, double max) {
         this.results = results;
         this.max = max;
     }
@@ -27,7 +27,7 @@ public class DistanceEstimator implements Comparable<DistanceEstimator> {
     public DistanceEstimator(String jsonObject) throws JSONException {
         JSONObject json = new JSONObject(jsonObject);
         max = json.getDouble("max");
-        results = new Estimator(json.getString("results"));
+        results = new TrainingResults(json.getString("results"));
     }
 
     public static double getMax(String signalType) {

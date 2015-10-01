@@ -8,6 +8,7 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.net.wifi.WifiManager;
 import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.text.TextUtils;
 import android.widget.Toast;
 
@@ -15,7 +16,8 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.Volley;
-import com.jifalops.wsnlocalize.data.EstimatorsHelper;
+import com.jifalops.wsnlocalize.data.InfoFileHelper;
+import com.jifalops.wsnlocalize.data.OldEstimatorsHelper;
 import com.jifalops.wsnlocalize.data.RssiHelper;
 import com.jifalops.wsnlocalize.data.SamplesHelper;
 import com.jifalops.wsnlocalize.request.AbsRequest;
@@ -41,9 +43,16 @@ public class App extends ServiceThreadApplication {
     public static final String SIGNAL_WIFI = "wifi";
     public static final String SIGNAL_WIFI5G = "wifi5g";
 
+    public static final String NN_PSO = "pso";
+    public static final String NN_DE = "de";
+    public static final String NN_DEPSO = "depso";
+    public static final String[] NEURAL_NETS = new String[] {
+        NN_PSO, NN_DE, NN_DEPSO
+    };
+
     public static final String DATA_RSSI = "rssi";
     public static final String DATA_SAMPLES = "samples";
-    public static final String DATA_ESTIMATOR = "estimator";
+    public static final String DATA_ESTIMATORS = "estimators";
 
 
     private static App instance;
@@ -70,10 +79,19 @@ public class App extends ServiceThreadApplication {
 //        tryDeviceRequest();
         log = new DebugLog(this);
 
+        LocalBroadcastManager.getInstance(this).registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if (intent.getAction().equals(InfoFileHelper.ACTION_LOADED)) {
+                    SamplesHelper.getInstance();
+                    OldEstimatorsHelper.getInstance();
+                }
+            }
+        }, new IntentFilter(InfoFileHelper.ACTION_LOADED));
+
         // Load data in files
         RssiHelper.getInstance();
-        SamplesHelper.getInstance();
-        EstimatorsHelper.getInstance();
+        InfoFileHelper.getInstance();
     }
 
     private void initWifiMac() {
@@ -150,43 +168,52 @@ public class App extends ServiceThreadApplication {
     }
 
 
-
-
     public static DebugLog log() { return instance.log; }
+
+    public static void broadcast(String intentAction) {
+        LocalBroadcastManager.getInstance(instance).sendBroadcast(
+                new Intent(intentAction));
+    }
 
     /**
      *
      */
     public static class Files {
         private Files() {}
-        public static final String DIR_SAMPLES = "samples";
-        public static final String DIR_ESTIMATORS = "estimators";
-        public static final String EXT_RSSI = "csv";
-        public static final String EXT_SAMPLES = "csv";
-        public static final String EXT_ESTIMATORS = "json";
 
         public static File getDataDir() {
             return instance.getExternalFilesDir(null);
+        }
+
+        public static File getDataDir(String signalType) {
+            File f = new File(instance.getExternalFilesDir(null), signalType + "-data");
+            if (!f.exists()) {
+                if (!f.mkdirs()) instance.log.e("Failed to make dirs for " + f.getName());
+            }
+            return f;
         }
 
         public static File getRssiFile(String signalType) {
             return new File(getDataDir(), signalType + "-rssi.csv");
         }
 
-        public static File getSamplesDir() {
-            File f = new File(getDataDir(), DIR_SAMPLES);
-            if (!f.exists()) {
-                if (!f.mkdirs()) instance.log.e("failed to make samples dir.");
-            }
-            return f;
+        public static File getInfoFile(String signalType) {
+            return new File(getDataDir(signalType), "_info.csv");
         }
 
-        public static File getEstimatorsDir() {
-            File f = new File(getDataDir(), DIR_ESTIMATORS);
-            if (!f.exists()) {
-                if (!f.mkdirs()) instance.log.e("failed to make estimators dir.");
-            }
-            return f;
+        public static File getSamplesFile(String signalType, int id) {
+            return new File(getDataDir(signalType), id + "-samples.csv");
+        }
+
+        public static File getEstimatorsFile(String signalType, String nnType, int id, boolean timed) {
+            return new File(getDataDir(signalType), id + "-" + nnType + "-estimators" +
+                    (timed ? "-timed" : "-untimed") + ".csv");
+        }
+
+        public static File getEstimatesFile(String signalType, String nnType, int id,
+                                            int numEstimators, boolean timed) {
+            return new File(getDataDir(signalType), id + "-" + nnType + "-estimates-" +
+                    numEstimators + (timed ? "-timed" : "-untimed") + ".csv");
         }
     }
 }

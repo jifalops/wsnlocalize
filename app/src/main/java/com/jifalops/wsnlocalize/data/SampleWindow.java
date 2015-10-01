@@ -24,4 +24,23 @@ public class SampleWindow {
                 || count >= maxCount
                 || time >= maxTime;
     }
+
+    @Override
+    public String toString() {
+        return minCount +","+ minTime +","+ maxCount +","+ maxTime;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof SampleWindow) {
+            SampleWindow window = (SampleWindow) o;
+            return minCount == window.minCount && minTime == window.minTime &&
+                    maxCount == window.maxCount && maxTime == window.maxTime;
+        } else return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return toString().hashCode();
+    }
 }

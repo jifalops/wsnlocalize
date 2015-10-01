@@ -7,7 +7,7 @@ import android.os.AsyncTask;
  */
 public class Trainer {
     public interface TrainerCallbacks {
-        void onTrainingComplete(Estimator estimator);
+        void onTrainingComplete(TrainingResults trainingResults);
     }
 
     final TerminationConditions termCond;
@@ -24,9 +24,9 @@ public class Trainer {
     }
 
     public void train(final TrainerCallbacks callbacks) {
-        new AsyncTask<Void, Void, Estimator>() {
+        new AsyncTask<Void, Void, TrainingResults>() {
             @Override
-            protected Estimator doInBackground(Void... params) {
+            protected TrainingResults doInBackground(Void... params) {
                 NeuralNetwork nnet = new Depso(NeuralNetwork.initPop(popSize, metrics),
                         NeuralNetwork.initPop(popSize, metrics), metrics, new NeuralNetwork.Callbacks() {
                     @Override
@@ -38,8 +38,8 @@ public class Trainer {
             }
 
             @Override
-            protected void onPostExecute(Estimator estimator) {
-                callbacks.onTrainingComplete(estimator);
+            protected void onPostExecute(TrainingResults trainingResults) {
+                callbacks.onTrainingComplete(trainingResults);
             }
         }.execute();
     }

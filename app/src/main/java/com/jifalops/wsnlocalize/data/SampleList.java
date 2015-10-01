@@ -1,5 +1,7 @@
 package com.jifalops.wsnlocalize.data;
 
+import com.jifalops.wsnlocalize.toolbox.neuralnet.Scaler;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -11,6 +13,8 @@ import java.util.Map;
  *
  */
 public class SampleList extends ArrayList<Sample> {
+    private Scaler scaler;
+    private int numOutputs = 1;
 
     public SampleList() {}
 
@@ -88,5 +92,14 @@ public class SampleList extends ArrayList<Sample> {
             list.add(s);
         }
         return map;
+    }
+
+    public int getNumOutputs() { return numOutputs; }
+
+    public Scaler getScaler() {
+        if (scaler == null) {
+            scaler = new Scaler(toDoubleArray(), numOutputs);
+        }
+        return scaler;
     }
 }

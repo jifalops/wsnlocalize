@@ -7,31 +7,29 @@ import org.json.JSONObject;
 /**
  *
  */
-public class Estimator implements Comparable<Estimator> {
+public class TrainingResults implements Comparable<TrainingResults> {
     public final double[] weights;
     public final double error, mean, stddev;
-    public final int samples, generations;
-    public final Scaler scaler;
-    public final MlpWeightMetrics metrics;
-    Estimator(double[] weights, MlpWeightMetrics metrics, double error, double mean,
-              double stddev, int samples, int generations, Scaler scaler) {
+    public final int numHidden, numGenerations;
+
+    TrainingResults(double[] weights, double error, double mean, double stddev,
+                    int numHidden, int numGenerations, SampleList samples) {
         this.weights = weights;
-        this.metrics = metrics;
         this.error = error;
         this.mean = mean;
         this.stddev = stddev;
+        this.numHidden = numHidden;
+        this.numGenerations = numGenerations;
         this.samples = samples;
-        this.generations = generations;
-        this.scaler = scaler;
     }
 
-    public Estimator(String jsonObject) throws JSONException {
+    public TrainingResults(String jsonObject) throws JSONException {
         JSONObject json = new JSONObject(jsonObject);
         error = json.getDouble("error");
         mean = json.getDouble("mean");
         stddev = json.getDouble("stddev");
-        samples = json.getInt("samples");
-        generations = json.getInt("generations");
+        numSamples = json.getInt("samples");
+        numGenerations = json.getInt("generations");
         metrics = new MlpWeightMetrics(json.getString("metrics"));
         scaler = new Scaler(json.getString("scaler"));
         JSONArray weightsj = json.getJSONArray("weights");
@@ -55,8 +53,8 @@ public class Estimator implements Comparable<Estimator> {
             json.put("error", error);
             json.put("mean", mean);
             json.put("stddev", stddev);
-            json.put("samples", samples);
-            json.put("generations", generations);
+            json.put("samples", numSamples);
+            json.put("generations", numGenerations);
             json.put("metrics", metrics.toString());
             json.put("scaler", scaler.toString());
             JSONArray weightsj = new JSONArray();
@@ -71,7 +69,7 @@ public class Estimator implements Comparable<Estimator> {
     }
 
     @Override
-    public int compareTo(Estimator another) {
+    public int compareTo(TrainingResults another) {
 //        if (samples < another.samples) return -1;
 //        if (samples > another.samples) return 1;
         if (error < another.error) return -1;

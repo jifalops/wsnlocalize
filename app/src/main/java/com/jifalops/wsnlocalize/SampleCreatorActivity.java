@@ -11,9 +11,9 @@ import android.widget.GridLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.jifalops.wsnlocalize.data.DataFileInfo;
 import com.jifalops.wsnlocalize.data.RssiHelper;
 import com.jifalops.wsnlocalize.data.SampleList;
-import com.jifalops.wsnlocalize.data.SampleListSourceInfo;
 import com.jifalops.wsnlocalize.data.SampleWindow;
 import com.jifalops.wsnlocalize.data.SamplesHelper;
 
@@ -290,19 +290,19 @@ public class SampleCreatorActivity extends Activity {
 
     public void saveSamples(View view) {
         if (btSamples != null && btSamples.size() > 0) {
-            samplesHelper.save(new SampleListSourceInfo(App.SIGNAL_BT,
+            samplesHelper.save(new DataFileInfo(App.SIGNAL_BT,
                     rssiHelper.getBt().size(), btWindow, App.Files.EXT_SAMPLES), btSamples, null);
         }
         if (btleSamples != null && btleSamples.size() > 0) {
-            samplesHelper.save(new SampleListSourceInfo(App.SIGNAL_BTLE,
+            samplesHelper.save(new DataFileInfo(App.SIGNAL_BTLE,
                     rssiHelper.getBtle().size(), btleWindow, App.Files.EXT_SAMPLES), btleSamples, null);
         }
         if (wifiSamples != null && wifiSamples.size() > 0) {
-            samplesHelper.save(new SampleListSourceInfo(App.SIGNAL_WIFI,
+            samplesHelper.save(new DataFileInfo(App.SIGNAL_WIFI,
                     rssiHelper.getWifi().size(), wifiWindow, App.Files.EXT_SAMPLES), wifiSamples, null);
         }
         if (wifi5gSamples != null && wifi5gSamples.size() > 0) {
-            samplesHelper.save(new SampleListSourceInfo(App.SIGNAL_WIFI5G,
+            samplesHelper.save(new DataFileInfo(App.SIGNAL_WIFI5G,
                     rssiHelper.getWifi5g().size(), wifi5gWindow, App.Files.EXT_SAMPLES), wifi5gSamples, null);
         }
     }
