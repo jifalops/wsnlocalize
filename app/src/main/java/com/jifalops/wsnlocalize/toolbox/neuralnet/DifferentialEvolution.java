@@ -12,9 +12,9 @@ public class DifferentialEvolution extends NeuralNetwork {
 
     static Random random = new Random();
 
-    public DifferentialEvolution(SampleList samples, int popSize, int numHidden,
+    public DifferentialEvolution(SampleList samples, int popSize,
                                  TerminationConditions termCond, TrainingCallbacks callbacks) {
-        super(samples, popSize, numHidden, termCond, callbacks);
+        super(samples, popSize, termCond, callbacks);
     }
 
     @Override

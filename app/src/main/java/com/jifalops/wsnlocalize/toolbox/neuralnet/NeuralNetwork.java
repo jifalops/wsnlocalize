@@ -31,13 +31,13 @@ public abstract class NeuralNetwork {
     protected int bestIndex;
     private double[] bestError;
 
-    public NeuralNetwork(SampleList samples, int popSize, int numHidden,
+    public NeuralNetwork(SampleList samples, int popSize,
                          TerminationConditions termCond, TrainingCallbacks callbacks) {
         this.samples = samples;
         this.popSize = popSize;
         this.termCond = termCond;
         this.callbacks = callbacks;
-        metrics = new MlpWeightMetrics(samples.getNumInputs(), samples.getNumOutputs(), numHidden);
+        metrics = new MlpWeightMetrics(samples.getNumInputs(), samples.getNumOutputs());
     }
 
     protected abstract void prepareToTrain();

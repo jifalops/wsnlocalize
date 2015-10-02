@@ -20,9 +20,9 @@ public class Depso extends ParticleSwarm {
 
     private double[][] samples;
 
-    public Depso(SampleList samples, int popSize, int numHidden,
+    public Depso(SampleList samples, int popSize,
                  TerminationConditions termCond, TrainingCallbacks callbacks) {
-        super(samples, popSize, numHidden, termCond, callbacks);
+        super(samples, popSize, termCond, callbacks);
     }
 
     @Override
