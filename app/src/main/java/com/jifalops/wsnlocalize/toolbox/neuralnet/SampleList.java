@@ -8,27 +8,16 @@ import java.util.List;
 /**
  *
  */
-public class SampleList extends ArrayList<Sample> {
+public class SampleList<T extends Sample> extends ArrayList<T> {
     private Scaler scaler;
 
-    public SampleList(List<double[]> samples, final int numOutputs) {
-        super(samples.size());
-        for (final double[] a : samples) {
-            add(new Sample() {
-                @Override
-                public double[] toArray() {
-                    return a;
-                }
+    public SampleList() {}
 
-                @Override
-                public int getNumOutputs() {
-                    return numOutputs;
-                }
-            });
-        }
+    public SampleList(int capacity) {
+        super(capacity);
     }
 
-    public boolean isValid(Collection<? extends Sample> collection) {
+    public boolean isValid(Collection<? extends T> collection) {
         if (collection.size() == 0) return false;
         int outs = 0, len = 0;
         if (size() > 0) {
@@ -51,14 +40,14 @@ public class SampleList extends ArrayList<Sample> {
         return true;
     }
 
-    public boolean isValid(Sample s) {
+    public boolean isValid(T s) {
         if (size() == 0) return true;
         else return get(0).getNumOutputs() == s.getNumOutputs() &&
                 get(0).toArray().length == s.toArray().length;
     }
 
     @Override
-    public void add(int index, Sample object) {
+    public void add(int index, T object) {
         if (isValid(object)) {
             super.add(index, object);
             scaler = null;
@@ -67,7 +56,7 @@ public class SampleList extends ArrayList<Sample> {
 
     /** @return true if the sample was added, false if it has the wrong number of outputs. */
     @Override
-    public boolean add(Sample s) {
+    public boolean add(T s) {
         if (isValid(s)) {
             scaler = null;
             return super.add(s);
@@ -79,7 +68,7 @@ public class SampleList extends ArrayList<Sample> {
      * any sample contains the wrong number of outputs (the whole collection is rejected).
      */
     @Override
-    public boolean addAll(Collection<? extends Sample> collection) {
+    public boolean addAll(Collection<? extends T> collection) {
         if (isValid(collection)) {
             scaler = null;
             return super.addAll(collection);
@@ -88,7 +77,7 @@ public class SampleList extends ArrayList<Sample> {
     }
 
     @Override
-    public boolean addAll(int index, Collection<? extends Sample> collection) {
+    public boolean addAll(int index, Collection<? extends T> collection) {
         if (isValid(collection)) {
             scaler = null;
             return super.addAll(index, collection);
