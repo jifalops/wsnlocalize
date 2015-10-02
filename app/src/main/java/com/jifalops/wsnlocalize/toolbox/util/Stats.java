@@ -149,13 +149,7 @@ public class Stats {
                 modeList.add(e.getKey());
             }
         }
-        // Unbox the List<Double> to a double[].
-        int len = modeList.size();
-        modes = new double[len];
-        for (int i = 0; i < len; ++i) {
-            modes[i] = modeList.get(i);
-        }
-        return modes;
+        return Lists.toPrimitive(modeList);
     }
     public static double[][] rowModes(double[][] array) {
         int len = array.length;
@@ -209,5 +203,25 @@ public class Stats {
     }
     public static double[] colMaxes(double[][] array) {
         return rowMaxes(Arrays.transpose(array));
+    }
+
+    /** Remove elements that fall outside of the given number of standard deviations. */
+    public static double[] trim(double[] array, double stdDevs) {
+        double mean = mean(array);
+        double stdDev = stdDev(array);
+        double min = mean - stdDev * stdDevs;
+        double max = mean + stdDev * stdDevs;
+        return Arrays.trim(array, min, max);
+    }
+    public static double[][] rowTrim(double[][] array, double stdDevs) {
+        int len = array.length;
+        double[][] trimmed = new double[len][];
+        for (int i = 0; i < len; ++i) {
+            trimmed[i] = trim(array[i], stdDevs);
+        }
+        return trimmed;
+    }
+    public static double[][] colTrim(double[][] array, double stdDevs) {
+        return rowTrim(Arrays.transpose(array), stdDevs);
     }
 }
