@@ -1,8 +1,7 @@
 package com.jifalops.wsnlocalize.data;
 
-import com.jifalops.wsnlocalize.toolbox.neuralnet.Scaler;
+import com.jifalops.wsnlocalize.toolbox.neuralnet.SampleList;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -12,19 +11,21 @@ import java.util.Map;
 /**
  *
  */
-public class SampleList extends ArrayList<Sample> {
-    private Scaler scaler;
-    private int numOutputs = 1;
+public class RssiSampleList extends SampleList<RssiSample> {
 
-    public SampleList() {}
+    public RssiSampleList() {}
 
-    public SampleList(List<double[]> samples) {
-        for (double[] s : samples) {
-            add(new Sample(s));
+    public RssiSampleList(int capacity) {
+        super(capacity);
+    }
+
+    public RssiSampleList(List<double[]> samples) {
+        for (double[] a : samples) {
+            add(new RssiSample(a));
         }
     }
 
-    public SampleList(RssiList rssi, SampleWindow window) {
+    public RssiSampleList(RssiList rssi, SampleWindow window) {
         Map<Double, RssiList> distances = rssi.splitByDistance();
         Map<String, RssiList> macs;
         RssiList sample = new RssiList();
@@ -39,12 +40,12 @@ public class SampleList extends ArrayList<Sample> {
                 for (Rssi r : macList) {
                     sample.add(r);
                     if (limitsReached(sample, window)) {
-                        add(new Sample(sample));
+                        add(new RssiSample(sample));
                         sample.clear();
                     }
                 }
                 if (sample.size() >= window.minCount) {
-                    add(new Sample(sample));
+                    add(new RssiSample(sample));
                 }
                 sample.clear();
             }
@@ -57,22 +58,10 @@ public class SampleList extends ArrayList<Sample> {
         return len >= 2 && window.reached(len, rssi.get(len - 1).time - rssi.get(0).time);
     }
 
-    public List<double[]> toDoubleList() {
-        List<double[]> list = new ArrayList<>(size());
-        for (Sample s : this) {
-            list.add(s.toArray());
-        }
-        return list;
-    }
-
-    public double[][] toDoubleArray() {
-        return toDoubleList().toArray(new double[size()][]);
-    }
-
     public void sortByDistance() {
-        Collections.sort(this, new Comparator<Sample>() {
+        Collections.sort(this, new Comparator<RssiSample>() {
             @Override
-            public int compare(Sample lhs, Sample rhs) {
+            public int compare(RssiSample lhs, RssiSample rhs) {
                 if (lhs.distance < rhs.distance) return -1;
                 if (lhs.distance > rhs.distance) return 1;
                 return 0;
@@ -80,26 +69,17 @@ public class SampleList extends ArrayList<Sample> {
         });
     }
 
-    public Map<Double, SampleList> splitByDistance() {
-        Map<Double, SampleList> map = new HashMap<>();
-        SampleList list;
-        for (Sample s : this) {
+    public Map<Double, RssiSampleList> splitByDistance() {
+        Map<Double, RssiSampleList> map = new HashMap<>();
+        RssiSampleList list;
+        for (RssiSample s : this) {
             list = map.get(s.distance);
             if (list == null) {
-                list = new SampleList();
+                list = new RssiSampleList();
                 map.put(s.distance, list);
             }
             list.add(s);
         }
         return map;
-    }
-
-    public int getNumOutputs() { return numOutputs; }
-
-    public Scaler getScaler() {
-        if (scaler == null) {
-            scaler = new Scaler(toDoubleArray(), numOutputs);
-        }
-        return scaler;
     }
 }
