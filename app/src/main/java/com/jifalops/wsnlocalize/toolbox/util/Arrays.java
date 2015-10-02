@@ -1,5 +1,6 @@
 package com.jifalops.wsnlocalize.toolbox.util;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,11 +27,11 @@ public class Arrays {
         return c;
     }
 
-    public static double[] toPrimitive(List<Double> list) {
-        int len = list.size();
-        double[] a = new double[len];
+    public static int[] toPrimitive(Integer[] ints) {
+        int len = ints.length;
+        int[] a = new int[len];
         for (int i = 0; i < len; ++i) {
-            a[i] = list.get(i);
+            a[i] = ints[i];
         }
         return a;
     }
@@ -54,5 +55,24 @@ public class Arrays {
             }
         }
         return transposed;
+    }
+
+    public static double[] trim(double[] array, double min, double max) {
+        List<Double> trimmed = new ArrayList<>();
+        for (double d : array) {
+            if (d >= min && d <= max) trimmed.add(d);
+        }
+        return Lists.toPrimitive(trimmed);
+    }
+    public static double[][] rowTrim(double[][] array, double min, double max) {
+        int len = array.length;
+        double[][] trimmed = new double[len][];
+        for (int i = 0; i < len; ++i) {
+            trimmed[i] = trim(array[i], min, max);
+        }
+        return trimmed;
+    }
+    public static double[][] colTrim(double[][] array, double min, double max) {
+        return rowTrim(transpose(array), min, max);
     }
 }
