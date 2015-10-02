@@ -1,71 +1,44 @@
 package com.jifalops.wsnlocalize.toolbox.neuralnet;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 /**
  *
  */
 public class TrainingResults implements Comparable<TrainingResults> {
     public final double[] weights;
     public final double error, mean, stddev;
-    public final int numHidden, numGenerations;
+    public final int numGenerations;
 
     TrainingResults(double[] weights, double error, double mean, double stddev,
-                    int numHidden, int numGenerations, SampleList samples) {
+                    int numGenerations) {
         this.weights = weights;
         this.error = error;
         this.mean = mean;
         this.stddev = stddev;
-        this.numHidden = numHidden;
         this.numGenerations = numGenerations;
-        this.samples = samples;
     }
 
-    public TrainingResults(String jsonObject) throws JSONException {
-        JSONObject json = new JSONObject(jsonObject);
-        error = json.getDouble("error");
-        mean = json.getDouble("mean");
-        stddev = json.getDouble("stddev");
-        numSamples = json.getInt("samples");
-        numGenerations = json.getInt("generations");
-        metrics = new MlpWeightMetrics(json.getString("metrics"));
-        scaler = new Scaler(json.getString("scaler"));
-        JSONArray weightsj = json.getJSONArray("weights");
-        int len = weightsj.length();
+    public TrainingResults(String csv) {
+        String[] parts = csv.split(",");
+        error = Double.valueOf(parts[0]);
+        mean = Double.valueOf(parts[1]);
+        stddev = Double.valueOf(parts[2]);
+        numGenerations = Integer.valueOf(parts[3]);
+        int len = parts.length - 4;
         weights = new double[len];
         for (int i = 0; i < len; ++i) {
-            weights[i] = weightsj.getDouble(i);
+            weights[i] = Double.valueOf(parts[i+4]);
         }
-    }
-
-    public double[] estimate(double[] sample) {
-        double[] scaled = scaler.scale(new double[][] {sample})[0];
-        double[] outputs = NeuralNetwork.calcOutputs(weights, scaled, metrics);
-        return scaler.unscale(outputs);
     }
 
     @Override
     public String toString() {
-        JSONObject json = new JSONObject();
-        try {
-            json.put("error", error);
-            json.put("mean", mean);
-            json.put("stddev", stddev);
-            json.put("samples", numSamples);
-            json.put("generations", numGenerations);
-            json.put("metrics", metrics.toString());
-            json.put("scaler", scaler.toString());
-            JSONArray weightsj = new JSONArray();
-            for (int i = 0; i < weights.length; ++i) {
-                weightsj.put(i, weights[i]);
-            }
-            json.put("weights", weightsj);
-        } catch (JSONException e) {
-            e.printStackTrace();
+        StringBuilder sb = new StringBuilder((weights.length + 4) * 2 - 1);
+        sb.append(error).append(',').append(mean).append(',')
+                .append(stddev).append(',').append(numGenerations);
+        for (int i = 0; i < weights.length; ++i) {
+            sb.append(',').append(weights[i]);
         }
-        return json.toString();
+       return sb.toString();
     }
 
     @Override

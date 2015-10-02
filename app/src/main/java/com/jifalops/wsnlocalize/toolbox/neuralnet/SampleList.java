@@ -11,10 +11,6 @@ import java.util.List;
 public class SampleList extends ArrayList<Sample> {
     private Scaler scaler;
 
-    public SampleList() {}
-
-    public SampleList(int capacity) { super(capacity); }
-
     public SampleList(List<double[]> samples, final int numOutputs) {
         super(samples.size());
         for (final double[] a : samples) {
@@ -112,7 +108,9 @@ public class SampleList extends ArrayList<Sample> {
         return toDoubleList().toArray(new double[size()][]);
     }
 
-    public int getNumOutputs() { return size() > 0 ? get(0).getNumOutputs() : 0; }
+    public int getNumInputs() { return get(0).toArray().length - get(0).getNumOutputs(); }
+    public int getNumOutputs() { return get(0).getNumOutputs(); }
+    public int getSampleSize() { return get(0).toArray().length; }
 
     public Scaler getScaler() {
         if (scaler == null && size() > 0) {

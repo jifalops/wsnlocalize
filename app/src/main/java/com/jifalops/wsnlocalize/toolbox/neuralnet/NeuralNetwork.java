@@ -1,59 +1,112 @@
 package com.jifalops.wsnlocalize.toolbox.neuralnet;
 
+import android.os.AsyncTask;
+
+import com.jifalops.wsnlocalize.toolbox.util.Arrays;
 import com.jifalops.wsnlocalize.toolbox.util.Stats;
 
-import java.util.Collections;
+import java.util.List;
 
 /**
  *
  */
 public abstract class NeuralNetwork {
-    protected final double[][] population;
-    protected final double[] errors;
-    protected final MlpWeightMetrics weightMetrics;
-    protected TrainingStatus status;
-    protected final Callbacks callbacks;
 
-    public interface Callbacks {
-        /** called on non-UI thread. */
+    public interface TrainingCallbacks {
+        /** called on neural network thread. */
         void onGenerationFinished(int gen, double best, double mean, double stdDev);
+        /** called on neural network thread. */
+        void onTrainingComplete(TrainingResults results);
     }
 
-    public NeuralNetwork(double[][] population, MlpWeightMetrics weightMetrics, Callbacks cb) {
-        this.population = population;
-        this.weightMetrics = weightMetrics;
-        this.errors = new double[population.length];
-        for (int i = 0; i < errors.length; ++i) {
-            errors[i] = 1_000_000;
-        }
-        callbacks = cb;
+    protected final SampleList samples;
+    protected final int popSize;
+    protected final MlpWeightMetrics metrics;
+    protected final TerminationConditions termCond;
+    protected final TrainingCallbacks callbacks;
+
+    protected double[][] population;
+    protected double[] errors;
+    protected double[] best;
+    protected int bestIndex;
+    private double[] bestError;
+
+    public NeuralNetwork(SampleList samples, int popSize, int numHidden,
+                         TerminationConditions termCond, TrainingCallbacks callbacks) {
+        this.samples = samples;
+        this.popSize = popSize;
+        this.termCond = termCond;
+        this.callbacks = callbacks;
+        metrics = new MlpWeightMetrics(samples.getNumInputs(), samples.getNumOutputs(), numHidden);
     }
 
-    public double[] getGlobalBest() {
-        return status.getBest();
-    }
-    public double getGlobalBestError() { return status.getBestError(); }
-
+    protected abstract void prepareToTrain();
     protected abstract void onGenerationStarting(int index);
-    protected abstract void trainSampleBySample(double[][] samples);
+    protected abstract void trainGeneration(double[][] toTrain);
 
-    public TrainingResults trainSampleBySample(SampleList samples, TerminationConditions conditions) {
-        samples = (SampleList) Collections.unmodifiableList(samples);
-        double[][] toTrain = samples.getScaler().scaleAndRandomize(samples.toDoubleArray());
-        status = new TrainingStatus(weightMetrics, conditions);
-        status.updateIfBest(population[0], 0, 1_000_000 - 1);
-        double mean, stdDev;
-        int generation = 0;
-        do {
-            onGenerationStarting(generation);
-            trainSampleBySample(toTrain);
-            mean = Stats.mean(errors);
-            stdDev = Stats.stdDev(errors);
-            generation++;
-            callbacks.onGenerationFinished(generation, status.getBestError(), mean, stdDev);
-        } while (!status.isComplete(generation, stdDev));
-        return new TrainingResults(status.getBest(), weightMetrics, status.getBestError(),
-                mean, stdDev, toTrain.length, generation, samples.getScaler());
+    public void train() {
+        new AsyncTask<Void, Double, TrainingResults>() {
+            @Override
+            protected TrainingResults doInBackground(Void... params) {
+                double mean, stdDev;
+                int generation = 0;
+
+                population = initPop(popSize, metrics);
+                double[][] toTrain = samples.getScaler().scaleAndRandomize(samples.toDoubleArray());
+
+                errors = new double[popSize];
+                for (int i = 0; i < errors.length; ++i) {
+                    errors[i] = 1_000_000;
+                }
+
+                best = population[0];
+                bestError = new double[termCond.minImprovementGenerations];
+                for (int i = 0; i < bestError.length; i++) {
+                    bestError[i] = 1_000_000;
+                }
+
+                prepareToTrain();
+
+                do {
+                    onGenerationStarting(generation);
+                    trainGeneration(toTrain);
+                    mean = Stats.mean(errors);
+                    stdDev = Stats.stdDev(errors);
+                    ++generation;
+                    publishProgress((double)generation, bestError[0], mean, stdDev);
+                } while (!isComplete(generation, stdDev));
+                return new TrainingResults(best, bestError[0], mean, stdDev, generation);
+            }
+
+            @Override
+            protected void onProgressUpdate(Double... values) {
+                callbacks.onGenerationFinished((int)(double)values[0], values[1], values[2], values[3]);
+            }
+
+            @Override
+            protected void onPostExecute(TrainingResults trainingResults) {
+                callbacks.onTrainingComplete(trainingResults);
+            }
+        }.execute();
+    }
+
+    protected boolean updateIfBest(int index) {
+        if (errors[index] < bestError[0]) {
+            best = population[index];
+            bestIndex = index;
+            Arrays.shiftRight(bestError, 1);
+            bestError[0] = errors[index];
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    protected boolean isComplete(int generation, double errorStdDev) {
+        return generation >= termCond.maxGenerations ||
+                bestError[0] <= termCond.minError ||
+                errorStdDev <= termCond.minStdDev ||
+                bestError[bestError.length - 1] - bestError[0] < termCond.minImprovement ;
     }
 
 
@@ -62,7 +115,7 @@ public abstract class NeuralNetwork {
      * The entire sample can be used (inputs + outputs) as long as the inputs
      * occupy the lower indexes (only the inputs will be used).
      */
-    public static double[] calcOutputs(double[] weights, double[] inputsOrSample, MlpWeightMetrics metrics) {
+    protected static double[] calcOutputs(double[] weights, double[] inputsOrSample, MlpWeightMetrics metrics) {
         double[] outputs = new double[metrics.numOutputs];
         double[] gamma = new double[metrics.numHidden];
         double[] z = new double[metrics.numHidden];
@@ -115,7 +168,7 @@ public abstract class NeuralNetwork {
 
 
 
-    public static double[][] initPop(int popSize, MlpWeightMetrics metrics) {
+    protected static double[][] initPop(int popSize, MlpWeightMetrics metrics) {
         double[][] pop = new double[popSize][metrics.numWeights];
         for (int i = 0; i < popSize; i++) {
             for (int j = 0; j < metrics.numWeights; j++) {
@@ -123,5 +176,24 @@ public abstract class NeuralNetwork {
             }
         }
         return pop;
+    }
+
+
+    public static double[] estimate(double[] inputsOrSample, Scaler scaler,
+                                    double[] weights, MlpWeightMetrics metrics) {
+        double[] scaled = scaler.scale(new double[][]{inputsOrSample})[0];
+        double[] outputs = calcOutputs(weights, scaled, metrics);
+        return scaler.unscale(outputs);
+    }
+
+    public static double[][] estimate(double[] inputsOrSample, Scaler scaler,
+                                    List<TrainingResults> results, MlpWeightMetrics metrics) {
+        double[] scaled = scaler.scale(new double[][]{inputsOrSample})[0];
+        int rows = results.size();
+        double[][] estimates = new double[rows][];
+        for (int i = 0; i < rows; ++i) {
+            estimates[i] = scaler.unscale(calcOutputs(results.get(i).weights, scaled, metrics));
+        }
+        return estimates;
     }
 }

@@ -3,14 +3,17 @@ package com.jifalops.wsnlocalize.toolbox.neuralnet;
 /**
  *
  */
-public class MlpWeightMetrics extends SampleMetrics {
-    final int numHidden, numWeights,
+public class MlpWeightMetrics {
+    final int numInputs, numOutputs, numHidden, numWeights,
             hiddenBiasesStart, hiddenToOutputStart, outputBiasesStart;
+
     public MlpWeightMetrics(int numInputs, int numOutputs) {
         this(numInputs, numOutputs, Math.round((numInputs + numOutputs) / 2));
     }
+
     public MlpWeightMetrics(int numInputs, int numOutputs, int numHidden) {
-        super(numInputs, numOutputs);
+        this.numInputs = numInputs;
+        this.numOutputs = numOutputs;
         this.numHidden = numHidden;
         hiddenBiasesStart = numInputs * numHidden;
         hiddenToOutputStart = hiddenBiasesStart + numHidden;
@@ -19,8 +22,9 @@ public class MlpWeightMetrics extends SampleMetrics {
     }
 
     public MlpWeightMetrics(String csv) {
-        super(csv);
         String[] p = csv.split(",");
+        numInputs = Integer.valueOf(p[0]);
+        numOutputs = Integer.valueOf(p[1]);
         numHidden = Integer.valueOf(p[2]);
         hiddenBiasesStart = Integer.valueOf(p[3]);
         hiddenToOutputStart = Integer.valueOf(p[4]);
@@ -30,7 +34,7 @@ public class MlpWeightMetrics extends SampleMetrics {
 
     @Override
     public String toString() {
-        return super.toString() +","+ numHidden +","+ hiddenBiasesStart +","+
+        return numInputs +","+ numOutputs +","+ numHidden +","+ hiddenBiasesStart +","+
                 hiddenToOutputStart +","+ outputBiasesStart +","+ numWeights;
     }
 }

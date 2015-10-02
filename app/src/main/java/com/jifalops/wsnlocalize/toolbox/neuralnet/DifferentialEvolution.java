@@ -12,8 +12,14 @@ public class DifferentialEvolution extends NeuralNetwork {
 
     static Random random = new Random();
 
-    public DifferentialEvolution(double[][] population, MlpWeightMetrics weightMetrics, Callbacks cb) {
-        super(population, weightMetrics, cb);
+    public DifferentialEvolution(SampleList samples, int popSize, int numHidden,
+                                 TerminationConditions termCond, TrainingCallbacks callbacks) {
+        super(samples, popSize, numHidden, termCond, callbacks);
+    }
+
+    @Override
+    protected void prepareToTrain() {
+
     }
 
     @Override
@@ -22,16 +28,17 @@ public class DifferentialEvolution extends NeuralNetwork {
     }
 
     @Override
-    protected void trainSampleBySample(double[][] samples) {
+    protected void trainGeneration(double[][] samples) {
         for (int i = 0; i < population.length; i++) {
-            double[] crossed = crossover(population[i], mutate(population, i, status.getBest(), F), CR);
-            double err = calcError(crossed, samples, weightMetrics);
-            errors[i] = calcError(population[i], samples, weightMetrics);
+            double[] crossed = crossover(population[i], mutate(population, i, best, F), CR);
+            double err = calcError(crossed, samples, metrics);
+            errors[i] = calcError(population[i], samples, metrics);
             if (err < errors[i]) {
                 population[i] = crossed;
                 errors[i] = err;
             }
-            status.updateIfBest(population[i], i, errors[i]);
+
+            updateIfBest(i);
         }
     }
 

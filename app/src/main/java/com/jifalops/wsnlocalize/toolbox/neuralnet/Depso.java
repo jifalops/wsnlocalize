@@ -20,8 +20,9 @@ public class Depso extends ParticleSwarm {
 
     private double[][] samples;
 
-    public Depso(double[][] population, double[][] velocities, MlpWeightMetrics weightMetrics, Callbacks cb) {
-        super(population, velocities, weightMetrics, cb);
+    public Depso(SampleList samples, int popSize, int numHidden,
+                 TerminationConditions termCond, TrainingCallbacks callbacks) {
+        super(samples, popSize, numHidden, termCond, callbacks);
     }
 
     @Override
@@ -30,9 +31,9 @@ public class Depso extends ParticleSwarm {
     }
 
     @Override
-    protected void trainSampleBySample(double[][] samples) {
+    protected void trainGeneration(double[][] samples) {
         this.samples = samples;
-        super.trainSampleBySample(samples);
+        super.trainGeneration(samples);
     }
 
     protected void updateVelocities() {
@@ -43,7 +44,7 @@ public class Depso extends ParticleSwarm {
             tmp = DifferentialEvolution.getRandomIndividuals(population, 2, i);
             diff = DifferentialEvolution.diff(tmp[0], tmp[1]);
             for (int j = 0; j < population[0].length; j++) {
-                v[i][j] = calcVelocity(population[i][j], v[i][j], diff[j], getGlobalBest()[j]);
+                v[i][j] = calcVelocity(population[i][j], v[i][j], diff[j], best[j]);
                 if (v[i][j] > vmax) v[i][j] = vmax;
                 else if (v[i][j] < -vmax) v[i][j] = -vmax;
             }
@@ -74,9 +75,9 @@ public class Depso extends ParticleSwarm {
         double CR = CRmin + (CRmax - CRmin) * entropy;
 
         double[] crossed = DifferentialEvolution.crossover(population[index],
-                DifferentialEvolution.mutate(population, index, status.getBest(), F), CR);
-        double err = calcError(crossed, samples, weightMetrics);
-        errors[index] = calcError(population[index], samples, weightMetrics);
+                DifferentialEvolution.mutate(population, index, best, F), CR);
+        double err = calcError(crossed, samples, metrics);
+        errors[index] = calcError(population[index], samples, metrics);
         if (err < errors[index]) {
             population[index] = crossed;
             errors[index] = err;
