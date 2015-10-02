@@ -1,38 +1,37 @@
-package com.jifalops.wsnlocalize.data;
+package com.jifalops.wsnlocalize.data.helper;
 
 import android.util.Log;
 
 import com.jifalops.wsnlocalize.App;
+import com.jifalops.wsnlocalize.data.Rssi;
+import com.jifalops.wsnlocalize.data.RssiList;
 import com.jifalops.wsnlocalize.file.RssiReaderWriter;
 import com.jifalops.wsnlocalize.toolbox.file.AbsTextReaderWriter;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  *
  */
-public class SignalDataHelper {
-    static final String TAG = SignalDataHelper.class.getSimpleName();
+public class RssiHelper {
+    static final String TAG = RssiHelper.class.getSimpleName();
 
-    private static SignalDataHelper instance;
-    public static SignalDataHelper getInstance() {
-        if (instance == null) instance = new SignalDataHelper();
+    private static RssiHelper instance;
+    public static RssiHelper getInstance() {
+        if (instance == null) instance = new RssiHelper();
         return instance;
     }
 
-
-    final Map<DataFileInfo, SampleList>
-            btSamples = new HashMap<>(),
-            btle = new HashMap(),
-            wifi = new HashMap<>(),
-            wifi5g = new HashMap<>();
+    final RssiList
+            bt = new RssiList(),
+            btle = new RssiList(),
+            wifi = new RssiList(),
+            wifi5g = new RssiList();
     final RssiReaderWriter btRW, btleRW, wifiRW, wifi5gRW;
     boolean allLoaded, btLoaded, btleLoaded, wifiLoaded, wifi5gLoaded;
 
-    private SignalDataHelper() {
+    private RssiHelper() {
         btRW = new RssiReaderWriter(App.Files.getRssiFile(App.SIGNAL_BT));
         btleRW = new RssiReaderWriter(App.Files.getRssiFile(App.SIGNAL_BTLE));
         wifiRW = new RssiReaderWriter(App.Files.getRssiFile(App.SIGNAL_WIFI));
@@ -112,7 +111,6 @@ public class SignalDataHelper {
     private void checkIfAllLoaded() {
         if (btLoaded && btleLoaded && wifiLoaded && wifi5gLoaded) {
             allLoaded = true;
-//            if (callback != null) callback.onRssiLoaded();
         }
     }
 

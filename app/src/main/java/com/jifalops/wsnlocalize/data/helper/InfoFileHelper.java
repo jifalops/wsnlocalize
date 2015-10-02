@@ -1,8 +1,10 @@
-package com.jifalops.wsnlocalize.data;
+package com.jifalops.wsnlocalize.data.helper;
 
 import android.util.Log;
 
 import com.jifalops.wsnlocalize.App;
+import com.jifalops.wsnlocalize.data.DataFileInfo;
+import com.jifalops.wsnlocalize.data.SampleWindow;
 import com.jifalops.wsnlocalize.toolbox.file.AbsTextReaderWriter;
 import com.jifalops.wsnlocalize.toolbox.file.TextReaderWriter;
 

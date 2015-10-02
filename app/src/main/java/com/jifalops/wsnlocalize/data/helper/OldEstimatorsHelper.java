@@ -1,8 +1,10 @@
-package com.jifalops.wsnlocalize.data;
+package com.jifalops.wsnlocalize.data.helper;
 
 import android.support.annotation.Nullable;
 
 import com.jifalops.wsnlocalize.App;
+import com.jifalops.wsnlocalize.data.DataFileInfo;
+import com.jifalops.wsnlocalize.data.Estimator;
 import com.jifalops.wsnlocalize.file.EstimatorReaderWriter;
 import com.jifalops.wsnlocalize.toolbox.file.AbsTextReaderWriter;
 
@@ -26,7 +28,7 @@ public class OldEstimatorsHelper {
         return instance;
     }
 
-    private final Map<DataFileInfo, List<DistanceEstimator>> estimators = new HashMap<>();
+    private final Map<DataFileInfo, List<Estimator>> estimators = new HashMap<>();
     private boolean loaded;
     private int numFiles, succeeded, failed;
 
@@ -43,9 +45,9 @@ public class OldEstimatorsHelper {
             for (final File f : dir.listFiles()) {
                 final DataFileInfo info = new DataFileInfo(f.getName());
                 rw = new EstimatorReaderWriter(f);
-                rw.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
+                rw.readEstimators(new AbsTextReaderWriter.TypedReadListener<Estimator>() {
                     @Override
-                    public void onReadSucceeded(List<DistanceEstimator> list, int typingExceptions) {
+                    public void onReadSucceeded(List<Estimator> list, int typingExceptions) {
                         estimators.put(info, list);
                         ++succeeded;
                         checkLoaded();
@@ -72,9 +74,9 @@ public class OldEstimatorsHelper {
 
     public boolean isLoaded() { return loaded; }
 
-    public void addEstimator(DataFileInfo info, DistanceEstimator estimator,
+    public void addEstimator(DataFileInfo info, Estimator estimator,
                      @Nullable AbsTextReaderWriter.WriteListener callback) {
-        List<DistanceEstimator> list = estimators.get(info);
+        List<Estimator> list = estimators.get(info);
         if (list == null) {
             list = new ArrayList<>();
             estimators.put(info, list);

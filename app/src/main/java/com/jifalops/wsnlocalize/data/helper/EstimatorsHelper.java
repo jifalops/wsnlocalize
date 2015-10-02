@@ -1,8 +1,11 @@
-package com.jifalops.wsnlocalize.data;
+package com.jifalops.wsnlocalize.data.helper;
 
 import android.support.annotation.Nullable;
 
 import com.jifalops.wsnlocalize.App;
+import com.jifalops.wsnlocalize.data.DataFileInfo;
+import com.jifalops.wsnlocalize.data.RssiSampleList;
+import com.jifalops.wsnlocalize.data.SampleWindow;
 import com.jifalops.wsnlocalize.toolbox.file.AbsTextReaderWriter;
 import com.jifalops.wsnlocalize.toolbox.file.NumberReaderWriter;
 import com.jifalops.wsnlocalize.toolbox.neuralnet.Scaler;
@@ -15,39 +18,31 @@ import java.util.Map;
 /**
  *
  */
-public class SamplesHelper {
-    private static SamplesHelper instance;
-    public static SamplesHelper getInstance() {
+public class EstimatorsHelper {
+    private static EstimatorsHelper instance;
+    public static EstimatorsHelper getInstance() {
         if (instance == null) {
-            instance = new SamplesHelper();
+            instance = new EstimatorsHelper();
         }
         return instance;
     }
 
-    private final Map<DataFileInfo, SampleList>
+    static class EstimatorInfo {
+        Scaler scaler;
+
+    }
+
+    private final Map<DataFileInfo, RssiSampleList>
         bt = new HashMap<>(),
         btle = new HashMap<>(),
         wifi = new HashMap<>(),
         wifi5g = new HashMap<>();
-
-    private final Map<DataFileInfo, Scaler>
-            btScalers = new HashMap<>(),
-            btleScalers = new HashMap<>(),
-            wifiScalers = new HashMap<>(),
-            wifi5gScalers = new HashMap<>();
-
-    private final Map<DataFileInfo, SampleList>
-            bt = new HashMap<>(),
-            btle = new HashMap<>(),
-            wifi = new HashMap<>(),
-            wifi5g = new HashMap<>();
-
     private boolean loaded;
     private int numFiles, succeeded, failed;
 
     private InfoFileHelper helper;
 
-    private SamplesHelper() {
+    private EstimatorsHelper() {
         helper = InfoFileHelper.getInstance();
         numFiles = helper.getBt().size() + helper.getBtle().size() +
                 helper.getWifi().size() + helper.getWifi5g().size();
@@ -57,7 +52,7 @@ public class SamplesHelper {
             if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                 @Override
                 public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    bt.put(info, new SampleList(list));
+                    bt.put(info, new RssiSampleList(list));
                     ++succeeded;
                     checkLoaded();
                 }
@@ -75,7 +70,7 @@ public class SamplesHelper {
             if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                 @Override
                 public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    btle.put(info, new SampleList(list));
+                    btle.put(info, new RssiSampleList(list));
                     ++succeeded;
                     checkLoaded();
                 }
@@ -93,7 +88,7 @@ public class SamplesHelper {
             if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                 @Override
                 public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    wifi.put(info, new SampleList(list));
+                    wifi.put(info, new RssiSampleList(list));
                     ++succeeded;
                     checkLoaded();
                 }
@@ -111,7 +106,7 @@ public class SamplesHelper {
             if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                 @Override
                 public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    wifi5g.put(info, new SampleList(list));
+                    wifi5g.put(info, new RssiSampleList(list));
                     ++succeeded;
                     checkLoaded();
                 }
@@ -136,7 +131,7 @@ public class SamplesHelper {
 
     public boolean isLoaded() { return loaded; }
 
-    public void addBt(SampleList list, int numRssi, int numOutputs, SampleWindow window,
+    public void addBt(RssiSampleList list, int numRssi, int numOutputs, SampleWindow window,
                      @Nullable AbsTextReaderWriter.WriteListener callback) {
         DataFileInfo info = helper.getBt(numRssi, numOutputs, window);
         if (info == null) {
@@ -150,7 +145,7 @@ public class SamplesHelper {
         rw.writeNumbers(list.toDoubleList(), false, callback);
     }
 
-    public void addBtle(SampleList list, int numRssi, int numOutputs, SampleWindow window,
+    public void addBtle(RssiSampleList list, int numRssi, int numOutputs, SampleWindow window,
                       @Nullable AbsTextReaderWriter.WriteListener callback) {
         DataFileInfo info = helper.getBtle(numRssi, numOutputs, window);
         if (info == null) {
@@ -164,7 +159,7 @@ public class SamplesHelper {
         rw.writeNumbers(list.toDoubleList(), false, callback);
     }
 
-    public void addWifi(SampleList list, int numRssi, int numOutputs, SampleWindow window,
+    public void addWifi(RssiSampleList list, int numRssi, int numOutputs, SampleWindow window,
                       @Nullable AbsTextReaderWriter.WriteListener callback) {
         DataFileInfo info = helper.getWifi(numRssi, numOutputs, window);
         if (info == null) {
@@ -178,7 +173,7 @@ public class SamplesHelper {
         rw.writeNumbers(list.toDoubleList(), false, callback);
     }
 
-    public void addWifi5g(SampleList list, int numRssi, int numOutputs, SampleWindow window,
+    public void addWifi5g(RssiSampleList list, int numRssi, int numOutputs, SampleWindow window,
                         @Nullable AbsTextReaderWriter.WriteListener callback) {
         DataFileInfo info = helper.getWifi5g(numRssi, numOutputs, window);
         if (info == null) {
