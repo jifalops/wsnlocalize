@@ -23,7 +23,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jifalops.wsnlocalize.data.Rssi;
-import com.jifalops.wsnlocalize.data.RssiHelper;
+import com.jifalops.wsnlocalize.data.helper.RssiHelper;
 import com.jifalops.wsnlocalize.signal.RssiCollector;
 import com.jifalops.wsnlocalize.signal.SampleHelper;
 import com.jifalops.wsnlocalize.signal.WindowHelper;

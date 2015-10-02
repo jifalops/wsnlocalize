@@ -12,7 +12,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jifalops.wsnlocalize.data.DistanceEstimator;
+import com.jifalops.wsnlocalize.data.Estimator;
 import com.jifalops.wsnlocalize.signal.EstimatorHelper;
 
 import java.util.ArrayList;
@@ -128,7 +128,7 @@ public class EstimatorViewerActivity extends Activity {
         } else {
             helper = toSendHelper;
         }
-        final List<DistanceEstimator> estimators = new ArrayList<>();
+        final List<Estimator> estimators = new ArrayList<>();
         String title;
         switch (group) {
             case WIFI:
@@ -163,11 +163,11 @@ public class EstimatorViewerActivity extends Activity {
         Collections.sort(estimators);
 
         int goodCount = 0, goodCountSamples = 0, maxSamples = 0;
-        for (DistanceEstimator e : estimators) {
+        for (Estimator e : estimators) {
             if (e.results.numSamples > maxSamples) maxSamples = e.results.numSamples;
         }
-        for (DistanceEstimator e : estimators) {
-            if (e.results.error < DistanceEstimator.GOOD_ERROR) {
+        for (Estimator e : estimators) {
+            if (e.results.error < Estimator.GOOD_ERROR) {
                 ++goodCount;
                 if (e.results.numSamples == maxSamples) ++goodCountSamples;
             }
@@ -177,7 +177,7 @@ public class EstimatorViewerActivity extends Activity {
 
         fillEstimatorView(summary, new EstimatorSummary(estimators));
 
-        estimatorsView.setAdapter(new ArrayAdapter<DistanceEstimator>(this, R.layout.listitem_estimator, estimators) {
+        estimatorsView.setAdapter(new ArrayAdapter<Estimator>(this, R.layout.listitem_estimator, estimators) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 if (convertView == null) {
@@ -215,8 +215,8 @@ public class EstimatorViewerActivity extends Activity {
     static class EstimatorSummary {
         double error = 0, mean = 0, stddev = 0;
         int samples = 0, generations = 0;
-        EstimatorSummary(List<DistanceEstimator> estimators) {
-            for (DistanceEstimator e : estimators) {
+        EstimatorSummary(List<Estimator> estimators) {
+            for (Estimator e : estimators) {
                 error += e.results.error;
                 mean += e.results.mean;
                 stddev += e.results.stddev;
@@ -230,7 +230,7 @@ public class EstimatorViewerActivity extends Activity {
             samples /= size;
             generations /= size;
         }
-        EstimatorSummary(DistanceEstimator e) {
+        EstimatorSummary(Estimator e) {
             error = e.results.error;
             mean = e.results.mean;
             stddev = e.results.stddev;

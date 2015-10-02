@@ -11,9 +11,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.jifalops.wsnlocalize.data.Sample;
-import com.jifalops.wsnlocalize.data.SampleList;
-import com.jifalops.wsnlocalize.data.SamplesHelper;
+import com.jifalops.wsnlocalize.data.RssiSample;
+import com.jifalops.wsnlocalize.data.RssiSampleList;
+import com.jifalops.wsnlocalize.data.helper.SamplesHelper;
 import com.jifalops.wsnlocalize.toolbox.util.Arrays;
 import com.jifalops.wsnlocalize.toolbox.util.Stats;
 
@@ -109,7 +109,7 @@ public class SampleDetailViewerActivity extends Activity {
         });
 
 
-        samplesView.setAdapter(new ArrayAdapter<Sample>(this, R.layout.listitem_sample_detail, info.samples) {
+        samplesView.setAdapter(new ArrayAdapter<RssiSample>(this, R.layout.listitem_sample_detail, info.samples) {
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
                 if (convertView == null) {
@@ -227,7 +227,7 @@ public class SampleDetailViewerActivity extends Activity {
         final double dist, avgrssicount, avgdevices,
                 rmean, rmedian, rstddev, millis, tmean, tmedian, tstddev;
         final int count, rmin, rmax, rrange, tmin, tmax, trange;
-        SamplesSummary(SampleList samples) {
+        SamplesSummary(RssiSampleList samples) {
             count = samples.size();
             double[][] cols = Arrays.transpose(samples.toDoubleArray());
             avgrssicount = Stats.mean(cols[0]);
@@ -250,10 +250,10 @@ public class SampleDetailViewerActivity extends Activity {
     }
 
 
-    List<SamplesSummary> makeDistanceSummaries(SampleList samples) {
-        TreeMap<Double, SampleList> map = new TreeMap<>(samples.splitByDistance());
+    List<SamplesSummary> makeDistanceSummaries(RssiSampleList samples) {
+        TreeMap<Double, RssiSampleList> map = new TreeMap<>(samples.splitByDistance());
         List<SamplesSummary> summaries = new ArrayList<>(map.size());
-        for (SampleList list : map.values()) {
+        for (RssiSampleList list : map.values()) {
             summaries.add(new SamplesSummary(list));
         }
         return summaries;

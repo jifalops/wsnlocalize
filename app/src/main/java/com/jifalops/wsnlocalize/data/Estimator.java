@@ -9,9 +9,7 @@ import org.json.JSONObject;
 /**
  *
  */
-public class DistanceEstimator implements Comparable<DistanceEstimator> {
-    public static final double GOOD_ERROR = 0.01;
-
+public class Estimator implements Comparable<Estimator> {
     public static final double MIN = 0.1;
     public static final double BT_MAX = 15;
     public static final double WIFI_MAX = 110;
@@ -19,12 +17,12 @@ public class DistanceEstimator implements Comparable<DistanceEstimator> {
     public final double max;
     public final TrainingResults results;
 
-    public DistanceEstimator(TrainingResults results, double max) {
+    public Estimator(TrainingResults results, double max) {
         this.results = results;
         this.max = max;
     }
 
-    public DistanceEstimator(String jsonObject) throws JSONException {
+    public Estimator(String jsonObject) throws JSONException {
         JSONObject json = new JSONObject(jsonObject);
         max = json.getDouble("max");
         results = new TrainingResults(json.getString("results"));
@@ -64,7 +62,7 @@ public class DistanceEstimator implements Comparable<DistanceEstimator> {
     }
 
     @Override
-    public int compareTo(DistanceEstimator another) {
+    public int compareTo(Estimator another) {
         return results.compareTo(another.results);
     }
 }

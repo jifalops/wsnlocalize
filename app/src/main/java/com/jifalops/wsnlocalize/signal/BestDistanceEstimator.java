@@ -1,6 +1,6 @@
 package com.jifalops.wsnlocalize.signal;
 
-import com.jifalops.wsnlocalize.data.DistanceEstimator;
+import com.jifalops.wsnlocalize.data.Estimator;
 import com.jifalops.wsnlocalize.toolbox.util.Stats;
 
 import java.util.List;
@@ -50,7 +50,7 @@ public class BestDistanceEstimator {
         return estimate(helper.wifi5g, sample);
     }
 
-    private Estimate estimate(List<DistanceEstimator> list, double[] sample) {
+    private Estimate estimate(List<Estimator> list, double[] sample) {
         int len = list.size();
         if (len == 0) return new Estimate(0,0);
         double[] estimates = new double[len];

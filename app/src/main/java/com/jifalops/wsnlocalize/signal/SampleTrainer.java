@@ -3,14 +3,12 @@ package com.jifalops.wsnlocalize.signal;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.jifalops.wsnlocalize.App;
-import com.jifalops.wsnlocalize.data.DistanceEstimator;
-import com.jifalops.wsnlocalize.data.WindowRecord;
+import com.jifalops.wsnlocalize.data.Estimator;
 import com.jifalops.wsnlocalize.file.EstimatorReaderWriter;
 import com.jifalops.wsnlocalize.request.AbsRequest;
 import com.jifalops.wsnlocalize.request.EstimatorRequest;
 import com.jifalops.wsnlocalize.toolbox.neuralnet.MlpWeightMetrics;
 import com.jifalops.wsnlocalize.toolbox.neuralnet.TerminationConditions;
-import com.jifalops.wsnlocalize.toolbox.neuralnet.Trainer;
 import com.jifalops.wsnlocalize.toolbox.neuralnet.TrainingResults;
 import com.jifalops.wsnlocalize.toolbox.util.SimpleLog;
 
@@ -120,12 +118,12 @@ public class SampleTrainer {
         send(App.SIGNAL_WIFI5G, estimatorHelper.getWifi5g(), estimatorHelper.wifi5gRW);
     }
 
-    private void send(final String signal, final List<DistanceEstimator> estimators,
+    private void send(final String signal, final List<Estimator> estimators,
                       final EstimatorReaderWriter estimatorRW) {
         final int estimatorsSize = estimators.size();
 
         if (estimatorsSize > 0) {
-            final List<DistanceEstimator> toSend = new ArrayList<>(estimators);
+            final List<Estimator> toSend = new ArrayList<>(estimators);
             estimators.clear();
             App.sendRequest(new EstimatorRequest(signal, toSend,
                     new Response.Listener<AbsRequest.MyResponse>() {
@@ -160,12 +158,12 @@ public class SampleTrainer {
         bt.train(new Trainer.TrainerCallbacks() {
             @Override
             public void onTrainingComplete(TrainingResults trainingResults) {
-                DistanceEstimator de = new DistanceEstimator(trainingResults, DistanceEstimator.BT_MAX);
+                Estimator de = new Estimator(trainingResults, Estimator.BT_MAX);
                 estimatorHelper.addBt(de);
-                if (trainingResults.error < DistanceEstimator.GOOD_ERROR) {
+                if (trainingResults.error < Estimator.GOOD_ERROR) {
                     bestEstimatorHelper.addBt(de);
                 }
-                addEvent(trainingResults.error < DistanceEstimator.GOOD_ERROR
+                addEvent(trainingResults.error < Estimator.GOOD_ERROR
                                 ? LOG_IMPORTANT : LOG_INFORMATIVE,
                         String.format(Locale.US, "BT: err %.4f mean %.4f std %.4f gen %d",
                                 trainingResults.error, trainingResults.mean, trainingResults.stddev, trainingResults.numGenerations));
@@ -179,12 +177,12 @@ public class SampleTrainer {
         btle.train(new Trainer.TrainerCallbacks() {
             @Override
             public void onTrainingComplete(TrainingResults trainingResults) {
-                DistanceEstimator de = new DistanceEstimator(trainingResults, DistanceEstimator.BT_MAX);
+                Estimator de = new Estimator(trainingResults, Estimator.BT_MAX);
                 estimatorHelper.addBtle(de);
-                if (trainingResults.error < DistanceEstimator.GOOD_ERROR) {
+                if (trainingResults.error < Estimator.GOOD_ERROR) {
                     bestEstimatorHelper.addBtle(de);
                 }
-                addEvent(trainingResults.error < DistanceEstimator.GOOD_ERROR
+                addEvent(trainingResults.error < Estimator.GOOD_ERROR
                                 ? LOG_IMPORTANT : LOG_INFORMATIVE,
                         String.format(Locale.US, "BTLE: err %.4f mean %.4f std %.4f gen %d",
                                 trainingResults.error, trainingResults.mean, trainingResults.stddev, trainingResults.numGenerations));
@@ -198,12 +196,12 @@ public class SampleTrainer {
         wifi.train(new Trainer.TrainerCallbacks() {
             @Override
             public void onTrainingComplete(TrainingResults trainingResults) {
-                DistanceEstimator de = new DistanceEstimator(trainingResults, DistanceEstimator.WIFI_MAX);
+                Estimator de = new Estimator(trainingResults, Estimator.WIFI_MAX);
                 estimatorHelper.addWifi(de);
-                if (trainingResults.error < DistanceEstimator.GOOD_ERROR) {
+                if (trainingResults.error < Estimator.GOOD_ERROR) {
                     bestEstimatorHelper.addWifi(de);
                 }
-                addEvent(trainingResults.error < DistanceEstimator.GOOD_ERROR
+                addEvent(trainingResults.error < Estimator.GOOD_ERROR
                                 ? LOG_IMPORTANT : LOG_INFORMATIVE,
                         String.format(Locale.US, "WIFI: err %.4f mean %.4f std %.4f gen %d",
                                 trainingResults.error, trainingResults.mean, trainingResults.stddev, trainingResults.numGenerations));
@@ -217,12 +215,12 @@ public class SampleTrainer {
         wifi5g.train(new Trainer.TrainerCallbacks() {
             @Override
             public void onTrainingComplete(TrainingResults trainingResults) {
-                DistanceEstimator de = new DistanceEstimator(trainingResults, DistanceEstimator.WIFI_MAX);
+                Estimator de = new Estimator(trainingResults, Estimator.WIFI_MAX);
                 estimatorHelper.addWifi5g(de);
-                if (trainingResults.error < DistanceEstimator.GOOD_ERROR) {
+                if (trainingResults.error < Estimator.GOOD_ERROR) {
                     bestEstimatorHelper.addWifi5g(de);
                 }
-                addEvent(trainingResults.error < DistanceEstimator.GOOD_ERROR
+                addEvent(trainingResults.error < Estimator.GOOD_ERROR
                                 ? LOG_IMPORTANT : LOG_INFORMATIVE,
                         String.format(Locale.US, "WIFI5G: err %.4f mean %.4f std %.4f gen %d",
                                 trainingResults.error, trainingResults.mean, trainingResults.stddev, trainingResults.numGenerations));

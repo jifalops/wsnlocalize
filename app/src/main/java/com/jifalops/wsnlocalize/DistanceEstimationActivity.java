@@ -21,7 +21,6 @@ import android.widget.Toast;
 import com.jifalops.wsnlocalize.bluetooth.BtBeacon;
 import com.jifalops.wsnlocalize.bluetooth.BtLeBeacon;
 import com.jifalops.wsnlocalize.data.Rssi;
-import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.signal.BestDistanceEstimator;
 import com.jifalops.wsnlocalize.toolbox.util.ResettingList;
 import com.jifalops.wsnlocalize.toolbox.wifi.WifiScanner;

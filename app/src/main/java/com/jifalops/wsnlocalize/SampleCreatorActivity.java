@@ -12,10 +12,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.jifalops.wsnlocalize.data.DataFileInfo;
-import com.jifalops.wsnlocalize.data.RssiHelper;
-import com.jifalops.wsnlocalize.data.SampleList;
+import com.jifalops.wsnlocalize.data.RssiSampleList;
 import com.jifalops.wsnlocalize.data.SampleWindow;
-import com.jifalops.wsnlocalize.data.SamplesHelper;
+import com.jifalops.wsnlocalize.data.helper.RssiHelper;
+import com.jifalops.wsnlocalize.data.helper.SamplesHelper;
 
 import java.util.Locale;
 import java.util.Map;
@@ -44,7 +44,7 @@ public class SampleCreatorActivity extends Activity {
     RssiHelper rssiHelper;
     SamplesHelper samplesHelper;
     
-    SampleList btSamples, btleSamples, wifiSamples, wifi5gSamples;
+    RssiSampleList btSamples, btleSamples, wifiSamples, wifi5gSamples;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -194,10 +194,10 @@ public class SampleCreatorActivity extends Activity {
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected Void doInBackground(Void... params) {
-                btSamples = new SampleList(rssiHelper.getBt(), btWindow);
-                btleSamples = new SampleList(rssiHelper.getBtle(), btleWindow);
-                wifiSamples = new SampleList(rssiHelper.getWifi(), wifiWindow);
-                wifi5gSamples = new SampleList(rssiHelper.getWifi5g(), wifi5gWindow);
+                btSamples = new RssiSampleList(rssiHelper.getBt(), btWindow);
+                btleSamples = new RssiSampleList(rssiHelper.getBtle(), btleWindow);
+                wifiSamples = new RssiSampleList(rssiHelper.getWifi(), wifiWindow);
+                wifi5gSamples = new RssiSampleList(rssiHelper.getWifi5g(), wifi5gWindow);
                 return null;
             }
 
@@ -212,22 +212,22 @@ public class SampleCreatorActivity extends Activity {
 
     private void showSamples() {
         // Get all distances
-        SampleList all = new SampleList();
+        RssiSampleList all = new RssiSampleList();
         all.addAll(btSamples);
         all.addAll(btleSamples);
         all.addAll(wifiSamples);
         all.addAll(wifi5gSamples);
-        TreeMap<Double, SampleList> map = new TreeMap<>(all.splitByDistance());
+        TreeMap<Double, RssiSampleList> map = new TreeMap<>(all.splitByDistance());
 
-        Map<Double, SampleList> btMap = btSamples.splitByDistance();
-        Map<Double, SampleList> btleMap = btleSamples.splitByDistance();
-        Map<Double, SampleList> wifiMap = wifiSamples.splitByDistance();
-        Map<Double, SampleList> wifi5gMap = wifi5gSamples.splitByDistance();
+        Map<Double, RssiSampleList> btMap = btSamples.splitByDistance();
+        Map<Double, RssiSampleList> btleMap = btleSamples.splitByDistance();
+        Map<Double, RssiSampleList> wifiMap = wifiSamples.splitByDistance();
+        Map<Double, RssiSampleList> wifi5gMap = wifi5gSamples.splitByDistance();
         
         TextView dist, bt, btle, wifi, wifi5g, total;
         LayoutInflater inf = getLayoutInflater();
         
-        SampleList tmp;
+        RssiSampleList tmp;
         int count;
         samplesLayout.removeAllViews();
         for (Double d : map.keySet()) {

@@ -44,6 +44,6 @@ public class RssiReaderWriter extends AbsTextReaderWriter {
     }
 
     public void writeRecords(List<Rssi> records, boolean append, @Nullable WriteListener callback) {
-        writeLines(Lists.toString(records), append, callback);
+        writeLines(Lists.toStrings(records), append, callback);
     }
 }

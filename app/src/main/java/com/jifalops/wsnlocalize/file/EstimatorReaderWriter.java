@@ -2,7 +2,7 @@ package com.jifalops.wsnlocalize.file;
 
 import android.support.annotation.Nullable;
 
-import com.jifalops.wsnlocalize.data.DistanceEstimator;
+import com.jifalops.wsnlocalize.data.Estimator;
 import com.jifalops.wsnlocalize.toolbox.file.AbsTextReaderWriter;
 import com.jifalops.wsnlocalize.toolbox.util.Lists;
 
@@ -20,15 +20,15 @@ public class EstimatorReaderWriter extends AbsTextReaderWriter {
         super(file);
     }
 
-    public boolean readEstimators(@Nullable final TypedReadListener<DistanceEstimator> callback) {
+    public boolean readEstimators(@Nullable final TypedReadListener<Estimator> callback) {
         return readLines(new ReadListener() {
             @Override
             public void onReadSucceeded(List<String> lines) {
                 int exceptions = 0;
-                List<DistanceEstimator> estimators = new ArrayList<>();
+                List<Estimator> estimators = new ArrayList<>();
                 for (String line : lines) {
                     try {
-                        estimators.add(new DistanceEstimator(line));
+                        estimators.add(new Estimator(line));
                     } catch (Exception e) {
                         ++exceptions;
                     }
@@ -43,8 +43,8 @@ public class EstimatorReaderWriter extends AbsTextReaderWriter {
         });
     }
 
-    public void writeEstimators(List<DistanceEstimator> estimators, boolean append,
+    public void writeEstimators(List<Estimator> estimators, boolean append,
                                 @Nullable WriteListener callback) {
-        writeLines(Lists.toString(estimators), append, callback);
+        writeLines(Lists.toStrings(estimators), append, callback);
     }
 }

@@ -3,7 +3,7 @@ package com.jifalops.wsnlocalize.signal;
 import android.util.Log;
 
 import com.jifalops.wsnlocalize.App;
-import com.jifalops.wsnlocalize.data.DistanceEstimator;
+import com.jifalops.wsnlocalize.data.Estimator;
 import com.jifalops.wsnlocalize.file.EstimatorReaderWriter;
 import com.jifalops.wsnlocalize.toolbox.file.AbsTextReaderWriter;
 
@@ -22,7 +22,7 @@ public class EstimatorHelper {
         void onEstimatorsLoaded();
     }
 
-    final List<DistanceEstimator>
+    final List<Estimator>
             bt = new ArrayList<>(),
             btle = new ArrayList<>(),
             wifi = new ArrayList<>(),
@@ -42,9 +42,9 @@ public class EstimatorHelper {
         wifiRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_WIFI, dataType));
         wifi5gRW = new EstimatorReaderWriter(App.getFile(App.SIGNAL_WIFI5G, dataType));
 
-        if (!btRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
+        if (!btRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<Estimator>() {
             @Override
-            public void onReadSucceeded(List<DistanceEstimator> list, int typingExceptions) {
+            public void onReadSucceeded(List<Estimator> list, int typingExceptions) {
                 add(list, bt);
                 btLoaded = true;
                 if (typingExceptions > 0) {
@@ -59,9 +59,9 @@ public class EstimatorHelper {
             }
         })) btLoaded = true;
 
-        if (!btleRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
+        if (!btleRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<Estimator>() {
             @Override
-            public void onReadSucceeded(List<DistanceEstimator> list, int typingExceptions) {
+            public void onReadSucceeded(List<Estimator> list, int typingExceptions) {
                 add(list, btle);
                 btleLoaded = true;
                 if (typingExceptions > 0) {
@@ -76,9 +76,9 @@ public class EstimatorHelper {
             }
         })) btleLoaded = true;
 
-        if (!wifiRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
+        if (!wifiRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<Estimator>() {
             @Override
-            public void onReadSucceeded(List<DistanceEstimator> list, int typingExceptions) {
+            public void onReadSucceeded(List<Estimator> list, int typingExceptions) {
                 add(list, wifi);
                 wifiLoaded = true;
                 if (typingExceptions > 0) {
@@ -93,9 +93,9 @@ public class EstimatorHelper {
             }
         })) wifiLoaded = true;
 
-        if (!wifi5gRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<DistanceEstimator>() {
+        if (!wifi5gRW.readEstimators(new AbsTextReaderWriter.TypedReadListener<Estimator>() {
             @Override
-            public void onReadSucceeded(List<DistanceEstimator> list, int typingExceptions) {
+            public void onReadSucceeded(List<Estimator> list, int typingExceptions) {
                 add(list, wifi5g);
                 wifi5gLoaded = true;
                 if (typingExceptions > 0) {
@@ -112,13 +112,13 @@ public class EstimatorHelper {
         checkIfAllLoaded();
     }
 
-    private void add(List<DistanceEstimator> from, List<DistanceEstimator> to) {
+    private void add(List<Estimator> from, List<Estimator> to) {
         if (maxSamplesOnly) {
             int max = 0;
-            for (DistanceEstimator de : from) {
+            for (Estimator de : from) {
                 if (de.results.numSamples > max) max = de.results.numSamples;
             }
-            for (DistanceEstimator de : from) {
+            for (Estimator de : from) {
                 if (de.results.numSamples == max) to.add(de);
             }
         } else {
@@ -132,12 +132,12 @@ public class EstimatorHelper {
         }
     }
 
-    public List<DistanceEstimator> getBt() { return bt; }
-    public List<DistanceEstimator> getBtle() { return btle; }
-    public List<DistanceEstimator> getWifi() { return wifi; }
-    public List<DistanceEstimator> getWifi5g() { return wifi5g; }
-    public List<DistanceEstimator> getAll() {
-        List<DistanceEstimator> list = new ArrayList<>();
+    public List<Estimator> getBt() { return bt; }
+    public List<Estimator> getBtle() { return btle; }
+    public List<Estimator> getWifi() { return wifi; }
+    public List<Estimator> getWifi5g() { return wifi5g; }
+    public List<Estimator> getAll() {
+        List<Estimator> list = new ArrayList<>();
         list.addAll(bt);
         list.addAll(btle);
         list.addAll(wifi);
@@ -145,7 +145,7 @@ public class EstimatorHelper {
         return list;
     }
 
-    public void addBt(DistanceEstimator e) {
+    public void addBt(Estimator e) {
         btRW.writeEstimators(Collections.singletonList(e), true, new AbsTextReaderWriter.WriteListener() {
             @Override
             public void onWriteSucceed(int linesWritten) {
@@ -159,7 +159,7 @@ public class EstimatorHelper {
         });
         bt.add(e);
     }
-    public void addBtle(DistanceEstimator e) {
+    public void addBtle(Estimator e) {
         btleRW.writeEstimators(Collections.singletonList(e), true, new AbsTextReaderWriter.WriteListener() {
             @Override
             public void onWriteSucceed(int linesWritten) {
@@ -173,7 +173,7 @@ public class EstimatorHelper {
         });
         btle.add(e);
     }
-    public void addWifi(DistanceEstimator e) {
+    public void addWifi(Estimator e) {
         wifiRW.writeEstimators(Collections.singletonList(e), true, new AbsTextReaderWriter.WriteListener() {
             @Override
             public void onWriteSucceed(int linesWritten) {
@@ -187,7 +187,7 @@ public class EstimatorHelper {
         });
         wifi.add(e);
     }
-    public void addWifi5g(DistanceEstimator e) {
+    public void addWifi5g(Estimator e) {
         wifi5gRW.writeEstimators(Collections.singletonList(e), true, new AbsTextReaderWriter.WriteListener() {
             @Override
             public void onWriteSucceed(int linesWritten) {

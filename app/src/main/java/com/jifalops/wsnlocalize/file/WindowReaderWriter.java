@@ -2,7 +2,6 @@ package com.jifalops.wsnlocalize.file;
 
 import android.support.annotation.Nullable;
 
-import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.toolbox.file.AbsTextReaderWriter;
 import com.jifalops.wsnlocalize.toolbox.util.Lists;
 
@@ -43,6 +42,6 @@ public class WindowReaderWriter extends AbsTextReaderWriter {
     }
 
     public void writeRecords(List<WindowRecord> records, boolean append, @Nullable WriteListener callback) {
-        writeLines(Lists.toString(records), append, callback);
+        writeLines(Lists.toStrings(records), append, callback);
     }
 }

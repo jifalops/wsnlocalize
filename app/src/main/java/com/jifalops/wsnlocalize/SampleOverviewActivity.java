@@ -13,8 +13,8 @@ import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.jifalops.wsnlocalize.data.SampleList;
-import com.jifalops.wsnlocalize.data.SamplesHelper;
+import com.jifalops.wsnlocalize.data.RssiSampleList;
+import com.jifalops.wsnlocalize.data.helper.SamplesHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -131,7 +131,7 @@ public class SampleOverviewActivity extends Activity {
                 holder.signal.setText(info.signal);
                 holder.rssi.setText(info.numRssi+"");
                 holder.samples.setText(info.samples.size());
-                TreeMap<Double, SampleList> map = new TreeMap<>(info.samples.splitByDistance());
+                TreeMap<Double, RssiSampleList> map = new TreeMap<>(info.samples.splitByDistance());
                 holder.distances.setText(String.format(Locale.US, "%d (%.1f - %.1fm)",
                         map.size(), map.firstKey(), map.lastKey()));
 

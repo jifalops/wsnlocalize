@@ -3,7 +3,6 @@ package com.jifalops.wsnlocalize.signal;
 import android.util.Log;
 
 import com.jifalops.wsnlocalize.App;
-import com.jifalops.wsnlocalize.data.WindowRecord;
 import com.jifalops.wsnlocalize.file.WindowReaderWriter;
 import com.jifalops.wsnlocalize.toolbox.file.AbsTextReaderWriter;
 
