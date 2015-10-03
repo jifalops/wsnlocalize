@@ -2,6 +2,7 @@ package com.jifalops.wsnlocalize.data;
 
 import com.jifalops.wsnlocalize.toolbox.neuralnet.SampleList;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -81,5 +82,25 @@ public class RssiSampleList extends SampleList<RssiSample> {
             list.add(s);
         }
         return map;
+    }
+
+    public Untimed toUntimed() {
+        return new Untimed(this);
+    }
+
+    public static class Untimed extends RssiSampleList {
+        public Untimed(RssiSampleList list) {
+            super(list.size());
+            addAll(list);
+        }
+
+        @Override
+        public List<double[]> toDoubleList() {
+            List<double[]> list = new ArrayList<>(size());
+            for (RssiSample s : this) {
+                list.add(s.toUntimedArray());
+            }
+            return list;
+        }
     }
 }

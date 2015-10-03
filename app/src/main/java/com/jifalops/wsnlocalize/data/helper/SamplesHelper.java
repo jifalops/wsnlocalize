@@ -8,7 +8,6 @@ import com.jifalops.wsnlocalize.data.RssiSampleList;
 import com.jifalops.wsnlocalize.data.SampleWindow;
 import com.jifalops.wsnlocalize.toolbox.file.AbsTextReaderWriter;
 import com.jifalops.wsnlocalize.toolbox.file.NumberReaderWriter;
-import com.jifalops.wsnlocalize.toolbox.neuralnet.Scaler;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -33,17 +32,6 @@ public class SamplesHelper {
         wifi = new HashMap<>(),
         wifi5g = new HashMap<>();
 
-    private final Map<DataFileInfo, Scaler>
-            btScalers = new HashMap<>(),
-            btleScalers = new HashMap<>(),
-            wifiScalers = new HashMap<>(),
-            wifi5gScalers = new HashMap<>();
-
-    private final Map<DataFileInfo, RssiSampleList>
-            bt = new HashMap<>(),
-            btle = new HashMap<>(),
-            wifi = new HashMap<>(),
-            wifi5g = new HashMap<>();
 
     private boolean loaded;
     private int numFiles, succeeded, failed;
@@ -54,6 +42,7 @@ public class SamplesHelper {
         helper = InfoFileHelper.getInstance();
         numFiles = helper.getBt().size() + helper.getBtle().size() +
                 helper.getWifi().size() + helper.getWifi5g().size();
+        
         NumberReaderWriter rw;
         for (final DataFileInfo info : helper.getBt()) {
             rw = new NumberReaderWriter(App.Files.getSamplesFile(App.SIGNAL_BT, info.id));
@@ -139,11 +128,11 @@ public class SamplesHelper {
 
     public boolean isLoaded() { return loaded; }
 
-    public void addBt(RssiSampleList list, int numRssi, int numOutputs, SampleWindow window,
+    public void addBt(RssiSampleList list, int numRssi, SampleWindow window,
                      @Nullable AbsTextReaderWriter.WriteListener callback) {
-        DataFileInfo info = helper.getBt(numRssi, numOutputs, window);
+        DataFileInfo info = helper.getBt(numRssi, window);
         if (info == null) {
-            info = helper.addBt(numRssi, numOutputs, window);
+            info = helper.addBt(numRssi, window);
         } else {
             App.log().a("BT samples file with that info already exists.");
         }
@@ -153,11 +142,11 @@ public class SamplesHelper {
         rw.writeNumbers(list.toDoubleList(), false, callback);
     }
 
-    public void addBtle(RssiSampleList list, int numRssi, int numOutputs, SampleWindow window,
+    public void addBtle(RssiSampleList list, int numRssi, SampleWindow window,
                       @Nullable AbsTextReaderWriter.WriteListener callback) {
-        DataFileInfo info = helper.getBtle(numRssi, numOutputs, window);
+        DataFileInfo info = helper.getBtle(numRssi, window);
         if (info == null) {
-            info = helper.addBtle(numRssi, numOutputs, window);
+            info = helper.addBtle(numRssi, window);
         } else {
             App.log().a("BTLE samples file with that info already exists.");
         }
@@ -167,11 +156,11 @@ public class SamplesHelper {
         rw.writeNumbers(list.toDoubleList(), false, callback);
     }
 
-    public void addWifi(RssiSampleList list, int numRssi, int numOutputs, SampleWindow window,
+    public void addWifi(RssiSampleList list, int numRssi, SampleWindow window,
                       @Nullable AbsTextReaderWriter.WriteListener callback) {
-        DataFileInfo info = helper.getWifi(numRssi, numOutputs, window);
+        DataFileInfo info = helper.getWifi(numRssi, window);
         if (info == null) {
-            info = helper.addWifi(numRssi, numOutputs, window);
+            info = helper.addWifi(numRssi, window);
         } else {
             App.log().a("WIFI samples file with that info already exists.");
         }
@@ -181,11 +170,11 @@ public class SamplesHelper {
         rw.writeNumbers(list.toDoubleList(), false, callback);
     }
 
-    public void addWifi5g(RssiSampleList list, int numRssi, int numOutputs, SampleWindow window,
+    public void addWifi5g(RssiSampleList list, int numRssi, SampleWindow window,
                         @Nullable AbsTextReaderWriter.WriteListener callback) {
-        DataFileInfo info = helper.getWifi5g(numRssi, numOutputs, window);
+        DataFileInfo info = helper.getWifi5g(numRssi, window);
         if (info == null) {
-            info = helper.addWifi5g(numRssi, numOutputs, window);
+            info = helper.addWifi5g(numRssi, window);
         } else {
             App.log().a("WIFI5G samples file with that info already exists.");
         }

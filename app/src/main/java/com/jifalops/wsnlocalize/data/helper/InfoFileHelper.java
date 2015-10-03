@@ -132,35 +132,34 @@ public class InfoFileHelper {
         return max + 1;
     }
 
-    private DataFileInfo get(List<DataFileInfo> list, int numRssi, int numOutputs, SampleWindow window) {
+    private DataFileInfo get(List<DataFileInfo> list, int numRssi, SampleWindow window) {
         for (DataFileInfo info : list) {
-            if (info.numRssi == numRssi && info.numOutputs == numOutputs &&
-                    info.window.equals(window)) {
+            if (info.numRssi == numRssi && info.window.equals(window)) {
                 return info;
             }
         }
         return null;
     }
 
-    public DataFileInfo getBt(int numRssi, int numOutputs, SampleWindow window) {
-        return get(bt, numRssi, numOutputs, window);
+    public DataFileInfo getBt(int numRssi, SampleWindow window) {
+        return get(bt, numRssi, window);
     }
-    public DataFileInfo getBtle(int numRssi, int numOutputs, SampleWindow window) {
-        return get(btle, numRssi, numOutputs, window);
+    public DataFileInfo getBtle(int numRssi, SampleWindow window) {
+        return get(btle, numRssi, window);
     }
-    public DataFileInfo getWifi(int numRssi, int numOutputs, SampleWindow window) {
-        return get(wifi, numRssi, numOutputs, window);
+    public DataFileInfo getWifi(int numRssi, SampleWindow window) {
+        return get(wifi, numRssi, window);
     }
-    public DataFileInfo getWifi5g(int numRssi, int numOutputs, SampleWindow window) {
-        return get(wifi5g, numRssi, numOutputs, window);
+    public DataFileInfo getWifi5g(int numRssi, SampleWindow window) {
+        return get(wifi5g, numRssi, window);
     }
 
     /** May return an existing {@link DataFileInfo} if a matching one already exists */
-    public DataFileInfo addBt(int numRssi, int numOutputs, SampleWindow window) {
-        DataFileInfo info = get(bt, numRssi, numOutputs, window);
+    public DataFileInfo addBt(int numRssi, SampleWindow window) {
+        DataFileInfo info = get(bt, numRssi, window);
         if (info != null) return info;
 
-        info = new DataFileInfo(getNextId(bt), numRssi, numOutputs, window);
+        info = new DataFileInfo(getNextId(bt), numRssi, window);
         bt.add(info);
 
         btRW.writeLines(Collections.singletonList(info.toString()), true,
@@ -179,11 +178,11 @@ public class InfoFileHelper {
     }
 
     /** May return an existing {@link DataFileInfo} if a matching one already exists */
-    public DataFileInfo addBtle(int numRssi, int numOutputs, SampleWindow window) {
-        DataFileInfo info = get(btle, numRssi, numOutputs, window);
+    public DataFileInfo addBtle(int numRssi, SampleWindow window) {
+        DataFileInfo info = get(btle, numRssi, window);
         if (info != null) return info;
 
-        info = new DataFileInfo(getNextId(btle), numRssi, numOutputs, window);
+        info = new DataFileInfo(getNextId(btle), numRssi, window);
         btle.add(info);
 
         btleRW.writeLines(Collections.singletonList(info.toString()), true,
@@ -202,11 +201,11 @@ public class InfoFileHelper {
     }
 
     /** May return an existing {@link DataFileInfo} if a matching one already exists */
-    public DataFileInfo addWifi(int numRssi, int numOutputs, SampleWindow window) {
-        DataFileInfo info = get(wifi, numRssi, numOutputs, window);
+    public DataFileInfo addWifi(int numRssi, SampleWindow window) {
+        DataFileInfo info = get(wifi, numRssi, window);
         if (info != null) return info;
 
-        info = new DataFileInfo(getNextId(wifi), numRssi, numOutputs, window);
+        info = new DataFileInfo(getNextId(wifi), numRssi, window);
         wifi.add(info);
 
         wifiRW.writeLines(Collections.singletonList(info.toString()), true,
@@ -225,11 +224,11 @@ public class InfoFileHelper {
     }
 
     /** May return an existing {@link DataFileInfo} if a matching one already exists */
-    public DataFileInfo addWifi5g(int numRssi, int numOutputs, SampleWindow window) {
-        DataFileInfo info = get(wifi5g, numRssi, numOutputs, window);
+    public DataFileInfo addWifi5g(int numRssi, SampleWindow window) {
+        DataFileInfo info = get(wifi5g, numRssi, window);
         if (info != null) return info;
 
-        info = new DataFileInfo(getNextId(wifi5g), numRssi, numOutputs, window);
+        info = new DataFileInfo(getNextId(wifi5g), numRssi, window);
         wifi5g.add(info);
 
         wifi5gRW.writeLines(Collections.singletonList(info.toString()), true,
