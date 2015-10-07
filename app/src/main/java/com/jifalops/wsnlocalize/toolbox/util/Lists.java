@@ -26,6 +26,15 @@ public class Lists {
         return a;
     }
 
+//    public static int[] toPrimitive(List<Integer> list) {
+//        int len = list.size();
+//        int[] a = new int[len];
+//        for (int i = 0; i < len; ++i) {
+//            a[i] = list.get(i);
+//        }
+//        return a;
+//    }
+
     public static double[][] toPrimitive2D(List<double[]> list) {
         int len = list.size();
         double[][] a = new double[len][];

@@ -17,7 +17,6 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.Volley;
 import com.jifalops.wsnlocalize.data.helper.InfoFileHelper;
-import com.jifalops.wsnlocalize.data.helper.OldEstimatorsHelper;
 import com.jifalops.wsnlocalize.data.helper.RssiHelper;
 import com.jifalops.wsnlocalize.data.helper.SamplesHelper;
 import com.jifalops.wsnlocalize.request.AbsRequest;
@@ -25,9 +24,11 @@ import com.jifalops.wsnlocalize.request.MacRequest;
 import com.jifalops.wsnlocalize.toolbox.ServiceThreadApplication;
 import com.jifalops.wsnlocalize.toolbox.bluetooth.BtHelper;
 import com.jifalops.wsnlocalize.toolbox.debug.DebugLog;
+import com.jifalops.wsnlocalize.toolbox.util.Arrays;
 import com.jifalops.wsnlocalize.toolbox.wifi.WifiHelper;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -46,9 +47,6 @@ public class App extends ServiceThreadApplication {
     public static final String NN_PSO = "pso";
     public static final String NN_DE = "de";
     public static final String NN_DEPSO = "depso";
-    public static final String[] NEURAL_NETS = new String[] {
-        NN_PSO, NN_DE, NN_DEPSO
-    };
 
     public static final String DATA_RSSI = "rssi";
     public static final String DATA_SAMPLES = "samples";
@@ -214,6 +212,23 @@ public class App extends ServiceThreadApplication {
                                             int numEstimators, boolean timed) {
             return new File(getDataDir(signalType), id + "-" + nnType + "-estimates-" +
                     numEstimators + (timed ? "-timed" : "-untimed") + ".csv");
+        }
+
+        public static int[] getEstimatesFilesNumEstimators(String signalType, final int id) {
+            final List<Integer> numEstimators = new ArrayList<>();
+            getDataDir(signalType).list(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String filename) {
+                    String[] parts = filename.split("-");
+                    if (parts.length == 5 &&
+                        Integer.valueOf(parts[0]) == id &&
+                            parts[2].equals("estimates")) {
+                        numEstimators.add(Integer.valueOf(parts[3]));
+                    }
+                    return false;
+                }
+            });
+            return Arrays.toPrimitive(numEstimators.toArray(new Integer[numEstimators.size()]));
         }
     }
 }

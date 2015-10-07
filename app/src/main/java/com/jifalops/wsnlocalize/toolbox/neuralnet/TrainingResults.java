@@ -1,5 +1,9 @@
 package com.jifalops.wsnlocalize.toolbox.neuralnet;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  *
  */
@@ -8,13 +12,39 @@ public class TrainingResults implements Comparable<TrainingResults> {
     public final double error, mean, stddev;
     public final int numGenerations;
 
-    TrainingResults(double[] weights, double error, double mean, double stddev,
+    public TrainingResults(double[] weights, double error, double mean, double stddev,
                     int numGenerations) {
         this.weights = weights;
         this.error = error;
         this.mean = mean;
         this.stddev = stddev;
         this.numGenerations = numGenerations;
+    }
+
+    public TrainingResults(double[] info) {
+        error = info[0];
+        mean = info[1];
+        stddev = info[2];
+        numGenerations = (int) info[3];
+        weights = Arrays.copyOfRange(info, 4, info.length);
+    }
+
+    public double[] toArray() {
+        double[] a = new double[weights.length + 4];
+        a[0] = error;
+        a[1] = mean;
+        a[2] = stddev;
+        a[3] = numGenerations;
+        System.arraycopy(weights, 0, a, 4, weights.length);
+        return a;
+    }
+
+    public static List<TrainingResults> fromDoubleList(List<double[]> list) {
+        List<TrainingResults> results = new ArrayList<>(list.size());
+        for (double[] a : list) {
+            results.add(new TrainingResults(a));
+        }
+        return results;
     }
 
     public TrainingResults(String csv) {
