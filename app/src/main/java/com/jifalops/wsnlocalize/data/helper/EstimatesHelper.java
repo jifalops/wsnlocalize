@@ -4,11 +4,13 @@ import android.support.annotation.Nullable;
 
 import com.jifalops.wsnlocalize.App;
 import com.jifalops.wsnlocalize.data.DataFileInfo;
+import com.jifalops.wsnlocalize.data.RssiSample;
 import com.jifalops.wsnlocalize.toolbox.file.AbsTextReaderWriter;
 import com.jifalops.wsnlocalize.toolbox.file.NumberReaderWriter;
-import com.jifalops.wsnlocalize.toolbox.neuralnet.TrainingResults;
+import com.jifalops.wsnlocalize.toolbox.util.Arrays;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -25,8 +27,49 @@ public class EstimatesHelper {
         }
         return instance;
     }
+    
+    public static class Estimate {
+        RssiSample sample;
+        double estimate;
+        double error;
 
-    private final Map<DataFileInfo, Map<Integer, EstimatorsHelper.EstimatorInfo>>
+        public Estimate(RssiSample sample, double estimate) {
+            this.sample = sample;
+            this.estimate = estimate;
+            error = (estimate - sample.distance) / sample.distance;
+        }
+
+        public Estimate(double[] a) {
+            int len = a.length;
+            error = a[len - 1];
+            estimate = a[len - 2];
+            sample = new RssiSample(a);
+        }
+
+        double[] toArray() {
+            return Arrays.concat(sample.toArray(), new double[] {estimate, error});
+        }
+
+        static List<Estimate> fromDoubleList(List<double[]> list) {
+            List<Estimate> estimates = new ArrayList<>();
+            for (double[] a : list) {
+                estimates.add(new Estimate(a));
+            }
+            return estimates;
+        }
+    }
+
+    public static class EstimatesInfo {
+        public final List<Estimate>
+                psoTimed = new ArrayList<>(),
+                psoUntimed = new ArrayList<>(),
+                deTimed = new ArrayList<>(),
+                deUntimed = new ArrayList<>(),
+                depsoTimed = new ArrayList<>(),
+                depsoUntimed = new ArrayList<>();
+    }
+
+    private final Map<DataFileInfo, Map<Integer, EstimatesInfo>>
         bt = new HashMap<>(),
         btle = new HashMap<>(),
         wifi = new HashMap<>(),
@@ -45,42 +88,43 @@ public class EstimatesHelper {
                 helper.getWifi().size() + helper.getWifi5g().size();
 
         int[] numEstimators;
-        Map<Integer, EstimatorsHelper.EstimatorInfo> estimatorInfoMap;
+        Map<Integer, EstimatesInfo> estimateInfoMap;
+        
         for (DataFileInfo info : helper.getBt()) {
             numEstimators = App.Files.getEstimatesFilesNumEstimators(App.SIGNAL_BT, info.id);
             numFiles += numEstimators.length * 6;
-            estimatorInfoMap = new HashMap<>();
+            estimateInfoMap = new HashMap<>();
             for (int n : numEstimators) {
-                estimatorInfoMap.put(n, new EstimatorsHelper.EstimatorInfo());
+                estimateInfoMap.put(n, new EstimatesInfo());
             }
-            bt.put(info, estimatorInfoMap);
+            bt.put(info, estimateInfoMap);
         }
         for (DataFileInfo info : helper.getBtle()) {
             numEstimators = App.Files.getEstimatesFilesNumEstimators(App.SIGNAL_BTLE, info.id);
             numFiles += numEstimators.length * 6;
-            estimatorInfoMap = new HashMap<>();
+            estimateInfoMap = new HashMap<>();
             for (int n : numEstimators) {
-                estimatorInfoMap.put(n, new EstimatorsHelper.EstimatorInfo());
+                estimateInfoMap.put(n, new EstimatesInfo());
             }
-            btle.put(info, estimatorInfoMap);
+            btle.put(info, estimateInfoMap);
         }
         for (DataFileInfo info : helper.getWifi()) {
             numEstimators = App.Files.getEstimatesFilesNumEstimators(App.SIGNAL_WIFI, info.id);
             numFiles += numEstimators.length * 6;
-            estimatorInfoMap = new HashMap<>();
+            estimateInfoMap = new HashMap<>();
             for (int n : numEstimators) {
-                estimatorInfoMap.put(n, new EstimatorsHelper.EstimatorInfo());
+                estimateInfoMap.put(n, new EstimatesInfo());
             }
-            wifi.put(info, estimatorInfoMap);
+            wifi.put(info, estimateInfoMap);
         }
         for (DataFileInfo info : helper.getWifi5g()) {
             numEstimators = App.Files.getEstimatesFilesNumEstimators(App.SIGNAL_WIFI5G, info.id);
             numFiles += numEstimators.length * 6;
-            estimatorInfoMap = new HashMap<>();
+            estimateInfoMap = new HashMap<>();
             for (int n : numEstimators) {
-                estimatorInfoMap.put(n, new EstimatorsHelper.EstimatorInfo());
+                estimateInfoMap.put(n, new EstimatesInfo());
             }
-            wifi5g.put(info, estimatorInfoMap);
+            wifi5g.put(info, estimateInfoMap);
         }
         
         NumberReaderWriter rw;
@@ -93,7 +137,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        bt.get(info).get(estimators).psoUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        bt.get(info).get(estimators).psoUntimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -112,7 +156,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        bt.get(info).get(estimators).psoTimed.addAll(TrainingResults.fromDoubleList(list));
+                        bt.get(info).get(estimators).psoTimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -131,7 +175,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        bt.get(info).get(estimators).deUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        bt.get(info).get(estimators).deUntimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -150,7 +194,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        bt.get(info).get(estimators).deTimed.addAll(TrainingResults.fromDoubleList(list));
+                        bt.get(info).get(estimators).deTimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -169,7 +213,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        bt.get(info).get(estimators).depsoUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        bt.get(info).get(estimators).depsoUntimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -188,7 +232,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        bt.get(info).get(estimators).depsoTimed.addAll(TrainingResults.fromDoubleList(list));
+                        bt.get(info).get(estimators).depsoTimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -212,7 +256,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        btle.get(info).get(estimators).psoUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        btle.get(info).get(estimators).psoUntimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -231,7 +275,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        btle.get(info).get(estimators).psoTimed.addAll(TrainingResults.fromDoubleList(list));
+                        btle.get(info).get(estimators).psoTimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -250,7 +294,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        btle.get(info).get(estimators).deUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        btle.get(info).get(estimators).deUntimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -269,7 +313,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        btle.get(info).get(estimators).deTimed.addAll(TrainingResults.fromDoubleList(list));
+                        btle.get(info).get(estimators).deTimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -288,7 +332,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        btle.get(info).get(estimators).depsoUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        btle.get(info).get(estimators).depsoUntimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -307,7 +351,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        btle.get(info).get(estimators).depsoTimed.addAll(TrainingResults.fromDoubleList(list));
+                        btle.get(info).get(estimators).depsoTimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -331,7 +375,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        wifi.get(info).get(estimators).psoUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        wifi.get(info).get(estimators).psoUntimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -350,7 +394,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        wifi.get(info).get(estimators).psoTimed.addAll(TrainingResults.fromDoubleList(list));
+                        wifi.get(info).get(estimators).psoTimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -369,7 +413,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        wifi.get(info).get(estimators).deUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        wifi.get(info).get(estimators).deUntimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -388,7 +432,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        wifi.get(info).get(estimators).deTimed.addAll(TrainingResults.fromDoubleList(list));
+                        wifi.get(info).get(estimators).deTimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -407,7 +451,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        wifi.get(info).get(estimators).depsoUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        wifi.get(info).get(estimators).depsoUntimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -426,7 +470,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        wifi.get(info).get(estimators).depsoTimed.addAll(TrainingResults.fromDoubleList(list));
+                        wifi.get(info).get(estimators).depsoTimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -450,7 +494,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        wifi5g.get(info).get(estimators).psoUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        wifi5g.get(info).get(estimators).psoUntimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -469,7 +513,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        wifi5g.get(info).get(estimators).psoTimed.addAll(TrainingResults.fromDoubleList(list));
+                        wifi5g.get(info).get(estimators).psoTimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -488,7 +532,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        wifi5g.get(info).get(estimators).deUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        wifi5g.get(info).get(estimators).deUntimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -507,7 +551,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        wifi5g.get(info).get(estimators).deTimed.addAll(TrainingResults.fromDoubleList(list));
+                        wifi5g.get(info).get(estimators).deTimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -526,7 +570,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        wifi5g.get(info).get(estimators).depsoUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        wifi5g.get(info).get(estimators).depsoUntimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -545,7 +589,7 @@ public class EstimatesHelper {
                 if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
                     @Override
                     public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                        wifi5g.get(info).get(estimators).depsoTimed.addAll(TrainingResults.fromDoubleList(list));
+                        wifi5g.get(info).get(estimators).depsoTimed.addAll(Estimate.fromDoubleList(list));
                         ++succeeded;
                         checkLoaded();
                     }
@@ -572,10 +616,10 @@ public class EstimatesHelper {
 
     public boolean isLoaded() { return loaded; }
 
-    public void add(TrainingResults results,
+    public void add(Estimate estimate,
                     DataFileInfo info, String signalType, String nnType, int estimators, boolean timed,
                      @Nullable AbsTextReaderWriter.WriteListener callback) {
-        List<TrainingResults> list = null;
+        List<Estimate> list = null;
         switch (signalType) {
             case App.SIGNAL_BT:
                 switch (nnType) {
@@ -620,14 +664,14 @@ public class EstimatesHelper {
         }
        
         if (list != null) {
-            list.add(results);
+            list.add(estimate);
         } else {
-            App.log().e("Unknown list for training results");
+            App.log().e("Unknown list for estimate");
         }
         
         NumberReaderWriter rw = new NumberReaderWriter(
                 App.Files.getEstimatesFile(signalType, nnType, info.id, estimators, timed));
-        rw.writeNumbers(Collections.singletonList(results.toArray()), true, callback);
+        rw.writeNumbers(Collections.singletonList(estimate.toArray()), true, callback);
     }
 
 }
