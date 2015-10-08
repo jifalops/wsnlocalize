@@ -9,7 +9,6 @@ import com.jifalops.wsnlocalize.toolbox.file.NumberReaderWriter;
 import com.jifalops.wsnlocalize.toolbox.neuralnet.TrainingResults;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -42,15 +41,14 @@ public class EstimatesHelper {
     private EstimatesHelper() {
         helper = InfoFileHelper.getInstance();
 
-
-
-        numFiles = (helper.getBt().size() + helper.getBtle().size() +
-                helper.getWifi().size() + helper.getWifi5g().size()) * 6;
+        numFiles = helper.getBt().size() + helper.getBtle().size() +
+                helper.getWifi().size() + helper.getWifi5g().size();
 
         int[] numEstimators;
         Map<Integer, EstimatorsHelper.EstimatorInfo> estimatorInfoMap;
         for (DataFileInfo info : helper.getBt()) {
             numEstimators = App.Files.getEstimatesFilesNumEstimators(App.SIGNAL_BT, info.id);
+            numFiles += numEstimators.length * 6;
             estimatorInfoMap = new HashMap<>();
             for (int n : numEstimators) {
                 estimatorInfoMap.put(n, new EstimatorsHelper.EstimatorInfo());
@@ -59,6 +57,7 @@ public class EstimatesHelper {
         }
         for (DataFileInfo info : helper.getBtle()) {
             numEstimators = App.Files.getEstimatesFilesNumEstimators(App.SIGNAL_BTLE, info.id);
+            numFiles += numEstimators.length * 6;
             estimatorInfoMap = new HashMap<>();
             for (int n : numEstimators) {
                 estimatorInfoMap.put(n, new EstimatorsHelper.EstimatorInfo());
@@ -67,6 +66,7 @@ public class EstimatesHelper {
         }
         for (DataFileInfo info : helper.getWifi()) {
             numEstimators = App.Files.getEstimatesFilesNumEstimators(App.SIGNAL_WIFI, info.id);
+            numFiles += numEstimators.length * 6;
             estimatorInfoMap = new HashMap<>();
             for (int n : numEstimators) {
                 estimatorInfoMap.put(n, new EstimatorsHelper.EstimatorInfo());
@@ -75,6 +75,7 @@ public class EstimatesHelper {
         }
         for (DataFileInfo info : helper.getWifi5g()) {
             numEstimators = App.Files.getEstimatesFilesNumEstimators(App.SIGNAL_WIFI5G, info.id);
+            numFiles += numEstimators.length * 6;
             estimatorInfoMap = new HashMap<>();
             for (int n : numEstimators) {
                 estimatorInfoMap.put(n, new EstimatorsHelper.EstimatorInfo());
@@ -84,470 +85,478 @@ public class EstimatesHelper {
         
         NumberReaderWriter rw;
         
-        for (final DataFileInfo info : helper.getBt()) {
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_BT, App.NN_PSO, info.id, false));
-            
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    bt.get(info).psoUntimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
+        for (final DataFileInfo info : bt.keySet()) {
+            for (final int estimators : bt.get(info).keySet()) {
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_BT, App.NN_PSO, info.id, estimators, false));
 
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        bt.get(info).get(estimators).psoUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
 
-
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_BT, App.NN_PSO, info.id, true));
-            
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    bt.get(info).psoTimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
-
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
-
-            
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_BT, App.NN_DE, info.id, false));
-            
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    bt.get(info).deUntimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
-
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
 
 
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_BT, App.NN_DE, info.id, true));
-            
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    bt.get(info).deTimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_BT, App.NN_PSO, info.id, estimators, true));
 
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        bt.get(info).get(estimators).psoTimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
 
-
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_BT, App.NN_DEPSO, info.id, false));
-            
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    bt.get(info).depsoUntimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
-
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
 
 
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_BT, App.NN_DEPSO, info.id, true));
-            
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    bt.get(info).depsoTimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_BT, App.NN_DE, info.id, estimators, false));
 
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
-        }
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        bt.get(info).get(estimators).deUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
 
-
-        
-        for (final DataFileInfo info : helper.getBtle()) {
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_BTLE, App.NN_PSO, info.id, false));
-
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    btle.get(info).psoUntimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
-
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
 
 
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_BTLE, App.NN_PSO, info.id, true));
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_BT, App.NN_DE, info.id, estimators, true));
 
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    btle.get(info).psoTimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        bt.get(info).get(estimators).deTimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
 
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
-
-
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_BTLE, App.NN_DE, info.id, false));
-
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    btle.get(info).deUntimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
-
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
 
 
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_BTLE, App.NN_DE, info.id, true));
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_BT, App.NN_DEPSO, info.id, estimators, false));
 
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    btle.get(info).deTimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        bt.get(info).get(estimators).depsoUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
 
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
-
-
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_BTLE, App.NN_DEPSO, info.id, false));
-
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    btle.get(info).depsoUntimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
-
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
 
 
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_BTLE, App.NN_DEPSO, info.id, true));
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_BT, App.NN_DEPSO, info.id, estimators, true));
 
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    btle.get(info).depsoTimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        bt.get(info).get(estimators).depsoTimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
 
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
+            }
         }
 
 
 
-        for (final DataFileInfo info : helper.getWifi()) {
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_WIFI, App.NN_PSO, info.id, false));
+        for (final DataFileInfo info : btle.keySet()) {
+            for (final int estimators : btle.get(info).keySet()) {
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_BTLE, App.NN_PSO, info.id, estimators, false));
 
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    wifi.get(info).psoUntimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        btle.get(info).get(estimators).psoUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
 
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
-
-
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_WIFI, App.NN_PSO, info.id, true));
-
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    wifi.get(info).psoTimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
-
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
 
 
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_WIFI, App.NN_DE, info.id, false));
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_BTLE, App.NN_PSO, info.id, estimators, true));
 
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    wifi.get(info).deUntimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        btle.get(info).get(estimators).psoTimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
 
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
-
-
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_WIFI, App.NN_DE, info.id, true));
-
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    wifi.get(info).deTimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
-
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
 
 
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_WIFI, App.NN_DEPSO, info.id, false));
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_BTLE, App.NN_DE, info.id, estimators, false));
 
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    wifi.get(info).depsoUntimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        btle.get(info).get(estimators).deUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
 
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
 
 
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_WIFI, App.NN_DEPSO, info.id, true));
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_BTLE, App.NN_DE, info.id, estimators, true));
 
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    wifi.get(info).depsoTimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        btle.get(info).get(estimators).deTimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
 
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
+
+
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_BTLE, App.NN_DEPSO, info.id, estimators, false));
+
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        btle.get(info).get(estimators).depsoUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
+
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
+
+
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_BTLE, App.NN_DEPSO, info.id, estimators, true));
+
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        btle.get(info).get(estimators).depsoTimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
+
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
+            }
         }
 
 
 
-        for (final DataFileInfo info : helper.getWifi5g()) {
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_WIFI5G, App.NN_PSO, info.id, false));
+        for (final DataFileInfo info : wifi.keySet()) {
+            for (final int estimators : wifi.get(info).keySet()) {
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_WIFI, App.NN_PSO, info.id, estimators, false));
 
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    wifi5g.get(info).psoUntimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        wifi.get(info).get(estimators).psoUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
 
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
-
-
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_WIFI5G, App.NN_PSO, info.id, true));
-
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    wifi5g.get(info).psoTimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
-
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
 
 
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_WIFI5G, App.NN_DE, info.id, false));
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_WIFI, App.NN_PSO, info.id, estimators, true));
 
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    wifi5g.get(info).deUntimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        wifi.get(info).get(estimators).psoTimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
 
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
-
-
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_WIFI5G, App.NN_DE, info.id, true));
-
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    wifi5g.get(info).deTimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
-
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
 
 
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_WIFI5G, App.NN_DEPSO, info.id, false));
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_WIFI, App.NN_DE, info.id, estimators, false));
 
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    wifi5g.get(info).depsoUntimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        wifi.get(info).get(estimators).deUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
 
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
 
 
-            rw = new NumberReaderWriter(App.Files.getEstimatorsFile(
-                    App.SIGNAL_WIFI5G, App.NN_DEPSO, info.id, true));
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_WIFI, App.NN_DE, info.id, estimators, true));
 
-            if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
-                @Override
-                public void onReadSucceeded(List<double[]> list, int typingExceptions) {
-                    wifi5g.get(info).depsoTimed.addAll(TrainingResults.fromDoubleList(list));
-                    ++succeeded;
-                    checkLoaded();
-                }
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        wifi.get(info).get(estimators).deTimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
 
-                @Override
-                public void onReadFailed(IOException e) {
-                    ++failed;
-                    checkLoaded();
-                }
-            })) ++failed;
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
+
+
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_WIFI, App.NN_DEPSO, info.id, estimators, false));
+
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        wifi.get(info).get(estimators).depsoUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
+
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
+
+
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_WIFI, App.NN_DEPSO, info.id, estimators, true));
+
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        wifi.get(info).get(estimators).depsoTimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
+
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
+            }
+        }
+
+
+
+        for (final DataFileInfo info : wifi5g.keySet()) {
+            for (final int estimators : wifi5g.get(info).keySet()) {
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_WIFI5G, App.NN_PSO, info.id, estimators, false));
+
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        wifi5g.get(info).get(estimators).psoUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
+
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
+
+
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_WIFI5G, App.NN_PSO, info.id, estimators, true));
+
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        wifi5g.get(info).get(estimators).psoTimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
+
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
+
+
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_WIFI5G, App.NN_DE, info.id, estimators, false));
+
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        wifi5g.get(info).get(estimators).deUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
+
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
+
+
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_WIFI5G, App.NN_DE, info.id, estimators, true));
+
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        wifi5g.get(info).get(estimators).deTimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
+
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
+
+
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_WIFI5G, App.NN_DEPSO, info.id, estimators, false));
+
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        wifi5g.get(info).get(estimators).depsoUntimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
+
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
+
+
+                rw = new NumberReaderWriter(App.Files.getEstimatesFile(
+                        App.SIGNAL_WIFI5G, App.NN_DEPSO, info.id, estimators, true));
+
+                if (!rw.readNumbers(new AbsTextReaderWriter.TypedReadListener<double[]>() {
+                    @Override
+                    public void onReadSucceeded(List<double[]> list, int typingExceptions) {
+                        wifi5g.get(info).get(estimators).depsoTimed.addAll(TrainingResults.fromDoubleList(list));
+                        ++succeeded;
+                        checkLoaded();
+                    }
+
+                    @Override
+                    public void onReadFailed(IOException e) {
+                        ++failed;
+                        checkLoaded();
+                    }
+                })) ++failed;
+            }
         }
         
 
@@ -564,48 +573,48 @@ public class EstimatesHelper {
     public boolean isLoaded() { return loaded; }
 
     public void add(TrainingResults results,
-                    DataFileInfo info, String signalType, String nnType, boolean timed,
+                    DataFileInfo info, String signalType, String nnType, int estimators, boolean timed,
                      @Nullable AbsTextReaderWriter.WriteListener callback) {
         List<TrainingResults> list = null;
         switch (signalType) {
             case App.SIGNAL_BT:
                 switch (nnType) {
                     case App.NN_PSO:
-                        list = timed ? bt.get(info).psoTimed : bt.get(info).psoUntimed; break;
+                        list = timed ? bt.get(info).get(estimators).psoTimed : bt.get(info).get(estimators).psoUntimed; break;
                     case App.NN_DE:
-                        list = timed ? bt.get(info).deTimed : bt.get(info).deUntimed; break;
+                        list = timed ? bt.get(info).get(estimators).deTimed : bt.get(info).get(estimators).deUntimed; break;
                     case App.NN_DEPSO:
-                        list = timed ? bt.get(info).depsoTimed : bt.get(info).depsoUntimed; break;
+                        list = timed ? bt.get(info).get(estimators).depsoTimed : bt.get(info).get(estimators).depsoUntimed; break;
                 }
                 break;
             case App.SIGNAL_BTLE:
                 switch (nnType) {
                     case App.NN_PSO:
-                        list = timed ? btle.get(info).psoTimed : btle.get(info).psoUntimed; break;
+                        list = timed ? btle.get(info).get(estimators).psoTimed : btle.get(info).get(estimators).psoUntimed; break;
                     case App.NN_DE:
-                        list = timed ? btle.get(info).deTimed : btle.get(info).deUntimed; break;
+                        list = timed ? btle.get(info).get(estimators).deTimed : btle.get(info).get(estimators).deUntimed; break;
                     case App.NN_DEPSO:
-                        list = timed ? btle.get(info).depsoTimed : btle.get(info).depsoUntimed; break;
+                        list = timed ? btle.get(info).get(estimators).depsoTimed : btle.get(info).get(estimators).depsoUntimed; break;
                 }
                 break;
             case App.SIGNAL_WIFI:
                 switch (nnType) {
                     case App.NN_PSO:
-                        list = timed ? wifi.get(info).psoTimed : wifi.get(info).psoUntimed; break;
+                        list = timed ? wifi.get(info).get(estimators).psoTimed : wifi.get(info).get(estimators).psoUntimed; break;
                     case App.NN_DE:
-                        list = timed ? wifi.get(info).deTimed : wifi.get(info).deUntimed; break;
+                        list = timed ? wifi.get(info).get(estimators).deTimed : wifi.get(info).get(estimators).deUntimed; break;
                     case App.NN_DEPSO:
-                        list = timed ? wifi.get(info).depsoTimed : wifi.get(info).depsoUntimed; break;
+                        list = timed ? wifi.get(info).get(estimators).depsoTimed : wifi.get(info).get(estimators).depsoUntimed; break;
                 }
                 break;
             case App.SIGNAL_WIFI5G:
                 switch (nnType) {
                     case App.NN_PSO:
-                        list = timed ? wifi5g.get(info).psoTimed : wifi5g.get(info).psoUntimed; break;
+                        list = timed ? wifi5g.get(info).get(estimators).psoTimed : wifi5g.get(info).get(estimators).psoUntimed; break;
                     case App.NN_DE:
-                        list = timed ? wifi5g.get(info).deTimed : wifi5g.get(info).deUntimed; break;
+                        list = timed ? wifi5g.get(info).get(estimators).deTimed : wifi5g.get(info).get(estimators).deUntimed; break;
                     case App.NN_DEPSO:
-                        list = timed ? wifi5g.get(info).depsoTimed : wifi5g.get(info).depsoUntimed; break;
+                        list = timed ? wifi5g.get(info).get(estimators).depsoTimed : wifi5g.get(info).get(estimators).depsoUntimed; break;
                 }
                 break;
         }
@@ -617,7 +626,7 @@ public class EstimatesHelper {
         }
         
         NumberReaderWriter rw = new NumberReaderWriter(
-                App.Files.getEstimatorsFile(signalType, nnType, info.id, timed));
+                App.Files.getEstimatesFile(signalType, nnType, info.id, estimators, timed));
         rw.writeNumbers(Collections.singletonList(results.toArray()), true, callback);
     }
 
