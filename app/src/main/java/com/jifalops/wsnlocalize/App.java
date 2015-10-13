@@ -16,6 +16,8 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.Volley;
+import com.jifalops.wsnlocalize.data.helper.EstimatesHelper;
+import com.jifalops.wsnlocalize.data.helper.EstimatorsHelper;
 import com.jifalops.wsnlocalize.data.helper.InfoFileHelper;
 import com.jifalops.wsnlocalize.data.helper.RssiHelper;
 import com.jifalops.wsnlocalize.data.helper.SamplesHelper;
@@ -82,7 +84,8 @@ public class App extends ServiceThreadApplication {
             public void onReceive(Context context, Intent intent) {
                 if (intent.getAction().equals(InfoFileHelper.ACTION_LOADED)) {
                     SamplesHelper.getInstance();
-                    OldEstimatorsHelper.getInstance();
+                    EstimatorsHelper.getInstance();
+                    EstimatesHelper.getInstance();
                 }
             }
         }, new IntentFilter(InfoFileHelper.ACTION_LOADED));

@@ -129,6 +129,19 @@ public class RssiHelper {
         return list;
     }
 
+    public RssiList getRssi(String signal) {
+        switch (signal) {
+            case App.SIGNAL_BT:
+                return bt;
+            case App.SIGNAL_BTLE:
+                return btle;
+            case App.SIGNAL_WIFI:
+                return wifi;
+            default:
+                return wifi5g;
+        }
+    }
+
     public void addBt(List<Rssi> rssi) {
         btRW.writeRecords(rssi, true, new AbsTextReaderWriter.WriteListener() {
             @Override

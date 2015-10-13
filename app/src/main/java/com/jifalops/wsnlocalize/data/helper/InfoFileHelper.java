@@ -122,6 +122,14 @@ public class InfoFileHelper {
     public List<DataFileInfo> getBtle() { return btle; }
     public List<DataFileInfo> getWifi() { return wifi; }
     public List<DataFileInfo> getWifi5g() { return wifi5g; }
+    public List<DataFileInfo> getAll() {
+        List<DataFileInfo> list = new ArrayList<>();
+        list.addAll(bt);
+        list.addAll(btle);
+        list.addAll(wifi);
+        list.addAll(wifi5g);
+        return list;
+    }
 
 
     private int getNextId(List<DataFileInfo> list) {

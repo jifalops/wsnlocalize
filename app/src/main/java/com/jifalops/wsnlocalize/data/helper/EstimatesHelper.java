@@ -29,9 +29,9 @@ public class EstimatesHelper {
     }
     
     public static class Estimate {
-        RssiSample sample;
-        double estimate;
-        double error;
+        public final RssiSample sample;
+        public final double estimate;
+        public final double error;
 
         public Estimate(RssiSample sample, double estimate) {
             this.sample = sample;
@@ -624,41 +624,53 @@ public class EstimatesHelper {
             case App.SIGNAL_BT:
                 switch (nnType) {
                     case App.NN_PSO:
-                        list = timed ? bt.get(info).get(estimators).psoTimed : bt.get(info).get(estimators).psoUntimed; break;
+                        list = timed ? bt.get(info).get(estimators).psoTimed
+                                : bt.get(info).get(estimators).psoUntimed; break;
                     case App.NN_DE:
-                        list = timed ? bt.get(info).get(estimators).deTimed : bt.get(info).get(estimators).deUntimed; break;
+                        list = timed ? bt.get(info).get(estimators).deTimed
+                                : bt.get(info).get(estimators).deUntimed; break;
                     case App.NN_DEPSO:
-                        list = timed ? bt.get(info).get(estimators).depsoTimed : bt.get(info).get(estimators).depsoUntimed; break;
+                        list = timed ? bt.get(info).get(estimators).depsoTimed
+                                : bt.get(info).get(estimators).depsoUntimed; break;
                 }
                 break;
             case App.SIGNAL_BTLE:
                 switch (nnType) {
                     case App.NN_PSO:
-                        list = timed ? btle.get(info).get(estimators).psoTimed : btle.get(info).get(estimators).psoUntimed; break;
+                        list = timed ? btle.get(info).get(estimators).psoTimed
+                                : btle.get(info).get(estimators).psoUntimed; break;
                     case App.NN_DE:
-                        list = timed ? btle.get(info).get(estimators).deTimed : btle.get(info).get(estimators).deUntimed; break;
+                        list = timed ? btle.get(info).get(estimators).deTimed
+                                : btle.get(info).get(estimators).deUntimed; break;
                     case App.NN_DEPSO:
-                        list = timed ? btle.get(info).get(estimators).depsoTimed : btle.get(info).get(estimators).depsoUntimed; break;
+                        list = timed ? btle.get(info).get(estimators).depsoTimed
+                                : btle.get(info).get(estimators).depsoUntimed; break;
                 }
                 break;
             case App.SIGNAL_WIFI:
                 switch (nnType) {
                     case App.NN_PSO:
-                        list = timed ? wifi.get(info).get(estimators).psoTimed : wifi.get(info).get(estimators).psoUntimed; break;
+                        list = timed ? wifi.get(info).get(estimators).psoTimed
+                                : wifi.get(info).get(estimators).psoUntimed; break;
                     case App.NN_DE:
-                        list = timed ? wifi.get(info).get(estimators).deTimed : wifi.get(info).get(estimators).deUntimed; break;
+                        list = timed ? wifi.get(info).get(estimators).deTimed
+                                : wifi.get(info).get(estimators).deUntimed; break;
                     case App.NN_DEPSO:
-                        list = timed ? wifi.get(info).get(estimators).depsoTimed : wifi.get(info).get(estimators).depsoUntimed; break;
+                        list = timed ? wifi.get(info).get(estimators).depsoTimed
+                                : wifi.get(info).get(estimators).depsoUntimed; break;
                 }
                 break;
             case App.SIGNAL_WIFI5G:
                 switch (nnType) {
                     case App.NN_PSO:
-                        list = timed ? wifi5g.get(info).get(estimators).psoTimed : wifi5g.get(info).get(estimators).psoUntimed; break;
+                        list = timed ? wifi5g.get(info).get(estimators).psoTimed
+                                : wifi5g.get(info).get(estimators).psoUntimed; break;
                     case App.NN_DE:
-                        list = timed ? wifi5g.get(info).get(estimators).deTimed : wifi5g.get(info).get(estimators).deUntimed; break;
+                        list = timed ? wifi5g.get(info).get(estimators).deTimed
+                                : wifi5g.get(info).get(estimators).deUntimed; break;
                     case App.NN_DEPSO:
-                        list = timed ? wifi5g.get(info).get(estimators).depsoTimed : wifi5g.get(info).get(estimators).depsoUntimed; break;
+                        list = timed ? wifi5g.get(info).get(estimators).depsoTimed
+                                : wifi5g.get(info).get(estimators).depsoUntimed; break;
                 }
                 break;
         }
@@ -674,4 +686,16 @@ public class EstimatesHelper {
         rw.writeNumbers(Collections.singletonList(estimate.toArray()), true, callback);
     }
 
+    public Map<Integer, EstimatesInfo> getEstimatesInfos(String signal, DataFileInfo info) {
+        switch (signal) {
+            case App.SIGNAL_BT:
+                return bt.get(info);
+            case App.SIGNAL_BTLE:
+                return btle.get(info);
+            case App.SIGNAL_WIFI:
+                return wifi.get(info);
+            default:
+                return wifi5g.get(info);
+        }
+    }
 }

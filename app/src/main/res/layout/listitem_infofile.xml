@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--TODO change FrameLayout to CardView-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    card_view:cardElevation="4dp"
+    card_view:cardCornerRadius="8dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="4">
+            <TextView
+                android:id="@+id/signal"
+                android:layout_rowSpan="2"
+                android:layout_columnWeight="0.1"
+                android:textAppearance="?android:textAppearanceLarge"
+                android:text="BT - 1"
+                android:layout_gravity="center"/>
+            <TextView
+                android:text="RSSI"
+                android:layout_columnWeight="1"
+                android:layout_gravity="center_horizontal"/>
+            <GridLayout
+                android:layout_rowSpan="2"
+                android:layout_columnSpan="2"
+                android:layout_columnWeight="0.5"
+                android:columnCount="3">
+                <Space android:layout_columnWeight="1"/>
+                <TextView android:text="Count"
+                    android:textSize="10sp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_columnWeight="1"/>
+                <TextView android:text="Time"
+                    android:textSize="10sp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_columnWeight="1"/>
+                <TextView android:text="Min"
+                    android:textSize="10sp"/>
+                <TextView
+                    android:id="@+id/minCount"
+                    android:text="0"
+                    android:textSize="10sp"
+                    android:layout_gravity="center_horizontal"/>
+                <TextView
+                    android:id="@+id/minTime"
+                    android:text="0"
+                    android:textSize="10sp"
+                    android:layout_gravity="center_horizontal"/>
+                <TextView android:text="Max"
+                    android:textSize="10sp"/>
+                <TextView
+                    android:id="@+id/maxCount"
+                    android:text="0"
+                    android:textSize="10sp"
+                    android:layout_gravity="center_horizontal"/>
+                <TextView
+                    android:id="@+id/maxTime"
+                    android:text="0"
+                    android:textSize="10sp"
+                    android:layout_gravity="center_horizontal"/>
+            </GridLayout>
+            <TextView
+                android:id="@+id/rssi"
+                android:text="0"
+                android:layout_gravity="center_horizontal"/>
+        </GridLayout>
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="12dp"
+            android:columnCount="2">
+            <TextView
+                android:text="Samples"
+                android:layout_columnWeight="1"
+                android:layout_gravity="center_horizontal"/>
+            <TextView
+                android:text="Distances"
+                android:layout_columnWeight="1"
+                android:layout_gravity="center_horizontal"/>
+            <TextView
+                android:id="@+id/samples"
+                android:text="0"
+                android:layout_gravity="center_horizontal"/>
+            <TextView
+                android:id="@+id/distances"
+                android:text="0"
+                android:layout_gravity="center_horizontal"/>
+        </GridLayout>
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="12dp"
+            android:columnCount="4">
+            <TextView
+                android:layout_rowSpan="3"
+                android:paddingTop="4dp"
+                android:gravity="center"
+                android:layout_columnWeight="2"
+                android:text="PSO\nEstimators"/>
+            <Space android:layout_columnWeight="1" />
+            <TextView android:text="Count"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"/>
+            <TextView android:text="Avg. Error"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"/>
+            <TextView android:text="Timed"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"/>
+            <TextView android:id="@+id/psoTimedCount"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"
+                android:text="0"/>
+            <TextView android:id="@+id/psoTimedAvg"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"
+                android:text="0"/>
+            <TextView android:text="Untimed"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"/>
+            <TextView android:id="@+id/psoUntimedCount"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"
+                android:text="0"/>
+            <TextView android:id="@+id/psoUntimedAvg"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"
+                android:text="0"/>
+        </GridLayout>
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="12dp"
+            android:columnCount="4">
+            <TextView
+                android:layout_rowSpan="3"
+                android:paddingTop="4dp"
+                android:gravity="center"
+                android:layout_columnWeight="2"
+                android:text="DE\nEstimators"/>
+            <Space android:layout_columnWeight="1" />
+            <TextView android:text="Count"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"/>
+            <TextView android:text="Avg. Error"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"/>
+            <TextView android:text="Timed"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"/>
+            <TextView android:id="@+id/deTimedCount"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"
+                android:text="0"/>
+            <TextView android:id="@+id/deTimedAvg"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"
+                android:text="0"/>
+            <TextView android:text="Untimed"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"/>
+            <TextView android:id="@+id/deUntimedCount"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"
+                android:text="0"/>
+            <TextView android:id="@+id/deUntimedAvg"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"
+                android:text="0"/>
+        </GridLayout>
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingTop="12dp"
+            android:columnCount="4">
+            <TextView
+                android:layout_rowSpan="3"
+                android:paddingTop="4dp"
+                android:gravity="center"
+                android:layout_columnWeight="2"
+                android:text="DEPSO\nEstimators"/>
+            <Space android:layout_columnWeight="1" />
+            <TextView android:text="Count"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"/>
+            <TextView android:text="Avg. Error"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"/>
+            <TextView android:text="Timed"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"/>
+            <TextView android:id="@+id/depsoTimedCount"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"
+                android:text="0"/>
+            <TextView android:id="@+id/depsoTimedAvg"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"
+                android:text="0"/>
+            <TextView android:text="Untimed"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"/>
+            <TextView android:id="@+id/depsoUntimedCount"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"
+                android:text="0"/>
+            <TextView android:id="@+id/depsoUntimedAvg"
+                android:textSize="10sp"
+                android:layout_columnWeight="1"
+                android:text="0"/>
+        </GridLayout>
+        <TextView
+            android:paddingTop="12dp"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="PSO Timed Estimates"/>
+        <LinearLayout
+            android:id="@+id/psoTimedEstimates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+        <TextView
+            android:paddingTop="12dp"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="PSO Untimed Estimates"/>
+        <LinearLayout
+            android:id="@+id/psoUntimedEstimates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+        <TextView
+            android:paddingTop="12dp"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="DE Timed Estimates"/>
+        <LinearLayout
+            android:id="@+id/deTimedEstimates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+        <TextView
+            android:paddingTop="12dp"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="DE Untimed Estimates"/>
+        <LinearLayout
+            android:id="@+id/deUntimedEstimates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+        <TextView
+            android:paddingTop="12dp"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="DEPSO Timed Estimates"/>
+        <LinearLayout
+            android:id="@+id/depsoTimedEstimates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+        <TextView
+            android:paddingTop="12dp"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="DEPSO Untimed Estimates"/>
+        <LinearLayout
+            android:id="@+id/depsoUntimedEstimates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"/>
+    </LinearLayout>
+</FrameLayout>

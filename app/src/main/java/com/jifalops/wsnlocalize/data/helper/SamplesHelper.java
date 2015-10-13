@@ -183,4 +183,17 @@ public class SamplesHelper {
                 App.Files.getSamplesFile(App.SIGNAL_WIFI5G, info.id));
         rw.writeNumbers(list.toDoubleList(), false, callback);
     }
+
+    public RssiSampleList getSamples(String signal, DataFileInfo info) {
+        switch (signal) {
+            case App.SIGNAL_BT:
+                return bt.get(info);
+            case App.SIGNAL_BTLE:
+                return btle.get(info);
+            case App.SIGNAL_WIFI:
+                return wifi.get(info);
+            default:
+                return wifi5g.get(info);
+        }
+    }
 }

@@ -606,4 +606,17 @@ public class EstimatorsHelper {
         rw.writeNumbers(Collections.singletonList(results.toArray()), true, callback);
     }
 
+
+    public EstimatorInfo getEstimatorInfo(String signal, DataFileInfo info) {
+        switch (signal) {
+            case App.SIGNAL_BT:
+                return bt.get(info);
+            case App.SIGNAL_BTLE:
+                return btle.get(info);
+            case App.SIGNAL_WIFI:
+                return wifi.get(info);
+            default:
+                return wifi5g.get(info);
+        }
+    }
 }
