@@ -1,7 +1,9 @@
 package com.jifalops.wsnlocalize;
 
 import android.content.Context;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
+import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,8 +18,11 @@ import com.jifalops.wsnlocalize.data.helper.EstimatorsHelper;
 import com.jifalops.wsnlocalize.data.helper.InfoFileHelper;
 import com.jifalops.wsnlocalize.data.helper.RssiHelper;
 import com.jifalops.wsnlocalize.data.helper.SamplesHelper;
+import com.jifalops.wsnlocalize.toolbox.Display;
 import com.jifalops.wsnlocalize.toolbox.neuralnet.TrainingResults;
+import com.jifalops.wsnlocalize.toolbox.util.Arrays;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -34,6 +39,10 @@ public class InfoFileAdapter extends RecyclerView.Adapter<InfoFileAdapter.ViewHo
 
     List<DataFileInfo> infos;
     LayoutInflater inflater;
+
+    SparseBooleanArray selected;
+
+    View.OnClickListener listener;
     
     public InfoFileAdapter(Context ctx) {
         rssiHelper = RssiHelper.getInstance();
@@ -44,6 +53,21 @@ public class InfoFileAdapter extends RecyclerView.Adapter<InfoFileAdapter.ViewHo
         
         infos = infoHelper.getAll();
         inflater = LayoutInflater.from(ctx);
+
+        selected = new SparseBooleanArray(infos.size());
+    }
+
+    public void setOnItemClickListener(View.OnClickListener listener) {
+        this.listener = listener;
+    }
+
+    public int[] getSelectedPositions() {
+        List<Integer> list = new ArrayList<>();
+        for(int i = 0; i < selected.size(); i++) {
+            int key = selected.keyAt(i);
+            if (selected.get(key)) list.add(key);
+        }
+        return Arrays.toPrimitive(list.toArray(new Integer[list.size()]));
     }
     
     @Override
@@ -52,7 +76,7 @@ public class InfoFileAdapter extends RecyclerView.Adapter<InfoFileAdapter.ViewHo
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder vh, int position) {
+    public void onBindViewHolder(final ViewHolder vh, final int position) {
         DataFileInfo info = infos.get(position);
         String signal = getSignal(position);
 
@@ -62,6 +86,21 @@ public class InfoFileAdapter extends RecyclerView.Adapter<InfoFileAdapter.ViewHo
                 estimatorsHelper.getEstimatorInfo(signal, info);
         Map<Integer, EstimatesHelper.EstimatesInfo> estimatesMap =
                 estimatesHelper.getEstimatesInfos(signal, info);
+
+        vh.container.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                boolean b = !selected.get(position);
+                selected.put(position, b);
+                vh.container.setCardElevation(b ? Display.dpToPx(8) : Display.dpToPx(2));
+//                vh.container.setCardBackgroundColor(b ? 0xFFF : 0xEEE);
+                if (listener != null) listener.onClick(vh.container);
+            }
+        });
+
+        vh.container.setCardElevation(selected.get(position)
+                ? Display.dpToPx(8)
+                : Display.dpToPx(2));
 
         vh.signal.setText(signal + " - " + info.id);
         vh.rssi.setText(rssi.size()+"");
@@ -74,19 +113,19 @@ public class InfoFileAdapter extends RecyclerView.Adapter<InfoFileAdapter.ViewHo
         vh.samples.setText(samples.size()+"");
         vh.distances.setText(samples.splitByDistance().size()+"");
 
-        vh.psoTimedCount.setText(estimatorInfo.psoTimed.size());
+        vh.psoTimedCount.setText(estimatorInfo.psoTimed.size()+"");
         vh.psoTimedAvg.setText(format(estimatorsAvgError(estimatorInfo.psoTimed), 3));
-        vh.psoUntimedCount.setText(estimatorInfo.psoUntimed.size());
+        vh.psoUntimedCount.setText(estimatorInfo.psoUntimed.size()+"");
         vh.psoUntimedAvg.setText(format(estimatorsAvgError(estimatorInfo.psoUntimed), 3));
 
-        vh.deTimedCount.setText(estimatorInfo.deTimed.size());
+        vh.deTimedCount.setText(estimatorInfo.deTimed.size()+"");
         vh.deTimedAvg.setText(format(estimatorsAvgError(estimatorInfo.deTimed), 3));
-        vh.deUntimedCount.setText(estimatorInfo.deUntimed.size());
+        vh.deUntimedCount.setText(estimatorInfo.deUntimed.size()+"");
         vh.deUntimedAvg.setText(format(estimatorsAvgError(estimatorInfo.deUntimed), 3));
 
-        vh.depsoTimedCount.setText(estimatorInfo.depsoTimed.size());
+        vh.depsoTimedCount.setText(estimatorInfo.depsoTimed.size()+"");
         vh.depsoTimedAvg.setText(format(estimatorsAvgError(estimatorInfo.depsoTimed), 3));
-        vh.depsoUntimedCount.setText(estimatorInfo.depsoUntimed.size());
+        vh.depsoUntimedCount.setText(estimatorInfo.depsoUntimed.size()+"");
         vh.depsoUntimedAvg.setText(format(estimatorsAvgError(estimatorInfo.depsoUntimed), 3));
         
         vh.psoTimedEstimates.removeAllViews();
@@ -114,6 +153,8 @@ public class InfoFileAdapter extends RecyclerView.Adapter<InfoFileAdapter.ViewHo
 
     
     static class ViewHolder extends RecyclerView.ViewHolder {
+        CardView container;
+
         TextView signal, rssi,
             minCount, minTime, maxCount, maxTime,
             samples, distances,
@@ -127,6 +168,8 @@ public class InfoFileAdapter extends RecyclerView.Adapter<InfoFileAdapter.ViewHo
         
         public ViewHolder(View v) {
             super(v);
+            container = (CardView) v.findViewById(R.id.cardView);
+
             signal = (TextView) v.findViewById(R.id.signal);
             rssi = (TextView) v.findViewById(R.id.rssi);
             

@@ -73,6 +73,11 @@
         <activity
             android:name=".SampleOverviewActivity"
             android:label="Sample Lists Overview" />
+
+        <activity
+            android:name=".InfoFilesActivity"
+            android:theme="@android:style/Theme.Material.Light"
+            android:label="Data Overview" />
     </application>
 
 </manifest>

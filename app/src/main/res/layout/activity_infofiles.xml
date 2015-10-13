@@ -1,5 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RecyclerView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-</RecyclerView>
+    android:layout_height="match_parent"
+    android:background="#eee"
+    android:orientation="vertical">
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/recycler"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+    <GridLayout
+        android:id="@+id/cardOptions"
+        android:padding="8dp"
+        android:background="#ccc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="visible">
+        <TextView android:id="@+id/selectedCount"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:text="0"/>
+        <TextView android:text=" selected"
+            android:layout_columnWeight="1"
+            android:textAppearance="?android:textAppearanceMedium"/>
+        <Button android:text="Train"
+            android:onClick="doTraining"/>
+    </GridLayout>
+</LinearLayout>
