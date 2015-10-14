@@ -66,7 +66,7 @@ public abstract class NeuralNetwork {
                 }
 
                 prepareToTrain();
-
+                long startTime = System.nanoTime();
                 do {
                     onGenerationStarting(generation);
                     trainGeneration(toTrain);
@@ -75,7 +75,8 @@ public abstract class NeuralNetwork {
                     ++generation;
                     publishProgress((double)generation, bestError[0], mean, stdDev);
                 } while (!isComplete(generation, stdDev));
-                return new TrainingResults(best, bestError[0], mean, stdDev, generation);
+                long elapsed = (System.nanoTime() - startTime) / 1_000_000;
+                return new TrainingResults(best, bestError[0], mean, stdDev, generation, elapsed);
             }
 
             @Override
