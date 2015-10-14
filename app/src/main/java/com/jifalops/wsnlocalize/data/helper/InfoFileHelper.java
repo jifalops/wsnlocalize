@@ -131,6 +131,16 @@ public class InfoFileHelper {
         return list;
     }
 
+    public String getSignal(int index) {
+        int btIndex = bt.size(),
+                btleIndex = btIndex + btle.size(),
+                wifiIndex = btleIndex + wifi.size();
+        if (index < btIndex) return App.SIGNAL_BT;
+        else if (index < btleIndex) return App.SIGNAL_BTLE;
+        else if (index < wifiIndex) return App.SIGNAL_WIFI;
+        else return App.SIGNAL_WIFI5G;
+    }
+
 
     private int getNextId(List<DataFileInfo> list) {
         int max = 0;

@@ -10,16 +10,27 @@ import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.CheckBox;
+import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
 
-import com.jifalops.wsnlocalize.signal.RssiCollector;
-import com.jifalops.wsnlocalize.signal.SampleTrainer;
+import com.jifalops.wsnlocalize.data.DataFileInfo;
+import com.jifalops.wsnlocalize.data.RssiSampleList;
+import com.jifalops.wsnlocalize.data.helper.EstimatorsHelper;
+import com.jifalops.wsnlocalize.data.helper.InfoFileHelper;
+import com.jifalops.wsnlocalize.data.helper.SamplesHelper;
 import com.jifalops.wsnlocalize.toolbox.ServiceThreadApplication;
+import com.jifalops.wsnlocalize.toolbox.neuralnet.Depso;
+import com.jifalops.wsnlocalize.toolbox.neuralnet.DifferentialEvolution;
+import com.jifalops.wsnlocalize.toolbox.neuralnet.NeuralNetwork;
+import com.jifalops.wsnlocalize.toolbox.neuralnet.ParticleSwarm;
+import com.jifalops.wsnlocalize.toolbox.neuralnet.TerminationConditions;
+import com.jifalops.wsnlocalize.toolbox.neuralnet.TrainingResults;
 import com.jifalops.wsnlocalize.toolbox.util.SimpleLog;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -28,43 +39,43 @@ import java.util.List;
 public class EstimatorTrainingActivity extends Activity {
     static final String TAG = EstimatorTrainingActivity.class.getSimpleName();
     static final String CONTROLLER = EstimatorTrainingActivity.class.getName() + ".controller";
-    static final String EXTRA_SAMPLEINFO_INDEXES = "sampleinfo_indexes";
+    static final String EXTRA_DATAFILEINFO_INDEXES = "indexes";
 
-    TextView eventLogView,
-            btEstimatorCountView, btleEstimatorCountView,
-            wifiEstimatorCountView, wifi5gEstimatorCountView;
+    static final int LOG_ALL = 1;
+    static final int LOG_INFORMATIVE = 2;
+    static final int LOG_IMPORTANT = 3;
 
-    CheckBox btCheckBox, btleCheckBox, wifiCheckBox, wifi5gCheckBox;
-
-    int logLevel;
-
+    TextView eventLog;
+    EditText errorLimitView;
+    Button trainingButton;
+    int logLevel = LOG_INFORMATIVE;
     ServiceThreadApplication.LocalService service;
-    SampleTrainer sampleTrainer;
-
-
-
     SharedPreferences prefs;
+    List<TrainingUnit> trainers;
+    double errorLimit;
+    boolean training;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_estimatortraining);
-        eventLogView = (TextView) findViewById(R.id.eventLog);
-        btEstimatorCountView = (TextView) findViewById(R.id.btEstimatorCount);
-        btleEstimatorCountView = (TextView) findViewById(R.id.btleEstimatorCount);
-        wifiEstimatorCountView = (TextView) findViewById(R.id.wifiEstimatorCount);
-        wifi5gEstimatorCountView = (TextView) findViewById(R.id.wifi5gEstimatorCount);
-        btCheckBox = (CheckBox) findViewById(R.id.btCheckBox);
-        btleCheckBox = (CheckBox) findViewById(R.id.btleCheckBox);
-        wifiCheckBox = (CheckBox) findViewById(R.id.wifiCheckBox);
-        wifi5gCheckBox = (CheckBox) findViewById(R.id.wifi5gCheckBox);
+        eventLog = (TextView) findViewById(R.id.eventLog);
+        errorLimitView = (EditText) findViewById(R.id.errorLimit);
+        trainingButton = (Button) findViewById(R.id.trainButton);
 
-        autoScroll((ScrollView) findViewById(R.id.eventScrollView), eventLogView);
+        autoScroll((ScrollView) findViewById(R.id.eventScrollView), eventLog);
 
         prefs = getSharedPreferences(TAG, MODE_PRIVATE);
-        logLevel = prefs.getInt("logLevel", RssiCollector.LOG_INFORMATIVE);
+        logLevel = prefs.getInt("logLevel", logLevel);
 
-        sampleTrainer = SampleTrainer.getInstance();
+        int[] dataInfos = getIntent().getExtras().getIntArray(EXTRA_DATAFILEINFO_INDEXES);
+        List<DataFileInfo> infos = InfoFileHelper.getInstance().getAll();
+        trainers = new ArrayList<>(dataInfos.length);
+
+        for (int i : dataInfos) {
+            trainers.add(new TrainingUnit(InfoFileHelper.getInstance().getSignal(i), infos.get(i)));
+        }
 
         App.getInstance().bindLocalService(new Runnable() {
             @Override
@@ -81,10 +92,22 @@ public class EstimatorTrainingActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         if (service != null && !service.isPersistent()) {
-            sampleTrainer.close();
-            sampleTrainer = null;
+            enableTraining(false);
         }
         App.getInstance().unbindLocalService(null);
+    }
+
+    void enableTraining(boolean enable) {
+        if (training == enable) return;
+        training = enable;
+        if (enable) {
+            trainingButton.setText("Stop Training");
+            for (TrainingUnit tu : trainers) {
+                tu.train();
+            }
+        } else {
+            trainingButton.setText("Start Training");
+        }
     }
 
     void autoScroll(final ScrollView sv, final TextView tv) {
@@ -306,4 +329,132 @@ public class EstimatorTrainingActivity extends Activity {
             updateCountView(signal);
         }
     };
+
+    class TrainingUnit {
+        final int popSize = 20;
+        final String signal;
+        final DataFileInfo info;
+        final ParticleSwarm psoTimed, psoUntimed;
+        final DifferentialEvolution deTimed, deUntimed;
+        final Depso depsoTimed, depsoUntimed;
+
+        TrainingUnit(final String signal, final DataFileInfo info) {
+            this.signal = signal;
+            this.info = info;
+            RssiSampleList samplesTimed = SamplesHelper.getInstance().getSamples(signal, info);
+            RssiSampleList.Untimed samplesUntimed = samplesTimed.toUntimed();
+            TerminationConditions conds = new TerminationConditions();
+
+            psoTimed = new ParticleSwarm(samplesTimed, popSize, conds, new NeuralNetwork.TrainingCallbacks() {
+                @Override
+                public void onGenerationFinished(int gen, double best, double mean, double stdDev) {
+
+                }
+
+                @Override
+                public void onTrainingComplete(TrainingResults results) {
+                    if (results.error < errorLimit) {
+                        EstimatorsHelper.getInstance().add(results, info, signal, App.NN_PSO, true, null);
+                    }
+                    if (training) {
+                        psoTimed.train();
+                    }
+                }
+            });
+
+            psoUntimed = new ParticleSwarm(samplesUntimed, popSize, conds, new NeuralNetwork.TrainingCallbacks() {
+                @Override
+                public void onGenerationFinished(int gen, double best, double mean, double stdDev) {
+
+                }
+
+                @Override
+                public void onTrainingComplete(TrainingResults results) {
+                    if (results.error < errorLimit) {
+                        EstimatorsHelper.getInstance().add(results, info, signal, App.NN_PSO, false, null);
+                    }
+                    if (training) {
+                        psoUntimed.train();
+                    }
+                }
+            });
+
+            deTimed = new DifferentialEvolution(samplesTimed, popSize, conds, new NeuralNetwork.TrainingCallbacks() {
+                @Override
+                public void onGenerationFinished(int gen, double best, double mean, double stdDev) {
+
+                }
+
+                @Override
+                public void onTrainingComplete(TrainingResults results) {
+                    if (results.error < errorLimit) {
+                        EstimatorsHelper.getInstance().add(results, info, signal, App.NN_DE, true, null);
+                    }
+                    if (training) {
+                        deTimed.train();
+                    }
+                }
+            });
+
+            deUntimed = new DifferentialEvolution(samplesUntimed, popSize, conds, new NeuralNetwork.TrainingCallbacks() {
+                @Override
+                public void onGenerationFinished(int gen, double best, double mean, double stdDev) {
+
+                }
+
+                @Override
+                public void onTrainingComplete(TrainingResults results) {
+                    if (results.error < errorLimit) {
+                        EstimatorsHelper.getInstance().add(results, info, signal, App.NN_DE, false, null);
+                    }
+                    if (training) {
+                        deUntimed.train();
+                    }
+                }
+            });
+
+            depsoTimed = new Depso(samplesTimed, popSize, conds, new NeuralNetwork.TrainingCallbacks() {
+                @Override
+                public void onGenerationFinished(int gen, double best, double mean, double stdDev) {
+
+                }
+
+                @Override
+                public void onTrainingComplete(TrainingResults results) {
+                    if (results.error < errorLimit) {
+                        EstimatorsHelper.getInstance().add(results, info, signal, App.NN_DEPSO, true, null);
+                    }
+                    if (training) {
+                        depsoTimed.train();
+                    }
+                }
+            });
+
+            depsoUntimed = new Depso(samplesUntimed, popSize, conds, new NeuralNetwork.TrainingCallbacks() {
+                @Override
+                public void onGenerationFinished(int gen, double best, double mean, double stdDev) {
+
+                }
+
+                @Override
+                public void onTrainingComplete(TrainingResults results) {
+                    if (results.error < errorLimit) {
+                        EstimatorsHelper.getInstance().add(results, info, signal, App.NN_DEPSO, false, null);
+                    }
+                    if (training) {
+                        depsoUntimed.train();
+                    }
+                }
+            });
+        }
+
+        void train() {
+            psoTimed.train();
+            psoUntimed.train();
+            deTimed.train();
+            deUntimed.train();
+            depsoTimed.train();
+            depsoUntimed.train();
+        }
+    }
 }

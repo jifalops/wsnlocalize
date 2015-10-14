@@ -1,6 +1,7 @@
 package com.jifalops.wsnlocalize;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -33,7 +34,7 @@ public class InfoFilesActivity extends Activity {
             @Override
             public void onClick(View v) {
                 int[] ids = adapter.getSelectedPositions();
-                selectedCount.setText(ids.length+"");
+                selectedCount.setText(ids.length + "");
                 cardOptions.setVisibility(ids.length > 0 ? View.VISIBLE : View.GONE);
             }
         });
@@ -41,6 +42,9 @@ public class InfoFilesActivity extends Activity {
     }
 
     public void doTraining(View v) {
-
+        int[] ids = adapter.getSelectedPositions();
+        Intent intent = new Intent(this, EstimatorTrainingActivity.class);
+        intent.putExtra(EstimatorTrainingActivity.EXTRA_DATAFILEINFO_INDEXES, ids);
+        startActivity(intent);
     }
 }

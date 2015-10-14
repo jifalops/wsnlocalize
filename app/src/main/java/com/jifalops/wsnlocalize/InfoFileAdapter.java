@@ -78,7 +78,7 @@ public class InfoFileAdapter extends RecyclerView.Adapter<InfoFileAdapter.ViewHo
     @Override
     public void onBindViewHolder(final ViewHolder vh, final int position) {
         DataFileInfo info = infos.get(position);
-        String signal = getSignal(position);
+        String signal = infoHelper.getSignal(position);
 
         RssiList rssi = rssiHelper.getRssi(signal);
         RssiSampleList samples = samplesHelper.getSamples(signal, info);
@@ -207,15 +207,7 @@ public class InfoFileAdapter extends RecyclerView.Adapter<InfoFileAdapter.ViewHo
         }
     }
 
-    String getSignal(int index) {
-        int bt = infoHelper.getBt().size(),
-                btle = bt + infoHelper.getBtle().size(),
-                wifi = btle + infoHelper.getWifi().size();
-        if (index < bt) return App.SIGNAL_BT;
-        else if (index < btle) return App.SIGNAL_BTLE;
-        else if (index < wifi) return App.SIGNAL_WIFI;
-        else return App.SIGNAL_WIFI5G;
-    }
+
 
     double estimatorsAvgError(List<TrainingResults> results) {
         int len = results.size();

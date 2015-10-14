@@ -16,8 +16,8 @@ public class ParticleSwarm extends NeuralNetwork {
     protected double[][] pbest;
     protected double[] pbestError;
 
-    ParticleSwarm(SampleList samples, int popSize,
-                  TerminationConditions termCond, TrainingCallbacks callbacks) {
+    public ParticleSwarm(SampleList samples, int popSize,
+                         TerminationConditions termCond, TrainingCallbacks callbacks) {
         super(samples, popSize, termCond, callbacks);
     }
 
