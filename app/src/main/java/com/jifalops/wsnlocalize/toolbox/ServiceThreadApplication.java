@@ -132,8 +132,10 @@ public class ServiceThreadApplication extends Application {
         public int onStartCommand(Intent intent, int flags, int startId) {
             Log.i("LocalService", "Received start id " + startId + ": " + intent);
             mIsPersistent = true;
-            Intent target = intent.getParcelableExtra("notificationTarget");
-            showNotification(target);
+            if (intent != null) {
+                Intent target = intent.getParcelableExtra("notificationTarget");
+                if (target != null) showNotification(target);
+            }
             return START_STICKY;
         }
 
