@@ -102,5 +102,10 @@ public class RssiSampleList extends SampleList<RssiSample> {
             }
             return list;
         }
+
+        @Override
+        public int getNumInputs() {
+            return get(0).toUntimedArray().length - get(0).getNumOutputs();
+        }
     }
 }
