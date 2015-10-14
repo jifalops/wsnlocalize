@@ -9,6 +9,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TextView;
@@ -44,6 +45,7 @@ public class EstimatorTrainingActivity extends Activity {
     TextView eventLog;
     EditText errorLimitView;
     Button trainingButton;
+    CheckBox psoCheckbox, deCheckbox, depsoCheckbox;
     int logLevel = LOG_INFORMATIVE;
     ServiceThreadApplication.LocalService service;
     SharedPreferences prefs;
@@ -59,12 +61,18 @@ public class EstimatorTrainingActivity extends Activity {
         eventLog = (TextView) findViewById(R.id.eventLog);
         errorLimitView = (EditText) findViewById(R.id.errorLimit);
         trainingButton = (Button) findViewById(R.id.trainButton);
+        psoCheckbox = (CheckBox) findViewById(R.id.psoCheckbox);
+        deCheckbox = (CheckBox) findViewById(R.id.deCheckbox);
+        depsoCheckbox = (CheckBox) findViewById(R.id.depsoCheckbox);
 
         autoScroll((ScrollView) findViewById(R.id.eventScrollView), eventLog);
 
         prefs = getSharedPreferences(TAG, MODE_PRIVATE);
         logLevel = prefs.getInt("logLevel", logLevel);
         errorLimit = prefs.getFloat("errorLimit", errorLimit);
+        psoCheckbox.setChecked(prefs.getBoolean("psoCheckbox", psoCheckbox.isChecked()));
+        deCheckbox.setChecked(prefs.getBoolean("deCheckbox", deCheckbox.isChecked()));
+        depsoCheckbox.setChecked(prefs.getBoolean("depsoCheckbox", depsoCheckbox.isChecked()));
 
         int[] dataInfos = getIntent().getExtras().getIntArray(EXTRA_DATAFILEINFO_INDEXES);
         addEvent(LOG_IMPORTANT, dataInfos.length + " DataInfoFiles loaded.");
@@ -224,7 +232,11 @@ public class EstimatorTrainingActivity extends Activity {
         super.onPause();
         prefs.edit()
                 .putInt("logLevel", logLevel)
-                .putFloat("errorLimit", errorLimit).apply();
+                .putFloat("errorLimit", errorLimit)
+                .putBoolean("psoCheckbox", psoCheckbox.isChecked())
+                .putBoolean("deCheckbox", deCheckbox.isChecked())
+                .putBoolean("depsoCheckbox", depsoCheckbox.isChecked())
+                .apply();
     }
 
     class TrainingUnit {
@@ -254,7 +266,7 @@ public class EstimatorTrainingActivity extends Activity {
                     if (results.error < errorLimit) {
                         EstimatorsHelper.getInstance().add(results, info, signal, App.NN_PSO, true, null);
                     }
-                    if (training) {
+                    if (training && psoCheckbox.isChecked()) {
                         psoTimed.train();
                     }
                 }
@@ -272,7 +284,7 @@ public class EstimatorTrainingActivity extends Activity {
                     if (results.error < errorLimit) {
                         EstimatorsHelper.getInstance().add(results, info, signal, App.NN_PSO, false, null);
                     }
-                    if (training) {
+                    if (training && psoCheckbox.isChecked()) {
                         psoUntimed.train();
                     }
                 }
@@ -290,7 +302,7 @@ public class EstimatorTrainingActivity extends Activity {
                     if (results.error < errorLimit) {
                         EstimatorsHelper.getInstance().add(results, info, signal, App.NN_DE, true, null);
                     }
-                    if (training) {
+                    if (training && deCheckbox.isChecked()) {
                         deTimed.train();
                     }
                 }
@@ -308,7 +320,7 @@ public class EstimatorTrainingActivity extends Activity {
                     if (results.error < errorLimit) {
                         EstimatorsHelper.getInstance().add(results, info, signal, App.NN_DE, false, null);
                     }
-                    if (training) {
+                    if (training && deCheckbox.isChecked()) {
                         deUntimed.train();
                     }
                 }
@@ -326,7 +338,7 @@ public class EstimatorTrainingActivity extends Activity {
                     if (results.error < errorLimit) {
                         EstimatorsHelper.getInstance().add(results, info, signal, App.NN_DEPSO, true, null);
                     }
-                    if (training) {
+                    if (training && depsoCheckbox.isChecked()) {
                         depsoTimed.train();
                     }
                 }
@@ -344,7 +356,7 @@ public class EstimatorTrainingActivity extends Activity {
                     if (results.error < errorLimit) {
                         EstimatorsHelper.getInstance().add(results, info, signal, App.NN_DEPSO, false, null);
                     }
-                    if (training) {
+                    if (training && depsoCheckbox.isChecked()) {
                         depsoUntimed.train();
                     }
                 }
@@ -367,12 +379,18 @@ public class EstimatorTrainingActivity extends Activity {
         }
 
         void train() {
-            psoTimed.train();
-            psoUntimed.train();
-            deTimed.train();
-            deUntimed.train();
-            depsoTimed.train();
-            depsoUntimed.train();
+            if (psoCheckbox.isChecked()) {
+                psoTimed.train();
+                psoUntimed.train();
+            }
+            if (deCheckbox.isChecked()) {
+                deTimed.train();
+                deUntimed.train();
+            }
+            if (depsoCheckbox.isChecked()) {
+                depsoTimed.train();
+                depsoUntimed.train();
+            }
         }
     }
 }

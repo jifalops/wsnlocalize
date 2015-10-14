@@ -25,8 +25,26 @@
     <GridLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:columnCount="2">
+        android:columnCount="3">
+        <CheckBox android:id="@+id/psoCheckbox"
+            android:layout_columnWeight="1"
+            android:checked="true"
+            android:layout_gravity="center_horizontal"
+            android:text="PSO"/>
+        <CheckBox android:id="@+id/deCheckbox"
+            android:layout_columnWeight="1"
+            android:checked="true"
+            android:layout_gravity="center_horizontal"
+            android:text="DE"/>
+        <CheckBox android:id="@+id/depsoCheckbox"
+            android:layout_columnWeight="1"
+            android:checked="true"
+            android:layout_gravity="center_horizontal"
+            android:text="DEPSO"/>
+        <Space android:layout_columnSpan="3"
+            android:layout_height="12dp"/>
         <TextView
+            android:layout_columnSpan="2"
             android:layout_columnWeight="1"
             android:layout_gravity="center_horizontal"
             android:text="Keep results with error less than" />
@@ -40,6 +58,7 @@
         </Button>
         <EditText android:id="@+id/errorLimit"
             android:inputType="numberDecimal"
+            android:layout_columnSpan="2"
             android:hint="0.01"
             android:layout_gravity="center_horizontal"/>
     </GridLayout>
