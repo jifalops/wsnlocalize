@@ -65,7 +65,7 @@
             android:label="Estimators Viewer" />
         <activity
             android:name=".DistanceEstimationActivity"
-            android:label="Distance Estimator (mean, median)m"/>
+            android:label="Distance Estimator"/>
 
         <activity
             android:name=".SampleCreatorActivity"
