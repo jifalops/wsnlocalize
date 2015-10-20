@@ -336,42 +336,42 @@ public class DeviceEstimatorAdapter extends RecyclerView.Adapter<DeviceEstimator
             w.maxTimedEstimators.setText(maxEstimatorsTimed+"");
             w.maxUntimedEstimators.setText(maxEstimatorsUntimed+"");
 
-            w.deMinTimed.setText(device.infos.get(info).estimators.minDeTimed+"");
-            w.deMinUntimed.setText(device.infos.get(info).estimators.minDeUntimed+"");
-            w.psoMinTimed.setText(device.infos.get(info).estimators.minPsoTimed+"");
-            w.psoMinUntimed.setText(device.infos.get(info).estimators.minPsoUntimed+"");
-            w.depsoMinTimed.setText(device.infos.get(info).estimators.minDepsoTimed+"");
-            w.depsoMinUntimed.setText(device.infos.get(info).estimators.minDepsoUntimed+"");
-            w.avgMinTimed.setText(device.infos.get(info).estimators.minAvgTimed+"");
-            w.avgMinUntimed.setText(device.infos.get(info).estimators.minAvgUntimed+"");
+            w.deMinTimed.setText(format(device.infos.get(info).estimators.minDeTimed, 1));
+            w.deMinUntimed.setText(format(device.infos.get(info).estimators.minDeUntimed, 1));
+            w.psoMinTimed.setText(format(device.infos.get(info).estimators.minPsoTimed, 1));
+            w.psoMinUntimed.setText(format(device.infos.get(info).estimators.minPsoUntimed, 1));
+            w.depsoMinTimed.setText(format(device.infos.get(info).estimators.minDepsoTimed, 1));
+            w.depsoMinUntimed.setText(format(device.infos.get(info).estimators.minDepsoUntimed, 1));
+            w.avgMinTimed.setText(format(device.infos.get(info).estimators.minAvgTimed, 1));
+            w.avgMinUntimed.setText(format(device.infos.get(info).estimators.minAvgUntimed, 1));
 
-            w.deMaxTimed.setText(device.infos.get(info).estimators.maxDeTimed+"");
-            w.deMaxUntimed.setText(device.infos.get(info).estimators.maxDeUntimed+"");
-            w.psoMaxTimed.setText(device.infos.get(info).estimators.maxPsoTimed+"");
-            w.psoMaxUntimed.setText(device.infos.get(info).estimators.maxPsoUntimed+"");
-            w.depsoMaxTimed.setText(device.infos.get(info).estimators.maxDepsoTimed+"");
-            w.depsoMaxUntimed.setText(device.infos.get(info).estimators.maxDepsoUntimed+"");
-            w.avgMaxTimed.setText(device.infos.get(info).estimators.maxAvgTimed+"");
-            w.avgMaxUntimed.setText(device.infos.get(info).estimators.maxAvgUntimed+"");
+            w.deMaxTimed.setText(format(device.infos.get(info).estimators.maxDeTimed, 1));
+            w.deMaxUntimed.setText(format(device.infos.get(info).estimators.maxDeUntimed, 1));
+            w.psoMaxTimed.setText(format(device.infos.get(info).estimators.maxPsoTimed, 1));
+            w.psoMaxUntimed.setText(format(device.infos.get(info).estimators.maxPsoUntimed, 1));
+            w.depsoMaxTimed.setText(format(device.infos.get(info).estimators.maxDepsoTimed, 1));
+            w.depsoMaxUntimed.setText(format(device.infos.get(info).estimators.maxDepsoUntimed, 1));
+            w.avgMaxTimed.setText(format(device.infos.get(info).estimators.maxAvgTimed, 1));
+            w.avgMaxUntimed.setText(format(device.infos.get(info).estimators.maxAvgUntimed, 1));
 
 
-            w.deMinTimedChange.setText((device.infos.get(info).estimators.minDeTimed - device.infos.get(info).estimators.minDeTimedPrevious)+"");
-            w.deMinUntimedChange.setText((device.infos.get(info).estimators.minDeUntimed - device.infos.get(info).estimators.minDeUntimedPrevious)+"");
-            w.psoMinTimedChange.setText((device.infos.get(info).estimators.minPsoTimed - device.infos.get(info).estimators.minPsoTimedPrevious)+"");
-            w.psoMinUntimedChange.setText((device.infos.get(info).estimators.minPsoUntimed - device.infos.get(info).estimators.minPsoUntimedPrevious)+"");
-            w.depsoMinTimedChange.setText((device.infos.get(info).estimators.minDepsoTimed - device.infos.get(info).estimators.minDepsoTimedPrevious)+"");
-            w.depsoMinUntimedChange.setText((device.infos.get(info).estimators.minDepsoUntimed - device.infos.get(info).estimators.minDepsoUntimedPrevious)+"");
-            w.avgMinTimedChange.setText((device.infos.get(info).estimators.minAvgTimed - device.infos.get(info).estimators.minAvgTimedPrevious)+"");
-            w.avgMinUntimedChange.setText((device.infos.get(info).estimators.minAvgUntimed - device.infos.get(info).estimators.minAvgUntimedPrevious)+"");
+            w.deMinTimedChange.setText(format((device.infos.get(info).estimators.minDeTimed - device.infos.get(info).estimators.minDeTimedPrevious), 1));
+            w.deMinUntimedChange.setText(format((device.infos.get(info).estimators.minDeUntimed - device.infos.get(info).estimators.minDeUntimedPrevious), 1));
+            w.psoMinTimedChange.setText(format((device.infos.get(info).estimators.minPsoTimed - device.infos.get(info).estimators.minPsoTimedPrevious), 1));
+            w.psoMinUntimedChange.setText(format((device.infos.get(info).estimators.minPsoUntimed - device.infos.get(info).estimators.minPsoUntimedPrevious), 1));
+            w.depsoMinTimedChange.setText(format((device.infos.get(info).estimators.minDepsoTimed - device.infos.get(info).estimators.minDepsoTimedPrevious), 1));
+            w.depsoMinUntimedChange.setText(format((device.infos.get(info).estimators.minDepsoUntimed - device.infos.get(info).estimators.minDepsoUntimedPrevious), 1));
+            w.avgMinTimedChange.setText(format((device.infos.get(info).estimators.minAvgTimed - device.infos.get(info).estimators.minAvgTimedPrevious), 1));
+            w.avgMinUntimedChange.setText(format((device.infos.get(info).estimators.minAvgUntimed - device.infos.get(info).estimators.minAvgUntimedPrevious), 1));
 
-            w.deMaxTimedChange.setText((device.infos.get(info).estimators.maxDeTimed - device.infos.get(info).estimators.maxDeTimedPrevious)+"");
-            w.deMaxUntimedChange.setText((device.infos.get(info).estimators.maxDeUntimed - device.infos.get(info).estimators.maxDeUntimedPrevious)+"");
-            w.psoMaxTimedChange.setText((device.infos.get(info).estimators.maxPsoTimed - device.infos.get(info).estimators.maxPsoTimedPrevious)+"");
-            w.psoMaxUntimedChange.setText((device.infos.get(info).estimators.maxPsoUntimed - device.infos.get(info).estimators.maxPsoUntimedPrevious)+"");
-            w.depsoMaxTimedChange.setText((device.infos.get(info).estimators.maxDepsoTimed - device.infos.get(info).estimators.maxDepsoTimedPrevious)+"");
-            w.depsoMaxUntimedChange.setText((device.infos.get(info).estimators.maxDepsoUntimed - device.infos.get(info).estimators.maxDepsoUntimedPrevious)+"");
-            w.avgMaxTimedChange.setText((device.infos.get(info).estimators.maxAvgTimed - device.infos.get(info).estimators.maxAvgTimedPrevious)+"");
-            w.avgMaxUntimedChange.setText((device.infos.get(info).estimators.maxAvgUntimed - device.infos.get(info).estimators.maxAvgUntimedPrevious)+"");
+            w.deMaxTimedChange.setText(format((device.infos.get(info).estimators.maxDeTimed - device.infos.get(info).estimators.maxDeTimedPrevious), 1));
+            w.deMaxUntimedChange.setText(format((device.infos.get(info).estimators.maxDeUntimed - device.infos.get(info).estimators.maxDeUntimedPrevious), 1));
+            w.psoMaxTimedChange.setText(format((device.infos.get(info).estimators.maxPsoTimed - device.infos.get(info).estimators.maxPsoTimedPrevious), 1));
+            w.psoMaxUntimedChange.setText(format((device.infos.get(info).estimators.maxPsoUntimed - device.infos.get(info).estimators.maxPsoUntimedPrevious), 1));
+            w.depsoMaxTimedChange.setText(format((device.infos.get(info).estimators.maxDepsoTimed - device.infos.get(info).estimators.maxDepsoTimedPrevious), 1));
+            w.depsoMaxUntimedChange.setText(format((device.infos.get(info).estimators.maxDepsoUntimed - device.infos.get(info).estimators.maxDepsoUntimedPrevious), 1));
+            w.avgMaxTimedChange.setText(format((device.infos.get(info).estimators.maxAvgTimed - device.infos.get(info).estimators.maxAvgTimedPrevious), 1));
+            w.avgMaxUntimedChange.setText(format((device.infos.get(info).estimators.maxAvgUntimed - device.infos.get(info).estimators.maxAvgUntimedPrevious), 1));
         }
     }
     
