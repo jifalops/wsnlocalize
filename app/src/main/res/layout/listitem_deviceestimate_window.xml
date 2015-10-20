@@ -1,0 +1,267 @@
+<?xml version="1.0" encoding="utf-8"?>
+<GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="match_parent"
+android:layout_height="wrap_content"
+android:columnCount="1">
+    <GridLayout android:columnCount="2">
+        <TextView
+            android:layout_width="match_parent"
+            android:paddingLeft="16dp"
+            android:paddingRight="16dp"
+            android:id="@+id/expandCollapse"
+            android:text="-"
+            android:textSize="24sp" />
+        <TextView android:id="@+id/windowLimits"
+           android:text="1: 20, 20000, 20, 2000000" />
+    </GridLayout>
+    <GridLayout
+        android:id="@+id/estimatesContainer"
+        android:layout_width="match_parent"
+        android:columnCount="2">
+        <TextView android:text="Untimed Min\nEstimators"
+            android:layout_gravity="center_vertical"
+            android:layout_columnWeight="0.5"
+            android:gravity="center_horizontal"/>
+        <GridLayout android:layout_columnWeight="1"
+            android:layout_rowSpan="2"
+            android:columnCount="5">
+            <Space />
+            <TextView android:text="PSO"
+                android:layout_gravity="right"
+                android:layout_columnWeight="1"/>
+            <TextView android:text="DE"
+                android:layout_gravity="right"
+                android:layout_columnWeight="1"/>
+            <TextView android:text="DEPSO"
+                android:layout_gravity="right"
+                android:layout_columnWeight="1"/>
+            <TextView android:text="Avg."
+                android:layout_gravity="right"
+                android:layout_columnWeight="1"/>
+
+            <TextView android:text="Est."
+                android:layout_gravity="right"/>
+            <TextView android:id="@+id/untimedMinPsoEstimatedDistance"
+                android:text="0.0"
+                android:layout_gravity="right"/>
+            <TextView android:id="@+id/untimedMinDeEstimatedDistance"
+                android:text="0.0"
+                android:layout_gravity="right"/>
+            <TextView android:id="@+id/untimedMinDepsoEstimatedDistance"
+                android:text="0.0"
+                android:layout_gravity="right"/>
+            <TextView android:id="@+id/untimedMinAvgEstimatedDistance"
+                android:text="0.0"
+                android:layout_gravity="right"/>
+
+            <TextView android:text="Change"
+                android:layout_gravity="right"/>
+            <TextView
+                android:text="+0.0"
+                android:layout_gravity="right"
+                android:id="@+id/untimedMinPsoEstimateChange"/>
+            <TextView
+                android:text="+0.0"
+                android:layout_gravity="right"
+                android:id="@+id/untimedMinDeEstimateChange"/>
+            <TextView
+                android:text="+0.0"
+                android:layout_gravity="right"
+                android:id="@+id/untimedMinDepsoEstimateChange"/>
+            <TextView
+                android:text="+0.0"
+                android:layout_gravity="right"
+                android:id="@+id/untimedMinAvgEstimateChange"/>
+        </GridLayout>
+        <TextView android:text="10"
+            android:id="@+id/untimedMinEstimatorsCount"
+            android:layout_gravity="center_horizontal"/>
+
+        <Space android:layout_columnSpan="2"
+            android:layout_height="16dp"/>
+
+        <TextView android:text="Untimed Max\nEstimators"
+            android:layout_gravity="center_vertical"
+            android:layout_columnWeight="0.5"
+            android:gravity="center_horizontal"/>
+        <GridLayout android:layout_columnWeight="1"
+            android:layout_rowSpan="2"
+            android:columnCount="5">
+            <Space />
+            <TextView android:text="PSO"
+                android:layout_gravity="right"
+                android:layout_columnWeight="1"/>
+            <TextView android:text="DE"
+                android:layout_gravity="right"
+                android:layout_columnWeight="1"/>
+            <TextView android:text="DEPSO"
+                android:layout_gravity="right"
+                android:layout_columnWeight="1"/>
+            <TextView android:text="Avg."
+                android:layout_gravity="right"
+                android:layout_columnWeight="1"/>
+
+            <TextView android:text="Est."
+                android:layout_gravity="right"/>
+            <TextView android:id="@+id/untimedMaxPsoEstimatedDistance"
+                android:text="0.0"
+                android:layout_gravity="right"/>
+            <TextView android:id="@+id/untimedMaxDeEstimatedDistance"
+                android:text="0.0"
+                android:layout_gravity="right"/>
+            <TextView android:id="@+id/untimedMaxDepsoEstimatedDistance"
+                android:text="0.0"
+                android:layout_gravity="right"/>
+            <TextView android:id="@+id/untimedMaxAvgEstimatedDistance"
+                android:text="0.0"
+                android:layout_gravity="right"/>
+
+            <TextView android:text="Change"
+                android:layout_gravity="right"/>
+            <TextView
+                android:text="+0.0"
+                android:layout_gravity="right"
+                android:id="@+id/untimedMaxPsoEstimateChange"/>
+            <TextView
+                android:text="+0.0"
+                android:layout_gravity="right"
+                android:id="@+id/untimedMaxDeEstimateChange"/>
+            <TextView
+                android:text="+0.0"
+                android:layout_gravity="right"
+                android:id="@+id/untimedMaxDepsoEstimateChange"/>
+            <TextView
+                android:text="+0.0"
+                android:layout_gravity="right"
+                android:id="@+id/untimedMaxAvgEstimateChange"/>
+        </GridLayout>
+        <TextView android:text="100"
+            android:id="@+id/untimedMaxEstimatorsCount"
+            android:layout_gravity="center_horizontal"/>
+
+        <Space android:layout_columnSpan="2"
+            android:layout_height="16dp"/>
+
+
+        <TextView android:text="Timed Min\nEstimators"
+            android:layout_gravity="center_vertical"
+            android:layout_columnWeight="0.5"
+            android:gravity="center_horizontal"/>
+        <GridLayout android:layout_columnWeight="1"
+            android:layout_rowSpan="2"
+            android:columnCount="5">
+            <Space />
+            <TextView android:text="PSO"
+                android:layout_gravity="right"
+                android:layout_columnWeight="1"/>
+            <TextView android:text="DE"
+                android:layout_gravity="right"
+                android:layout_columnWeight="1"/>
+            <TextView android:text="DEPSO"
+                android:layout_gravity="right"
+                android:layout_columnWeight="1"/>
+            <TextView android:text="Avg."
+                android:layout_gravity="right"
+                android:layout_columnWeight="1"/>
+
+            <TextView android:text="Est."
+                android:layout_gravity="right"/>
+            <TextView android:id="@+id/timedMinPsoEstimatedDistance"
+                android:text="0.0"
+                android:layout_gravity="right"/>
+            <TextView android:id="@+id/timedMinDeEstimatedDistance"
+                android:text="0.0"
+                android:layout_gravity="right"/>
+            <TextView android:id="@+id/timedMinDepsoEstimatedDistance"
+                android:text="0.0"
+                android:layout_gravity="right"/>
+            <TextView android:id="@+id/timedMinAvgEstimatedDistance"
+                android:text="0.0"
+                android:layout_gravity="right"/>
+
+            <TextView android:text="Change"
+                android:layout_gravity="right"/>
+            <TextView
+                android:text="+0.0"
+                android:layout_gravity="right"
+                android:id="@+id/timedMinPsoEstimateChange"/>
+            <TextView
+                android:text="+0.0"
+                android:layout_gravity="right"
+                android:id="@+id/timedMinDeEstimateChange"/>
+            <TextView
+                android:text="+0.0"
+                android:layout_gravity="right"
+                android:id="@+id/timedMinDepsoEstimateChange"/>
+            <TextView
+                android:text="+0.0"
+                android:layout_gravity="right"
+                android:id="@+id/timedMinAvgEstimateChange"/>
+        </GridLayout>
+        <TextView android:text="10"
+            android:id="@+id/timedMinEstimatorsCount"
+            android:layout_gravity="center_horizontal"/>
+
+        <Space android:layout_columnSpan="2"
+            android:layout_height="16dp"/>
+
+        <TextView android:text="Timed Max\nEstimators"
+            android:layout_gravity="center_vertical"
+            android:layout_columnWeight="0.5"
+            android:gravity="center_horizontal"/>
+        <GridLayout android:layout_columnWeight="1"
+            android:layout_rowSpan="2"
+            android:columnCount="5">
+            <Space />
+            <TextView android:text="PSO"
+                android:layout_gravity="right"
+                android:layout_columnWeight="1"/>
+            <TextView android:text="DE"
+                android:layout_gravity="right"
+                android:layout_columnWeight="1"/>
+            <TextView android:text="DEPSO"
+                android:layout_gravity="right"
+                android:layout_columnWeight="1"/>
+            <TextView android:text="Avg."
+                android:layout_gravity="right"
+                android:layout_columnWeight="1"/>
+
+            <TextView android:text="Est."
+                android:layout_gravity="right"/>
+            <TextView android:id="@+id/timedMaxPsoEstimatedDistance"
+                android:text="0.0"
+                android:layout_gravity="right"/>
+            <TextView android:id="@+id/timedMaxDeEstimatedDistance"
+                android:text="0.0"
+                android:layout_gravity="right"/>
+            <TextView android:id="@+id/timedMaxDepsoEstimatedDistance"
+                android:text="0.0"
+                android:layout_gravity="right"/>
+            <TextView android:id="@+id/timedMaxAvgEstimatedDistance"
+                android:text="0.0"
+                android:layout_gravity="right"/>
+
+            <TextView android:text="Change"
+                android:layout_gravity="right"/>
+            <TextView
+                android:text="+0.0"
+                android:layout_gravity="right"
+                android:id="@+id/timedMaxPsoEstimateChange"/>
+            <TextView
+                android:text="+0.0"
+                android:layout_gravity="right"
+                android:id="@+id/timedMaxDeEstimateChange"/>
+            <TextView
+                android:text="+0.0"
+                android:layout_gravity="right"
+                android:id="@+id/timedMaxDepsoEstimateChange"/>
+            <TextView
+                android:text="+0.0"
+                android:layout_gravity="right"
+                android:id="@+id/timedMaxAvgEstimateChange"/>
+        </GridLayout>
+        <TextView android:text="100"
+            android:id="@+id/timedMaxEstimatorsCount"
+            android:layout_gravity="center_horizontal"/>
+    </GridLayout>
+</GridLayout>
