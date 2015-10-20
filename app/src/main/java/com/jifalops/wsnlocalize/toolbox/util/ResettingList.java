@@ -44,6 +44,25 @@ public class ResettingList<T> {
                     || count >= maxCount
                     || time >= maxTime;
         }
+
+        @Override
+        public String toString() {
+            return minCount +","+ minTime +","+ maxCount +","+ maxTime;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o instanceof Trigger) {
+                Trigger t = (Trigger) o;
+                return minCount == t.minCount && minTime == t.minTime &&
+                        maxCount == t.maxCount && maxTime == t.maxTime;
+            } else return false;
+        }
+
+        @Override
+        public int hashCode() {
+            return toString().hashCode();
+        }
     }
 
     private final Trigger trigger;
