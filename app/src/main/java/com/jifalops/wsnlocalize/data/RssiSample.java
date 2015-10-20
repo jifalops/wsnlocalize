@@ -1,7 +1,12 @@
 
 package com.jifalops.wsnlocalize.data;
 
+import com.jifalops.wsnlocalize.App;
+import com.jifalops.wsnlocalize.toolbox.neuralnet.MlpWeightMetrics;
+import com.jifalops.wsnlocalize.toolbox.neuralnet.NeuralNetwork;
 import com.jifalops.wsnlocalize.toolbox.neuralnet.Sample;
+import com.jifalops.wsnlocalize.toolbox.neuralnet.Scaler;
+import com.jifalops.wsnlocalize.toolbox.neuralnet.TrainingResults;
 import com.jifalops.wsnlocalize.toolbox.util.Stats;
 
 import java.util.List;
@@ -10,6 +15,10 @@ import java.util.List;
  *
  */
 public class RssiSample implements Sample {
+    public static double MIN_ESTIMATE = 0.1;
+    public static double MAX_ESTIMATE_BT = 15;
+    public static double MAX_ESTIMATE_WIFI = 110;
+
     public static class Rss {
         public final int count, min, max, range;
         public final double mean, median, stdDev;
@@ -139,4 +148,37 @@ public class RssiSample implements Sample {
         return 1;
     }
 
+    public double estimate(double max, boolean timed, double[] weights, Scaler scaler, MlpWeightMetrics metrics) {
+        double[] scaled = scaler.scale(new double[][]{(timed ? toArray() : toUntimedArray())})[0];
+        double[] outputs = NeuralNetwork.calcOutputs(weights, scaled, metrics);
+        return bound(scaler.unscale(outputs)[0], max);
+    }
+
+    public double[] estimate(double max, boolean timed, List<TrainingResults> results, Scaler scaler, MlpWeightMetrics metrics) {
+        double[] scaled = scaler.scale(new double[][]{(timed ? toArray() : toUntimedArray())})[0];
+        int rows = results.size();
+        double[] estimates = new double[rows];
+        for (int i = 0; i < rows; ++i) {
+            estimates[i] = bound(scaler.unscale(NeuralNetwork.calcOutputs(
+                    results.get(i).weights, scaled, metrics))[0], max);
+        }
+        return estimates;
+    }
+
+    private double bound(double estimate, double max) {
+        if (estimate < MIN_ESTIMATE) return MIN_ESTIMATE;
+        else if (estimate > max) return max;
+        else return estimate;
+    }
+
+    public static double getMaxEstimate(String signal) {
+        switch (signal) {
+            case App.SIGNAL_BT:
+                // fall through
+            case App.SIGNAL_BTLE:
+                return MAX_ESTIMATE_BT;
+            default:
+                return MAX_ESTIMATE_WIFI;
+        }
+    }
 }
