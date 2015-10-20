@@ -21,10 +21,10 @@ public class MlpWeightMetrics {
         numWeights = numHidden * (numInputs + numOutputs + 1) + numOutputs;  // MLP
     }
 
-    public MlpWeightMetrics(Sample sample, double[] weights) {
-        this(sample.toArray().length - sample.getNumOutputs(), sample.getNumOutputs(),
-                (weights.length - sample.getNumOutputs()) / (sample.toArray().length + 1));
-    }
+//    public MlpWeightMetrics(Sample sample, double[] weights) {
+//        this(sample.toArray().length - sample.getNumOutputs(), sample.getNumOutputs(),
+//                (weights.length - sample.getNumOutputs()) / (sample.toArray().length + 1));
+//    }
 
     public MlpWeightMetrics(String csv) {
         String[] p = csv.split(",");
