@@ -131,6 +131,15 @@ public class InfoFileHelper {
         return list;
     }
 
+    public List<DataFileInfo> get(String signal) {
+        switch (signal) {
+            case App.SIGNAL_BT: return bt;
+            case App.SIGNAL_BTLE: return btle;
+            case App.SIGNAL_WIFI: return wifi;
+            default: return wifi5g;
+        }
+    }
+
     public String getSignal(int index) {
         int btIndex = bt.size(),
                 btleIndex = btIndex + btle.size(),
